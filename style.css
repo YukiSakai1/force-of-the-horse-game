@@ -1836,11 +1836,10 @@
       margin-bottom: 0;
     }
 
-    /* ---- デスクトップ専用レイアウト ---- */
     /* 3D傾き（10°または20°）に応じて相手山札の上の余白を動的に詰める（10°で-185px、20°で-260px） */
     body.field-3d .field-tilt {
       margin-top: var(--field-tilt-shift-y, -185px);
-      margin-bottom: 24px;
+      margin-bottom: 0px;
     }
 
     body.field-3d[data-tilt="0"] .field-tilt {
@@ -1855,12 +1854,12 @@
       margin-top: -260px;
     }
 
-    /* ナレーターは手札とデッキの間に固定配置（幅はフィールドに合わせてスッキリ収める） */
+    /* ナレーターは手札とデッキの間に固定配置（デッキのすぐ下に間隔を詰めて配置） */
     .narrator {
       position: relative;
       width: 90%;
       max-width: 660px;
-      margin: 8px auto 12px;
+      margin: -10px auto 14px;
       z-index: 30;
     }
 
@@ -1917,7 +1916,7 @@
     /* フィールドの広々とした余白・カードサイズを維持 */
     .field-image-wrap {
       padding-top: 6px;
-      padding-bottom: 24px;
+      padding-bottom: 12px;
       gap: 155px 16px;
     }
 
