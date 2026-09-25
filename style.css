@@ -1814,12 +1814,12 @@
     }
 
     .hand-zone {
-      height: 168px;
-      min-height: 168px;
+      height: 200px;
+      min-height: 200px;
     }
 
     .hand-row {
-      height: 144px;
+      height: 176px;
     }
   }
 
@@ -1855,13 +1855,19 @@
     user-select: none;
   }
 
-  /* スモールモバイル（480px以下）では手札カードをひと回り小さく表示
-     ※ 無条件の .card 基本ルールより後ろに置かないと、カスケード順で
-     この上書きが無効化されてしまう（同じ詳細度なので後勝ち） */
+  /* モバイル（480px以下）では手札カードを大きく表示 */
   @media (max-width:480px) {
     .card {
-      width: 70px;
-      height: 98px;
+      width: 88px;
+      height: 123px;
+    }
+  }
+
+  /* 中くらいのモバイル（481px-760px）でもカードサイズを大きく */
+  @media (min-width:481px) and (max-width:760px) {
+    .card {
+      width: 100px;
+      height: 140px;
     }
   }
 
