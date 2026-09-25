@@ -870,7 +870,7 @@
   body.field-3d .field-tilt {
     transform: perspective(var(--field-perspective, 1300px)) rotateX(var(--tilt-angle, 10deg));
     transform-origin: 50% 100%;
-    margin: -30px 0 8px;
+    margin: -10px 0 14px;
   }
 
   /* radiating "floor" lines that share the field's own tilt and vanishing
@@ -1706,7 +1706,7 @@
 
     /* 3Dモード時のfield-tiltの引き上げ量をモバイルで強化 */
     body.field-3d .field-tilt {
-      margin-top: -30px;
+      margin-top: -12px;
     }
 
     /* 20度のときはギャップがより大きくなるためさらに引き上げる */
