@@ -3816,7 +3816,7 @@
   }
 
   body.field-cyber .zone-body:empty::before {
-    content: 'シチュエーション';
+    content: '状況カード置き場';
     font-size: 9px;
     letter-spacing: .08em;
     color: rgba(62, 224, 255, .55);
