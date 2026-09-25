@@ -897,7 +897,7 @@
     display: grid;
     grid-template-rows: auto auto auto;
     grid-template-columns: repeat(4, 1fr);
-    gap: 23vw 2vw;
+    gap: 9vw 2vw;
     padding: 3vw 3vw 3.4vw;
   }
 
@@ -1694,6 +1694,12 @@
       margin-top: -40px;
     }
 
+    /* 20度では行間がさらに広く見えるためgapをさらに絞る */
+    body.field-3d[data-tilt="20"] .field-image-wrap,
+    body.field-3d.tilt-20-plus .field-image-wrap {
+      gap: 6vw 2vw;
+    }
+
     /* 20度のときは手札が20px上がるため、boardの底パディングを広げて重なりを防止 */
     body.field-3d[data-tilt="20"] .board,
     body.field-3d.tilt-20-plus .board {
@@ -1938,6 +1944,12 @@
 
     body.field-3d[data-tilt="20"] .field-tilt {
       margin-top: -80px;
+    }
+
+    /* デスクトップ: 20度では行間もさらに絞る */
+    body.field-3d[data-tilt="20"] .field-image-wrap,
+    body.field-3d.tilt-20-plus .field-image-wrap {
+      gap: 6vw 2vw;
     }
 
     /* ナレーターは手札とデッキの間に固定配置（デッキのすぐ下に間隔を詰めて配置） */

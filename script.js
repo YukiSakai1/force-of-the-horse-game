@@ -2068,7 +2068,12 @@
 
     // STEP 10: 相手のガード確認
     setProgress(11);
-    setNarrator('コストを支払えたね！ 馬カードはもうフィールドに出ている。ここで相手がガードするか確認しよう…');
+    setNarrator('コストを支払えたね！ 馬カードはもうフィールドに出ている。');
+    showNextButton(true);
+    await waitNext();
+    if (myRunId !== tutorialRunId) return;
+
+    setNarrator('ここで相手がガードするか確認しよう…');
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
