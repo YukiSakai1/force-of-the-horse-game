@@ -2552,8 +2552,6 @@
     var userAdjustedZoom = false;
     var DEFAULTS = { tilt: 10, depth: 1300, zoom: computeDefaultZoom() };
     var baseTilt = DEFAULTS.tilt;
-    var pointerTiltEnabled = true;
-    var POINTER_RANGE = 6; // degrees of extra tilt added by touch/mouse position
 
     function applyTiltVar(deg) {
       document.body.style.setProperty('--tilt-angle', deg + 'deg');
@@ -2641,12 +2639,6 @@
       });
     }
 
-    if (touchToggle) {
-      touchToggle.addEventListener('change', function () {
-        pointerTiltEnabled = touchToggle.checked;
-        if (!pointerTiltEnabled) applyTiltVar(baseTilt);
-      });
-    }
 
 
 
@@ -2663,23 +2655,6 @@
       });
     }
 
-    // subtle extra tilt (vertical axis only) that follows touch/mouse position
-    // over the field itself, on top of the chosen base angle; toggleable above
-    var fieldEl = $('field-tilt');
-    if (fieldEl) {
-      var pointerTilt = function (clientY) {
-        if (!pointerTiltEnabled || !document.body.classList.contains('field-3d')) return;
-        var r = fieldEl.getBoundingClientRect();
-        if (!r.height) return;
-        var py = Math.max(0, Math.min(1, (clientY - r.top) / r.height));
-        applyTiltVar(baseTilt + (0.5 - py) * POINTER_RANGE);
-      };
-      var pointerTiltReset = function () { applyTiltVar(baseTilt); };
-      fieldEl.addEventListener('mousemove', function (e) { pointerTilt(e.clientY); });
-      fieldEl.addEventListener('mouseleave', pointerTiltReset);
-      fieldEl.addEventListener('touchmove', function (e) { if (e.touches[0]) pointerTilt(e.touches[0].clientY); }, { passive: true });
-      fieldEl.addEventListener('touchend', pointerTiltReset, { passive: true });
-    }
   })();
 
   /* ===================== field theme switch (スライドスイッチ: サイバー / クラシック) ===================== */
