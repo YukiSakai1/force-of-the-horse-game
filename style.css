@@ -870,7 +870,7 @@
   body.field-3d .field-tilt {
     transform: perspective(var(--field-perspective, 1300px)) rotateX(var(--tilt-angle, 10deg));
     transform-origin: 50% 100%;
-    margin: -10px 0 14px;
+    margin: -30px 0 8px;
   }
 
   /* radiating "floor" lines that share the field's own tilt and vanishing
@@ -1706,13 +1706,13 @@
 
     /* 3Dモード時のfield-tiltの引き上げ量をモバイルで強化 */
     body.field-3d .field-tilt {
-      margin-top: -18px;
+      margin-top: -50px;
     }
 
     /* 20度のときはギャップがより大きくなるためさらに引き上げる */
     body.field-3d[data-tilt="20"] .field-tilt,
     body.field-3d.tilt-20-plus .field-tilt {
-      margin-top: -40px;
+      margin-top: -80px;
     }
 
     /* 20度では行間がさらに広く見えるためgapをさらに絞る */
@@ -1965,11 +1965,11 @@
     }
 
     body.field-3d[data-tilt="10"] .field-tilt {
-      margin-top: -50px;
+      margin-top: -100px;
     }
 
     body.field-3d[data-tilt="20"] .field-tilt {
-      margin-top: -80px;
+      margin-top: -140px;
     }
 
     /* デスクトップ: 20度では行間もさらに絞る */
