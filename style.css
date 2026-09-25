@@ -1237,7 +1237,7 @@
 
   .lane-back-2 {
     --t: var(--stack-t, 1);
-    transform: translate(calc(4px*var(--t)), calc(4px*var(--t))) rotate(calc(4deg*var(--t)));
+    transform: translate(calc(2px*var(--t)), calc(2px*var(--t))) rotate(calc(1.5deg*var(--t)));
     z-index: 1;
     opacity: calc(.5 + .35*var(--t));
     transition: transform .35s ease, opacity .35s ease, box-shadow .35s ease;
@@ -1265,7 +1265,7 @@
 
   .lane-back-1 {
     --t: var(--stack-t, 1);
-    transform: translate(calc(2px*var(--t)), calc(2px*var(--t))) rotate(calc(2deg*var(--t)));
+    transform: translate(calc(1.5px*var(--t)), calc(1.5px*var(--t))) rotate(calc(0.8deg*var(--t)));
     z-index: 2;
     opacity: calc(.68 + .24*var(--t));
     transition: transform .35s ease, opacity .35s ease;
@@ -1618,7 +1618,7 @@
   }
 
   .farm-back-1 {
-    transform: translate(3px, 3px) rotate(3deg);
+    transform: translate(2px, 2px) rotate(1deg);
     z-index: 1;
     opacity: .85;
   }
