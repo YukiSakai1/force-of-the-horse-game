@@ -1688,6 +1688,12 @@
       margin-top: -18px;
     }
 
+    /* 20度のときはギャップがより大きくなるためさらに引き上げる */
+    body.field-3d[data-tilt="20"] .field-tilt,
+    body.field-3d.tilt-20-plus .field-tilt {
+      margin-top: -40px;
+    }
+
     /* 20度のときは手札が20px上がるため、boardの底パディングを広げて重なりを防止 */
     body.field-3d[data-tilt="20"] .board,
     body.field-3d.tilt-20-plus .board {
