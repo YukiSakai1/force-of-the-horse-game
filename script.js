@@ -2460,55 +2460,94 @@
     updateFabDisplay();
   });
 
-  /* ===================== ドラッグ機能（ナレーター・コマンドバー） ===================== */
+  /* ===================== ドラッグ機能（ナレーター） ===================== */
   function makeDraggable(el, handleSelector) {
+    if (!el) return;
     var isDragging = false;
-    var offsetX = 0, offsetY = 0;
-    var handle = handleSelector ? el.querySelector(handleSelector) : el;
-    if (!handle) return;
+    var startX = 0, startY = 0;
+    var initLeft = 0, initTop = 0;
+    var movedThreshold = false;
 
     function startDrag(e) {
-      if (e.target.closest && e.target.closest('.narrator-next, .narrator-back, .narrator-forward')) return;
-      if (e.target.closest && e.target.closest('.cmd-fab, .cmd-menu-btn')) return;
+      // ボタン類をクリックした時はドラッグを開始せず通常のクリックを優先
+      if (e.target.closest && e.target.closest('button, .narrator-next, .narrator-back, .narrator-forward, .cmd-fab, .cmd-menu-btn')) {
+        return;
+      }
+
+      var clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+      var clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+      if (clientX === null || clientY === null) return;
+
       var rect = el.getBoundingClientRect();
-      document.body.dataset.narratorMoved = '1';
-      el.classList.add('dragging');
-      el.style.position = 'fixed';
-      el.style.top = rect.top + 'px';
-      el.style.left = rect.left + 'px';
-      el.style.bottom = 'auto';
-      el.style.right = 'auto';
-      el.style.width = rect.width + 'px';
-      el.style.margin = '0';
-      var clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      var clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      offsetX = clientX - rect.left;
-      offsetY = clientY - rect.top;
+      startX = clientX;
+      startY = clientY;
+      initLeft = rect.left;
+      initTop = rect.top;
       isDragging = true;
-      e.preventDefault();
+      movedThreshold = false;
+
+      if (e.type === 'touchstart') {
+        // スクロールを防止
+        e.preventDefault();
+      }
     }
+
     function onDrag(e) {
       if (!isDragging) return;
-      var clientX = e.clientX || (e.touches && e.touches[0].clientX);
-      var clientY = e.clientY || (e.touches && e.touches[0].clientY);
-      el.style.left = (clientX - offsetX) + 'px';
-      el.style.top = (clientY - offsetY) + 'px';
-      e.preventDefault();
+      var clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : null);
+      var clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : null);
+      if (clientX === null || clientY === null) return;
+
+      var dx = clientX - startX;
+      var dy = clientY - startY;
+
+      // わずかなクリックブレとドラッグを判定
+      if (!movedThreshold && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+        movedThreshold = true;
+        document.body.dataset.narratorMoved = '1';
+        el.classList.add('dragging');
+        el.style.position = 'fixed';
+        var rect = el.getBoundingClientRect();
+        el.style.width = rect.width + 'px';
+        el.style.margin = '0';
+        el.style.bottom = 'auto';
+        el.style.right = 'auto';
+        el.style.zIndex = '500';
+      }
+
+      if (movedThreshold) {
+        var newLeft = initLeft + dx;
+        var newTop = initTop + dy;
+
+        var elW = el.offsetWidth || 280;
+        var elH = el.offsetHeight || 60;
+        newLeft = Math.max(4, Math.min(window.innerWidth - elW - 4, newLeft));
+        newTop = Math.max(4, Math.min(window.innerHeight - elH - 4, newTop));
+
+        el.style.left = newLeft + 'px';
+        el.style.top = newTop + 'px';
+      }
+
+      if (e.cancelable) e.preventDefault();
     }
+
     function stopDrag() {
       if (!isDragging) return;
       isDragging = false;
+      el.classList.remove('dragging');
     }
-    handle.addEventListener('mousedown', startDrag);
-    document.addEventListener('mousemove', onDrag);
+
+    el.addEventListener('mousedown', startDrag);
+    document.addEventListener('mousemove', onDrag, { passive: false });
     document.addEventListener('mouseup', stopDrag);
-    handle.addEventListener('touchstart', startDrag, { passive: false });
+
+    el.addEventListener('touchstart', startDrag, { passive: false });
     document.addEventListener('touchmove', onDrag, { passive: false });
     document.addEventListener('touchend', stopDrag);
+    document.addEventListener('touchcancel', stopDrag);
   }
 
-  makeDraggable($('narrator'), '.drag-handle');
-  // コマンドバーは固定配置なのでドラッグ無効化
+  makeDraggable($('narrator'));
 
   /* ===================== ナレーターの初期位置（自分の山札エリアに美しく固定） ===================== */
   function positionNarratorInitial() {

@@ -1919,13 +1919,6 @@
       height: 52px;
     }
 
-
-
-    /* デスクトップは常に定位置なのでドラッグ不要 */
-    .narrator .drag-handle {
-      display: none;
-    }
-
     .cmd-fab {
       width: 60px;
       height: 60px;
@@ -2527,16 +2520,29 @@
     cursor: grab;
     user-select: none;
     box-sizing: border-box;
+    touch-action: none;
   }
 
   .narrator.dragging {
     position: fixed !important;
-    z-index: 100 !important;
+    z-index: 500 !important;
     cursor: grabbing;
+    opacity: 0.96;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, .8);
   }
 
-  .narrator * {
-    pointer-events: none;
+  .narrator-bubble,
+  .narrator-portrait,
+  .narrator .drag-handle {
+    pointer-events: auto;
+    cursor: grab;
+  }
+
+  .narrator.dragging,
+  .narrator.dragging .narrator-bubble,
+  .narrator.dragging .narrator-portrait,
+  .narrator.dragging .drag-handle {
+    cursor: grabbing;
   }
 
   .narrator-next,
@@ -2551,14 +2557,16 @@
     right: 10px;
     top: 7px;
     z-index: 3;
-    font-size: 12px;
+    font-size: 13px;
     color: var(--rail-dim);
-    opacity: .55;
-    padding: 2px 4px;
+    opacity: .65;
+    padding: 2px 5px;
     line-height: 1;
     letter-spacing: -2px;
     pointer-events: auto;
     cursor: grab;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, .15);
   }
 
   /* ポートレートは吹き出しの外側に配置。キャラクターが話している見た目にするため
