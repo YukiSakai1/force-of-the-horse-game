@@ -897,7 +897,7 @@
     display: grid;
     grid-template-rows: auto auto auto;
     grid-template-columns: repeat(4, 1fr);
-    gap: 9vw 2vw;
+    gap: clamp(30px, 9vw, 60px) clamp(4px, 2vw, 16px);
     padding: 3vw 3vw 3.4vw;
   }
 
@@ -1689,7 +1689,7 @@
      デスクトップ幅（860px以上）はこれまで通り通常のレイアウトのまま。 */
   @media (max-width:859px) {
     .board {
-      padding-bottom: 202px;
+      padding-bottom: 178px;
       gap: 4px;
       transition: padding-bottom .35s cubic-bezier(.2, .7, .3, 1);
     }
@@ -1718,13 +1718,13 @@
     /* 20度では行間がさらに広く見えるためgapをさらに絞る */
     body.field-3d[data-tilt="20"] .field-image-wrap,
     body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: 6vw 2vw;
+      gap: clamp(14px, 6vw, 40px) clamp(4px, 2vw, 16px);
     }
 
     /* 20度のときは手札が20px上がるため、boardの底パディングを広げて重なりを防止 */
     body.field-3d[data-tilt="20"] .board,
     body.field-3d.tilt-20-plus .board {
-      padding-bottom: 224px;
+      padding-bottom: 200px;
     }
 
     .hand-zone {
@@ -1733,9 +1733,9 @@
       right: 8px;
       bottom: calc(2px + env(safe-area-inset-bottom, 0px));
       z-index: 40;
-      height: 190px;
-      min-height: 190px;
-      padding: 5px 6px 4px;
+      height: 162px;
+      min-height: 162px;
+      padding: 4px 6px 3px;
       border: 1px solid rgba(227, 178, 60, .45);
       border-radius: 14px 14px 0 0;
       background: linear-gradient(180deg, rgba(10, 18, 32, .97), rgba(5, 10, 20, .98));
@@ -1751,7 +1751,7 @@
 
     .hand-row {
       flex: none;
-      height: 166px;
+      height: 140px;
       padding: 0 2px;
     }
 
@@ -1819,17 +1819,17 @@
     }
 
     .hand-zone {
-      height: 148px;
-      min-height: 148px;
+      height: 128px;
+      min-height: 128px;
     }
 
     .hand-row {
-      height: 122px;
+      height: 104px;
     }
 
     .card {
-      width: 80px;
-      height: 112px;
+      width: 70px;
+      height: 98px;
     }
   }
 
@@ -1948,6 +1948,11 @@
       z-index: 5;
     }
 
+    /* デスクトップ: max-width固定なのでgapも固定pxに切り替えてビューポート変動の影響をゼロにする */
+    .field-image-wrap {
+      gap: 30px 8px;
+    }
+
     /* 3D傾き（10°または20°）およびズーム倍率に応じてフィールド余白を動的に詰める */
     body.field-3d .field-tilt {
       margin-top: var(--field-tilt-shift-y, -50px);
@@ -1970,7 +1975,7 @@
     /* デスクトップ: 20度では行間もさらに絞る */
     body.field-3d[data-tilt="20"] .field-image-wrap,
     body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: 6vw 2vw;
+      gap: clamp(14px, 6vw, 40px) clamp(4px, 2vw, 16px);
     }
 
     /* ナレーターは手札とデッキの間に固定配置（デッキのすぐ下に間隔を詰めて配置） */
