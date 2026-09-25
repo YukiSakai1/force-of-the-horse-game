@@ -2665,8 +2665,9 @@
       document.body.dataset.tilt = String(rounded);
       document.body.classList.toggle('tilt-20-plus', deg >= 18);
       var isDesktop = typeof window !== 'undefined' && window.innerWidth >= 860;
-      var handScale = deg >= 18 ? (isDesktop ? 1.12 : 1.08) : (deg >= 8 ? (isDesktop ? 1.01 : 1.0) : 1.0);
-      var handShiftY = deg >= 18 ? (isDesktop ? -14 : -18) : (deg > 10 ? (deg - 10) / 10 * (isDesktop ? -14 : -18) : 0);
+      var handScale = deg >= 18 ? (isDesktop ? 1.04 : 1.08) : (deg >= 8 ? (isDesktop ? 1.01 : 1.0) : 1.0);
+      var handShiftY = isDesktop ? 0 : (deg >= 18 ? -18 : (deg > 10 ? (deg - 10) / 10 * -18 : 0));
+      document.body.style.setProperty('--hand-tilt-scale', handScale.toFixed(2));
       document.body.style.setProperty('--hand-shift-y', handShiftY.toFixed(1) + 'px');
     }
 

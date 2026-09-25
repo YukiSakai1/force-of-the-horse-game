@@ -1838,8 +1838,8 @@
       max-width: 900px;
       margin: 0 auto;
       padding-top: 8px;
-      padding-bottom: 10px;
-      gap: 4px;
+      padding-bottom: 50px;
+      gap: 16px;
       overflow-y: auto;
       overflow-x: hidden;
     }
@@ -1853,7 +1853,7 @@
     /* 3D傾き（10°または20°）に応じて相手山札の上の余白を動的に詰める（10°で-185px、20°で-260px） */
     body.field-3d .field-tilt {
       margin-top: var(--field-tilt-shift-y, -185px);
-      margin-bottom: 6px;
+      margin-bottom: 24px;
     }
 
     body.field-3d[data-tilt="0"] .field-tilt {
@@ -1868,7 +1868,7 @@
       margin-top: -260px;
     }
 
-    /* ナレーターは自分のデッキの下に配置（手札とデッキが被らないよう適切な間隔を確保） */
+    /* ナレーターは自分のデッキの下に配置（手札とデッキが被らないよう十分な間隔を確保） */
     .narrator {
       position: relative !important;
       top: auto;
@@ -1876,20 +1876,25 @@
       right: auto;
       width: 100%;
       z-index: 30;
-      margin: -24px 0 10px !important;
+      margin: 14px 0 20px !important;
       transition: margin .45s cubic-bezier(.2, .7, .3, 1);
     }
 
     /* 20度のときのナレーター位置 */
     body.field-3d[data-tilt="20"] .narrator,
     body.field-3d.tilt-20-plus .narrator {
-      margin: -14px 0 12px !important;
+      margin: 14px 0 20px !important;
     }
 
     .hand-zone {
-      margin-top: 10px;
+      margin-top: 24px;
+      min-height: 220px;
       padding-top: 0;
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);
+    }
+
+    .hand-row {
+      height: 200px;
     }
 
     body.field-3d .hand-zone {
@@ -1901,7 +1906,7 @@
     /* 20度のときは手札のカードの大きさを調整 */
     body.field-3d[data-tilt="20"] .hand-zone,
     body.field-3d.tilt-20-plus .hand-zone {
-      transform: perspective(1000px) rotateX(-2deg) scale(1.08) translateY(-14px);
+      transform: perspective(1000px) rotateX(-2deg) scale(1.04) translateY(0px);
       transform-origin: 50% 100%;
     }
 
@@ -1933,7 +1938,7 @@
     /* フィールドの広々とした余白・カードサイズを維持 */
     .field-image-wrap {
       padding-top: 6px;
-      padding-bottom: 14px;
+      padding-bottom: 24px;
       gap: 155px 16px;
     }
 
