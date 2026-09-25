@@ -897,7 +897,7 @@
     display: grid;
     grid-template-rows: auto auto auto;
     grid-template-columns: repeat(4, 1fr);
-    gap: clamp(30px, 9vw, 60px) clamp(4px, 2vw, 16px);
+    gap: clamp(60px, 20vw, 100px) clamp(4px, 2vw, 12px);
     padding: 3vw 3vw 3.4vw;
   }
 
@@ -1706,7 +1706,7 @@
 
     /* 3Dモード時のfield-tiltの引き上げ量をモバイルで強化 */
     body.field-3d .field-tilt {
-      margin-top: -50px;
+      margin-top: -30px;
     }
 
     /* 20度のときはギャップがより大きくなるためさらに引き上げる */
@@ -1715,10 +1715,10 @@
       margin-top: -80px;
     }
 
-    /* 20度では行間がさらに広く見えるためgapをさらに絞る */
+    /* 20度のときは3D圧縮を考慮してかつ適度な行間を確保 */
     body.field-3d[data-tilt="20"] .field-image-wrap,
     body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: clamp(14px, 6vw, 40px) clamp(4px, 2vw, 16px);
+      gap: clamp(50px, 12vw, 80px) clamp(4px, 2vw, 12px);
     }
 
     /* 20度のときは手札が20px上がるため、boardの底パディングを広げて重なりを防止 */
