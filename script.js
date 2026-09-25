@@ -279,13 +279,17 @@
     if (!n) return;
     var rowW = row.clientWidth || row.offsetWidth || 340;
     var cardW = cards[0].offsetWidth || 98;
+    var isMobile = typeof window !== 'undefined' && window.innerWidth < 860;
     var maxSpread = Math.min(34, 7 * (n - 1)); // total fan spread in degrees, capped
     var angleStep = n > 1 ? maxSpread / (n - 1) : 0;
-    var idealGap = cardW * 0.62;
+    // モバイルはオーバーラップを増やして手札が多くても見えるようにする
+    var idealGapRatio = isMobile ? 0.48 : 0.62;
+    var minGapRatio   = isMobile ? 0.14 : 0.20;
+    var idealGap = cardW * idealGapRatio;
     var totalWidthIdeal = idealGap * (n - 1) + cardW;
     var gap = idealGap;
     if (totalWidthIdeal > rowW * 0.97 && n > 1) {
-      gap = Math.max(cardW * 0.2, (rowW * 0.97 - cardW) / (n - 1));
+      gap = Math.max(cardW * minGapRatio, (rowW * 0.97 - cardW) / (n - 1));
     }
     var center = (n - 1) / 2;
     cards.forEach(function (el, i) {

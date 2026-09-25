@@ -1783,26 +1783,26 @@
   /* スモールモバイル（480px以下）では手札カードをひと回り小さく表示 */
   @media (max-width:480px) {
     .board {
-      padding-bottom: 172px;
+      padding-bottom: 155px;
     }
 
     body.field-3d[data-tilt="20"] .board,
     body.field-3d.tilt-20-plus .board {
-      padding-bottom: 192px;
+      padding-bottom: 175px;
     }
 
     .hand-zone {
-      height: 162px;
-      min-height: 162px;
+      height: 148px;
+      min-height: 148px;
     }
 
     .hand-row {
-      height: 140px;
+      height: 122px;
     }
 
     .card {
-      width: 90px;
-      height: 126px;
+      width: 80px;
+      height: 112px;
     }
   }
 
