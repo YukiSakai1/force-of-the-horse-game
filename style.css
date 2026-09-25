@@ -1094,7 +1094,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
   }
 
   .opponent-avatar {
@@ -1720,9 +1720,9 @@
       right: 6px;
       bottom: calc(2px + env(safe-area-inset-bottom, 0px));
       z-index: 40;
-      height: 188px;
-      min-height: 188px;
-      padding: 3px 5px 2px;
+      height: 150px;
+      min-height: 150px;
+      padding: 2px 5px 2px;
       border: 1px solid rgba(227, 178, 60, .45);
       border-radius: 12px 12px 0 0;
       background: linear-gradient(180deg, rgba(10, 18, 32, .97), rgba(5, 10, 20, .98));
@@ -1737,7 +1737,7 @@
 
     .hand-row {
       flex: none;
-      height: 168px;
+      height: 130px;
       padding: 0 2px;
       overflow-x: auto;
       overflow-y: hidden;
@@ -1814,12 +1814,12 @@
     }
 
     .hand-zone {
-      height: 200px;
-      min-height: 200px;
+      height: 160px;
+      min-height: 160px;
     }
 
     .hand-row {
-      height: 176px;
+      height: 140px;
     }
   }
 
