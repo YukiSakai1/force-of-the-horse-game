@@ -554,6 +554,11 @@
     display: none !important;
   }
 
+  /* manual-modeの時はナレーターのスペースを詰める */
+  body.manual-mode .hand-zone {
+    margin-top: -16px;
+  }
+
   #command-bar[hidden],
   #command-bar.hidden {
     display: none !important;
@@ -1689,7 +1694,7 @@
      デスクトップ幅（860px以上）はこれまで通り通常のレイアウトのまま。 */
   @media (max-width:859px) {
     .board {
-      padding-bottom: 162px;
+      padding-bottom: 202px;
       gap: 4px;
       transition: padding-bottom .35s cubic-bezier(.2, .7, .3, 1);
     }
@@ -1709,32 +1714,14 @@
       margin-top: -12px;
     }
 
-    /* 20度のときはギャップがより大きくなるためさらに引き上げる */
-    body.field-3d[data-tilt="20"] .field-tilt,
-    body.field-3d.tilt-20-plus .field-tilt {
-      margin-top: -80px;
-    }
-
-    /* 20度のときもFlat Viewと同じgapを維持してフィールドを統一 */
-    body.field-3d[data-tilt="20"] .field-image-wrap,
-    body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: clamp(60px, 20vw, 100px) clamp(4px, 2vw, 12px);
-    }
-
-    /* 20度のときは手札が20px上がるため、boardの底パディングを広げて重なりを防止 */
-    body.field-3d[data-tilt="20"] .board,
-    body.field-3d.tilt-20-plus .board {
-      padding-bottom: 200px;
-    }
-
     .hand-zone {
       position: fixed;
       left: 6px;
       right: 6px;
       bottom: calc(2px + env(safe-area-inset-bottom, 0px));
       z-index: 40;
-      height: 148px;
-      min-height: 148px;
+      height: 188px;
+      min-height: 188px;
       padding: 3px 5px 2px;
       border: 1px solid rgba(227, 178, 60, .45);
       border-radius: 12px 12px 0 0;
@@ -1743,16 +1730,23 @@
       transition: bottom .35s cubic-bezier(.2, .7, .3, 1), transform .35s cubic-bezier(.2, .7, .3, 1);
     }
 
-    /* 20度のときは手札の位置を多少上に引き上げる */
-    body.field-3d[data-tilt="20"] .hand-zone,
-    body.field-3d.tilt-20-plus .hand-zone {
-      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    /* manual-modeの時はモバイルでもスペースを詰める */
+    body.manual-mode .hand-zone {
+      bottom: calc(-10px + env(safe-area-inset-bottom, 0px));
     }
 
     .hand-row {
       flex: none;
-      height: 128px;
+      height: 168px;
       padding: 0 2px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+
+    .hand-row::-webkit-scrollbar {
+      display: none;
     }
 
     .hand-zone .zone-label {
@@ -1816,26 +1810,16 @@
   /* スモールモバイル（480px以下）では手札カードをひと回り小さく表示 */
   @media (max-width:480px) {
     .board {
-      padding-bottom: 155px;
-    }
-
-    body.field-3d[data-tilt="20"] .board,
-    body.field-3d.tilt-20-plus .board {
-      padding-bottom: 175px;
+      padding-bottom: 195px;
     }
 
     .hand-zone {
-      height: 128px;
-      min-height: 128px;
+      height: 168px;
+      min-height: 168px;
     }
 
     .hand-row {
-      height: 104px;
-    }
-
-    .card {
-      width: 70px;
-      height: 98px;
+      height: 144px;
     }
   }
 
@@ -1869,6 +1853,16 @@
     transform-origin: 50% 460px;
     transform: translateX(-50%) translateX(var(--fan-x)) translateY(var(--fan-y)) translateY(var(--fan-lift)) rotate(var(--fan-rot)) scale(var(--fan-scale)) rotateX(var(--holo-rx)) rotateY(var(--holo-ry));
     user-select: none;
+  }
+
+  /* スモールモバイル（480px以下）では手札カードをひと回り小さく表示
+     ※ 無条件の .card 基本ルールより後ろに置かないと、カスケード順で
+     この上書きが無効化されてしまう（同じ詳細度なので後勝ち） */
+  @media (max-width:480px) {
+    .card {
+      width: 70px;
+      height: 98px;
+    }
   }
 
   @media (min-width:760px) {
@@ -1975,13 +1969,7 @@
     }
 
     body.field-3d[data-tilt="20"] .field-tilt {
-      margin-top: -50px;
-    }
-
-    /* デスクトップ: 20度でもFlat Viewと同じフィールドgapを維持（窮屈にしない） */
-    body.field-3d[data-tilt="20"] .field-image-wrap,
-    body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: 30px 8px;
+      margin-top: -100px;
     }
 
     /* ナレーターは手札とデッキの間に固定配置（デッキのすぐ下に間隔を詰めて配置） */
@@ -2001,6 +1989,11 @@
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);
     }
 
+    /* manual-modeの時はナレーターのスペースを詰める */
+    body.manual-mode .hand-zone {
+      margin-top: -16px;
+    }
+
     .hand-row {
       height: 200px;
     }
@@ -2011,12 +2004,7 @@
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);
     }
 
-    /* 20度のときは手札のカードの大きさを調整 */
-    body.field-3d[data-tilt="20"] .hand-zone,
-    body.field-3d.tilt-20-plus .hand-zone {
-      transform: perspective(1000px) rotateX(-2deg) scale(1.04) translateY(0px);
-      transform-origin: 50% 100%;
-    }
+
 
     .narrator-bubble {
       padding: 12px 52px 12px 18px;
@@ -3607,6 +3595,11 @@
     display: none !important;
   }
 
+  /* manual-modeの時はナレーターのスペースを詰める */
+  body.manual-mode .hand-zone {
+    margin-top: -16px;
+  }
+
   /* コマンドバー（非表示時） */
   #command-bar[hidden],
   #command-bar.hidden {
@@ -4534,11 +4527,5 @@
       top: auto;
       transform: none;
       z-index: 50;
-    }
-
-    /* 20度の傾きのとき手札が20px上がるため、コマンドバーも合わせてずらす */
-    body.manual-mode.field-3d[data-tilt="20"] #command-bar,
-    body.manual-mode.field-3d.tilt-20-plus #command-bar {
-      bottom: calc(168px + env(safe-area-inset-bottom, 0px));
     }
   }

@@ -288,7 +288,10 @@
     var idealGap = cardW * idealGapRatio;
     var totalWidthIdeal = idealGap * (n - 1) + cardW;
     var gap = idealGap;
-    if (totalWidthIdeal > rowW * 0.97 && n > 1) {
+    // モバイルは横スクロールで隠れたカードを見られるので、詰めて潰さずに
+    // 理想の間隔のまま並べる（画面外にはみ出た分はスワイプで見る）。
+    // デスクトップは従来通り、収まらない場合だけ間隔を詰める。
+    if (!isMobile && totalWidthIdeal > rowW * 0.97 && n > 1) {
       gap = Math.max(cardW * minGapRatio, (rowW * 0.97 - cardW) / (n - 1));
     }
     var center = (n - 1) / 2;
@@ -302,6 +305,13 @@
       el.style.setProperty('--fan-y', y.toFixed(1) + 'px');
       el.style.zIndex = String(Math.round(100 - Math.abs(offset) * 2));
     });
+    if (isMobile) {
+      // 初期表示では手札の中央（山の真ん中）が見えるようスクロール位置を揃える。
+      // 全カードが収まっている場合は scrollWidth <= clientWidth なので 0 のまま。
+      requestAnimationFrame(function () {
+        row.scrollLeft = Math.max(0, (row.scrollWidth - row.clientWidth) / 2);
+      });
+    }
   }
 
   function renderHand() {
@@ -2549,23 +2559,79 @@
       return (typeof window !== 'undefined' && window.innerWidth >= 860) ? 80 : 100;
     }
     var userAdjustedZoom = false;
+    var userAdjustedDepth = false;
     var DEFAULTS = { tilt: 10, depth: 1300, zoom: computeDefaultZoom() };
     var baseTilt = DEFAULTS.tilt;
 
+    // ---- 傾き角度に連動した自動パースペクティブ計算 ----------------------
+    // rotateX(θ) + perspective(P) で下端(50% 100%)を軸に傾けると、軸から
+    // 距離 d だけ離れた要素は d * sin(θ) だけ奥（-Z方向）へ押し出され、
+    // 画面上では P / (P + d*sinθ) 倍に縮んで見える（遠近圧縮）。
+    // P を固定したまま θ だけ大きくすると sinθ が急増し、軸から遠い1行目
+    // （相手の馬カード列）ほど強く圧縮されて枠が重なってしまう。
+    // そこで「10°・1300px」を基準に sinθ/P の比が常に一定になるよう P を
+    // 角度に応じて自動的に引き伸ばし、どの角度でも10°時と同じ縮み具合＝
+    // 同じレイアウト比率を保つようにする。
+    var TILT_REF_DEG = DEFAULTS.tilt;
+    var TILT_REF_PERSPECTIVE = DEFAULTS.depth;
+    var TILT_REF_SIN = Math.sin(TILT_REF_DEG * Math.PI / 180);
+    var DEPTH_MIN = 500;
+    var DEPTH_MAX = 3000;
+
+    function autoPerspectiveForTilt(deg) {
+      var d = Math.max(0, Number(deg) || 0);
+      if (d <= 0) return TILT_REF_PERSPECTIVE;
+      var ratio = Math.sin(d * Math.PI / 180) / TILT_REF_SIN;
+      var px = TILT_REF_PERSPECTIVE * ratio;
+      return Math.round(Math.max(DEPTH_MIN, Math.min(DEPTH_MAX, px)) / 10) * 10;
+    }
+
     function applyTiltVar(deg) {
       document.body.style.setProperty('--tilt-angle', deg + 'deg');
-      // 傾き角度に応じてフィールドの引き上げ量を動的に計算（0°で0px、10°で-50px、20°で-80px）
-      // opponent-strip との重なりを防ぐため最大 -100px に制限
-      var shiftY = deg <= 0 ? 0 : Math.max(-50 - (deg - 10) * 3, -100);
+      var isDesktop = typeof window !== 'undefined' && window.innerWidth >= 860;
+      // 20度の時は10度と同じレイアウトを使用（デフォルトのフィールドをそのまま20度傾ける）
+      var shiftY;
+      if (isDesktop) {
+        // デスクトップ: 0°で0px、10°と20°で-100px（同じレイアウト）
+        shiftY = deg <= 0 ? 0 : -100;
+      } else {
+        // モバイル: 0°で0px、10°と20°で-12px（同じレイアウト）
+        shiftY = deg <= 0 ? 0 : -12;
+      }
       document.body.style.setProperty('--field-tilt-shift-y', shiftY.toFixed(1) + 'px');
+      // ユーザーが「奥行き」スライダーを手動操作していない限り、傾き角度に
+      // 連動してパースペクティブ距離を自動調整し、10°時と同じ見た目比率を維持する
+      if (!userAdjustedDepth) {
+        var autoPx = autoPerspectiveForTilt(deg);
+        document.body.style.setProperty('--field-perspective', autoPx + 'px');
+        if (depthRange) depthRange.value = autoPx;
+        if (depthValue) depthValue.textContent = autoPx + 'px';
+      }
       var rounded = Math.round(deg);
       document.body.dataset.tilt = String(rounded);
       document.body.classList.toggle('tilt-20-plus', deg >= 18);
-      var isDesktop = typeof window !== 'undefined' && window.innerWidth >= 860;
       var handScale = deg >= 18 ? (isDesktop ? 1.04 : 1.08) : (deg >= 8 ? (isDesktop ? 1.01 : 1.0) : 1.0);
       var handShiftY = isDesktop ? 0 : (deg >= 18 ? -18 : (deg > 10 ? (deg - 10) / 10 * -18 : 0));
       document.body.style.setProperty('--hand-tilt-scale', handScale.toFixed(2));
       document.body.style.setProperty('--hand-shift-y', handShiftY.toFixed(1) + 'px');
+      scheduleFieldCorrection();
+    }
+
+    // ---- 実測ベースの重なり補正を、傾き／奥行き変更後に再実行する ----------
+    // adjustFieldDiagonalLayout()（このIIFEの外で定義されている、実際の
+    // 描画位置を測って相手側フィールド枠のズレを補正する関数）は、これまで
+    // renderAll()（ゲーム状態が変わった時）と resize 時にしか呼ばれておらず、
+    // 傾き角度・奥行きを変更したタイミングでは再計算されていなかった。
+    // そのため「10°用に測った補正量」が20°でもそのまま使われてしまい、
+    // 枠の重なりとして残っていた。.field-tilt の transform には .45s の
+    // transition がかかっているため、アニメーションが収まってから
+    // （少し余裕を持たせて480ms後に）再測定する。
+    var fieldCorrectionTimer = null;
+    function scheduleFieldCorrection() {
+      if (fieldCorrectionTimer) clearTimeout(fieldCorrectionTimer);
+      fieldCorrectionTimer = setTimeout(function () {
+        if (typeof adjustFieldDiagonalLayout === 'function') adjustFieldDiagonalLayout();
+      }, 480);
     }
 
     function setTilt(deg) {
@@ -2578,10 +2644,11 @@
       legacyChips.forEach(function (o) { o.classList.toggle('active', o.dataset.angle === String(deg)); });
     }
     function setDepth(px) {
-      px = Math.max(500, Math.min(2400, Number(px) || DEFAULTS.depth));
+      px = Math.max(DEPTH_MIN, Math.min(DEPTH_MAX, Number(px) || DEFAULTS.depth));
       document.body.style.setProperty('--field-perspective', px + 'px');
       if (depthRange) depthRange.value = px;
       if (depthValue) depthValue.textContent = px + 'px';
+      scheduleFieldCorrection();
     }
     function setZoom(pct) {
       pct = Math.max(60, Math.min(200, Number(pct) || DEFAULTS.zoom));
@@ -2590,6 +2657,7 @@
       if (FieldCamera && typeof FieldCamera.setBaseScale === 'function') {
         FieldCamera.setBaseScale(pct / 100);
       }
+      scheduleFieldCorrection();
     }
 
     setTilt(DEFAULTS.tilt);
@@ -2630,7 +2698,10 @@
       });
     });
     if (tiltRange) tiltRange.addEventListener('input', function () { setTilt(tiltRange.value); });
-    if (depthRange) depthRange.addEventListener('input', function () { setDepth(depthRange.value); });
+    if (depthRange) depthRange.addEventListener('input', function () {
+      userAdjustedDepth = true;
+      setDepth(depthRange.value);
+    });
     if (zoomRange) {
       zoomRange.addEventListener('input', function () {
         userAdjustedZoom = true;
@@ -2645,6 +2716,7 @@
       resetBtn.addEventListener('click', function () {
         Haptics.tap();
         userAdjustedZoom = false;
+        userAdjustedDepth = false;
         DEFAULTS.zoom = computeDefaultZoom();
         setTilt(DEFAULTS.tilt);
         setDepth(DEFAULTS.depth);
