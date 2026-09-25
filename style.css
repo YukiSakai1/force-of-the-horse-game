@@ -1972,10 +1972,10 @@
       margin-top: -90px;
     }
 
-    /* デスクトップ: 20度では行間を広めにとって重なりを防ぐ */
+    /* デスクトップ: 20度ではfield-bodyのtranslate分を考慮して行間を大きく確保 */
     body.field-3d[data-tilt="20"] .field-image-wrap,
     body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: 50px 8px;
+      gap: 90px 8px;
     }
 
     /* ナレーターは手札とデッキの間に固定配置（デッキのすぐ下に間隔を詰めて配置） */
