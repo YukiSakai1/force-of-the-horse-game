@@ -1062,6 +1062,7 @@
   .opp-lane .lane-stack {
     width: 90%;
     opacity: .92;
+    transform: rotate(180deg);
   }
 
   .opp-lane .lane-back-0 {
@@ -1668,7 +1669,23 @@
   @media (max-width:859px) {
     .board {
       padding-bottom: 202px;
+      gap: 4px;
       transition: padding-bottom .35s cubic-bezier(.2, .7, .3, 1);
+    }
+
+    /* opponent-strip と盤面の間を詰める */
+    .opponent-strip {
+      margin-bottom: -2px;
+    }
+
+    /* フィールドのグリッド上パディングをモバイルで縮小 */
+    .field-image-wrap {
+      padding-top: 1.5vw;
+    }
+
+    /* 3Dモード時のfield-tiltの引き上げ量をモバイルで強化 */
+    body.field-3d .field-tilt {
+      margin-top: -18px;
     }
 
     /* 20度のときは手札が20px上がるため、boardの底パディングを広げて重なりを防止 */
@@ -1714,6 +1731,38 @@
       transform: none;
     }
 
+    /* モバイル用トップバー：ブランド非表示・コンパクト化 */
+    .topbar {
+      gap: 6px;
+      padding: 6px 8px calc(4px + env(safe-area-inset-top, 0px));
+      padding-top: calc(6px + env(safe-area-inset-top, 0px));
+    }
+
+    .topbar .brand {
+      display: none;
+    }
+
+    .bgm-toggle {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    .tilt-opt {
+      padding: 3px 7px;
+      font-size: 9px;
+    }
+
+    .theme-opt,
+    .mode-opt {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+
+    .theme-switch,
+    .mode-switch {
+      gap: 2px;
+    }
+
   }
 
   /* 640〜859px幅は .board 自体が max-width:720px で中央寄せになるため、
@@ -1722,6 +1771,32 @@
     .hand-zone {
       max-width: 720px;
       margin: 0 auto;
+    }
+  }
+
+  /* スモールモバイル（480px以下）では手札カードをひと回り小さく表示 */
+  @media (max-width:480px) {
+    .board {
+      padding-bottom: 172px;
+    }
+
+    body.field-3d[data-tilt="20"] .board,
+    body.field-3d.tilt-20-plus .board {
+      padding-bottom: 192px;
+    }
+
+    .hand-zone {
+      height: 162px;
+      min-height: 162px;
+    }
+
+    .hand-row {
+      height: 140px;
+    }
+
+    .card {
+      width: 90px;
+      height: 126px;
     }
   }
 
@@ -1832,14 +1907,17 @@
       overflow-x: hidden;
     }
 
+    /* デスクトップ：フィールドが重なっても opponent-strip が上に来るよう z-index を設定 */
     .opponent-strip {
       padding: 5px 12px;
       margin-bottom: 0;
+      position: relative;
+      z-index: 5;
     }
 
     /* 3D傾き（10°または20°）およびズーム倍率に応じてフィールド余白を動的に詰める */
     body.field-3d .field-tilt {
-      margin-top: var(--field-tilt-shift-y, -185px);
+      margin-top: var(--field-tilt-shift-y, -50px);
       margin-bottom: var(--field-scale-shift-y, 0px);
       transition: margin-top .45s cubic-bezier(.2, .7, .3, 1), margin-bottom .22s ease;
     }
@@ -1849,11 +1927,11 @@
     }
 
     body.field-3d[data-tilt="10"] .field-tilt {
-      margin-top: -185px;
+      margin-top: -50px;
     }
 
     body.field-3d[data-tilt="20"] .field-tilt {
-      margin-top: -260px;
+      margin-top: -80px;
     }
 
     /* ナレーターは手札とデッキの間に固定配置（デッキのすぐ下に間隔を詰めて配置） */

@@ -2548,8 +2548,9 @@
 
     function applyTiltVar(deg) {
       document.body.style.setProperty('--tilt-angle', deg + 'deg');
-      // 傾き角度に応じてフィールドの引き上げ量を動的に計算（0°で0px、10°で-185px、20°で-260px）
-      var shiftY = deg <= 0 ? 0 : (-185 - (deg - 10) * 7.5);
+      // 傾き角度に応じてフィールドの引き上げ量を動的に計算（0°で0px、10°で-50px、20°で-80px）
+      // opponent-strip との重なりを防ぐため最大 -100px に制限
+      var shiftY = deg <= 0 ? 0 : Math.max(-50 - (deg - 10) * 3, -100);
       document.body.style.setProperty('--field-tilt-shift-y', shiftY.toFixed(1) + 'px');
       var rounded = Math.round(deg);
       document.body.dataset.tilt = String(rounded);
