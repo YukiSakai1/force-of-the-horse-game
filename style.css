@@ -1868,26 +1868,47 @@
       margin-top: -260px;
     }
 
-    /* ナレーターは自分のデッキの下に配置（手札とデッキが被らないよう十分な間隔を確保） */
+    /* ナレーターは手札の位置に一切影響を与えない独立レイアウト（ゼロハイト配置）
+       デフォルト初期位置は自分のデッキ（山札）の中央あたりにオーバーレイ配置 */
     .narrator {
       position: relative !important;
       top: auto;
       left: auto;
       right: auto;
       width: 100%;
+      height: 0 !important;
+      min-height: 0 !important;
+      margin: 0 !important;
+      padding: 0 !important;
       z-index: 30;
-      margin: -6px 0 20px !important;
-      transition: margin .45s cubic-bezier(.2, .7, .3, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: translateY(-110px);
+      pointer-events: none;
+      transition: transform .45s cubic-bezier(.2, .7, .3, 1);
+    }
+
+    body[data-narrator-moved] .narrator,
+    .narrator.dragging {
+      transform: none !important;
+      height: auto !important;
+      pointer-events: auto !important;
+    }
+
+    .narrator > * {
+      pointer-events: auto;
     }
 
     /* 20度のときのナレーター位置 */
-    body.field-3d[data-tilt="20"] .narrator,
-    body.field-3d.tilt-20-plus .narrator {
-      margin: -4px 0 20px !important;
+    body.field-3d[data-tilt="20"] .narrator:not(.dragging),
+    body.field-3d.tilt-20-plus .narrator:not(.dragging) {
+      transform: translateY(-110px);
     }
 
+    /* 手札ゾーンはフィールドから独立した一定の間隔を保ち、ナレーターの位置・高さに一切影響されない */
     .hand-zone {
-      margin-top: 24px;
+      margin-top: 36px;
       min-height: 220px;
       padding-top: 0;
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);

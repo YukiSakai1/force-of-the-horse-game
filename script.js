@@ -2508,6 +2508,7 @@
         el.classList.add('dragging');
         el.style.position = 'fixed';
         var rect = el.getBoundingClientRect();
+        el.style.transform = 'none';
         el.style.width = rect.width + 'px';
         el.style.margin = '0';
         el.style.bottom = 'auto';
