@@ -2735,6 +2735,7 @@
 
     function apply(withTransition) {
       el.style.transition = withTransition ? 'transform .22s ease' : 'none';
+      el.style.transformOrigin = '50% 100%';
       el.style.transform = 'translate(' + state.tx + 'px,' + state.ty + 'px) scale(' + state.scale + ')';
       el.style.zIndex = state.scale > 1.01 ? '30' : '';
     }
@@ -2796,7 +2797,7 @@
       apply(true);
     }
 
-    el.style.transformOrigin = '50% 50%';
+    el.style.transformOrigin = '50% 100%';
     el.style.touchAction = 'pan-y';
 
     el.addEventListener('touchstart', function (e) {
