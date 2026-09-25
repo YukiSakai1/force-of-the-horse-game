@@ -1,2 +1,49 @@
+# すべてのクローラーのアクセスを拒否
 User-agent: *
+Disallow: /
+
+# Google
+User-agent: Googlebot
+Disallow: /
+
+# Google Images
+User-agent: Googlebot-Image
+Disallow: /
+
+# Bing
+User-agent: bingbot
+Disallow: /
+
+# Yahoo (Slurp)
+User-agent: Slurp
+Disallow: /
+
+# Baidu
+User-agent: Baiduspider
+Disallow: /
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Disallow: /
+
+# Yandex
+User-agent: YandexBot
+Disallow: /
+
+# GPTBot (OpenAI)
+User-agent: GPTBot
+Disallow: /
+
+# Claude (Anthropic)
+User-agent: ClaudeBot
+Disallow: /
+
+# Common SEO crawlers
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: MJ12bot
 Disallow: /
