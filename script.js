@@ -280,11 +280,11 @@
     var rowW = row.clientWidth || row.offsetWidth || 340;
     var cardW = cards[0].offsetWidth || 98;
     var isMobile = typeof window !== 'undefined' && window.innerWidth < 860;
-    var maxSpread = Math.min(34, 7 * (n - 1)); // total fan spread in degrees, capped
+    var maxSpread = Math.min(28, 5 * (n - 1)); // total fan spread in degrees, capped
     var angleStep = n > 1 ? maxSpread / (n - 1) : 0;
-    // モバイルはオーバーラップを増やして手札が多くても見えるようにする
-    var idealGapRatio = isMobile ? 0.48 : 0.62;
-    var minGapRatio   = isMobile ? 0.14 : 0.20;
+    // モバイルはオーバーラップを減らして各カードが見やすくなるよう調整
+    var idealGapRatio = isMobile ? 0.38 : 0.62;
+    var minGapRatio   = isMobile ? 0.20 : 0.20;
     var idealGap = cardW * idealGapRatio;
     var totalWidthIdeal = idealGap * (n - 1) + cardW;
     var gap = idealGap;
@@ -296,7 +296,7 @@
       var offset = i - center;
       var rot = offset * angleStep;
       var x = offset * gap;
-      var y = Math.abs(offset) * Math.abs(offset) * 1.15;
+      var y = Math.abs(offset) * Math.abs(offset) * (isMobile ? 0.7 : 1.15);
       el.style.setProperty('--fan-x', x.toFixed(1) + 'px');
       el.style.setProperty('--fan-rot', rot.toFixed(2) + 'deg');
       el.style.setProperty('--fan-y', y.toFixed(1) + 'px');

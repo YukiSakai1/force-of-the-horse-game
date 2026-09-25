@@ -1689,14 +1689,14 @@
      デスクトップ幅（860px以上）はこれまで通り通常のレイアウトのまま。 */
   @media (max-width:859px) {
     .board {
-      padding-bottom: 178px;
+      padding-bottom: 162px;
       gap: 4px;
       transition: padding-bottom .35s cubic-bezier(.2, .7, .3, 1);
     }
 
-    /* opponent-strip と盤面の間を詰める */
+    /* opponent-strip と盤面の間に適切な余白を確保（相手山札との重なり防止） */
     .opponent-strip {
-      margin-bottom: -2px;
+      margin-bottom: 6px;
     }
 
     /* フィールドのグリッド上パディングをモバイルで縮小 */
@@ -1715,10 +1715,10 @@
       margin-top: -80px;
     }
 
-    /* 20度のときは3D圧縮を考慮してかつ適度な行間を確保 */
+    /* 20度のときもFlat Viewと同じgapを維持してフィールドを統一 */
     body.field-3d[data-tilt="20"] .field-image-wrap,
     body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: clamp(50px, 12vw, 80px) clamp(4px, 2vw, 12px);
+      gap: clamp(60px, 20vw, 100px) clamp(4px, 2vw, 12px);
     }
 
     /* 20度のときは手札が20px上がるため、boardの底パディングを広げて重なりを防止 */
@@ -1729,15 +1729,15 @@
 
     .hand-zone {
       position: fixed;
-      left: 8px;
-      right: 8px;
+      left: 6px;
+      right: 6px;
       bottom: calc(2px + env(safe-area-inset-bottom, 0px));
       z-index: 40;
-      height: 162px;
-      min-height: 162px;
-      padding: 4px 6px 3px;
+      height: 148px;
+      min-height: 148px;
+      padding: 3px 5px 2px;
       border: 1px solid rgba(227, 178, 60, .45);
-      border-radius: 14px 14px 0 0;
+      border-radius: 12px 12px 0 0;
       background: linear-gradient(180deg, rgba(10, 18, 32, .97), rgba(5, 10, 20, .98));
       box-shadow: 0 -10px 24px rgba(0, 0, 0, .5);
       transition: bottom .35s cubic-bezier(.2, .7, .3, 1), transform .35s cubic-bezier(.2, .7, .3, 1);
@@ -1746,12 +1746,12 @@
     /* 20度のときは手札の位置を多少上に引き上げる */
     body.field-3d[data-tilt="20"] .hand-zone,
     body.field-3d.tilt-20-plus .hand-zone {
-      bottom: calc(20px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(16px + env(safe-area-inset-bottom, 0px));
     }
 
     .hand-row {
       flex: none;
-      height: 140px;
+      height: 128px;
       padding: 0 2px;
     }
 
@@ -1764,31 +1764,37 @@
       transform: none;
     }
 
-    /* モバイル用トップバー：ブランド非表示・コンパクト化 */
+    /* モバイル用トップバー：ブランド非表示・折り返し対応でヘッダー切れ防止 */
     .topbar {
-      gap: 6px;
-      padding: 6px 8px calc(4px + env(safe-area-inset-top, 0px));
-      padding-top: calc(6px + env(safe-area-inset-top, 0px));
+      flex-wrap: wrap;
+      gap: 4px 6px;
+      padding: 5px 8px calc(3px + env(safe-area-inset-top, 0px));
+      padding-top: calc(5px + env(safe-area-inset-top, 0px));
     }
 
     .topbar .brand {
       display: none;
     }
 
-    .bgm-toggle {
-      padding: 4px 8px;
-      font-size: 10px;
+    .track-wrap {
+      order: -1;
+      flex-basis: 100%;
     }
 
-    .tilt-opt {
+    .bgm-toggle {
       padding: 3px 7px;
       font-size: 9px;
     }
 
+    .tilt-opt {
+      padding: 2px 5px;
+      font-size: 8.5px;
+    }
+
     .theme-opt,
     .mode-opt {
-      padding: 4px 8px;
-      font-size: 10px;
+      padding: 3px 7px;
+      font-size: 9px;
     }
 
     .theme-switch,
@@ -1972,10 +1978,10 @@
       margin-top: -50px;
     }
 
-    /* デスクトップ: 20度は3D圧縮を考慮し大きなgapが必要（元設計の23vw相当） */
+    /* デスクトップ: 20度でもFlat Viewと同じフィールドgapを維持（窮屈にしない） */
     body.field-3d[data-tilt="20"] .field-image-wrap,
     body.field-3d.tilt-20-plus .field-image-wrap {
-      gap: clamp(100px, 18vw, 160px) 8px;
+      gap: 30px 8px;
     }
 
     /* ナレーターは手札とデッキの間に固定配置（デッキのすぐ下に間隔を詰めて配置） */
@@ -4524,7 +4530,7 @@
     body.manual-mode #command-bar {
       position: fixed;
       right: 4%;
-      bottom: calc(196px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(152px + env(safe-area-inset-bottom, 0px));
       top: auto;
       transform: none;
       z-index: 50;
@@ -4533,6 +4539,6 @@
     /* 20度の傾きのとき手札が20px上がるため、コマンドバーも合わせてずらす */
     body.manual-mode.field-3d[data-tilt="20"] #command-bar,
     body.manual-mode.field-3d.tilt-20-plus #command-bar {
-      bottom: calc(216px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(168px + env(safe-area-inset-bottom, 0px));
     }
   }
