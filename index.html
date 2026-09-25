@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+  <title>FORCE OF THE HORSE — あそびかたチュートリアル</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script type="importmap">
+{
+    "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+    }
+}
+</script>
+</head>
+
+<body class="field-3d field-cyber">
+  <canvas id="three-bg"></canvas>
+  <div class="app">
+
+
+
+    <header class="topbar">
+      <div class="brand">FORCE<span>OF THE HORSE</span></div>
+      <div class="track-wrap">
+        <div class="track-meta">
+          <span class="track-badge"><span class="badge-dot"></span>TUTORIAL</span>
+          <div class="step-label" id="step-label">
+            <span class="step-prefix">STEP</span>
+            <span class="step-current" id="step-current">0</span>
+            <span class="step-slash">/</span>
+            <span class="step-total">16</span>
+          </div>
+        </div>
+        <div class="track">
+          <div class="track-grid"></div>
+          <div class="track-fill" id="track-fill">
+            <span class="track-head-glow"></span>
+          </div>
+          <div class="track-horse" id="track-horse">
+            <span class="horse-pin-body">
+              <span class="horse-icon">🐎</span>
+            </span>
+            <span class="horse-pin-arrow"></span>
+          </div>
+          <div class="track-flag" id="track-flag" title="GOAL">
+            <span class="flag-icon">🏁</span>
+          </div>
+        </div>
+      </div>
+      <div class="race-info" id="race-info" aria-label="レース情報"></div>
+      <button class="bgm-toggle" id="bgm-toggle">🔊 BGM</button>
+      <div class="tilt-select" id="tilt-select">
+        <button class="tilt-opt active" data-angle="10" type="button">10°</button>
+        <button class="tilt-opt" data-angle="20" type="button">20°</button>
+      </div>
+      <button class="settings-gear" id="settings-gear" type="button" title="角度・カメラ設定" hidden>⚙</button>
+      <div class="theme-switch" id="theme-switch" role="group" aria-label="テーマ切り替え">
+        <button class="theme-opt active" data-theme="cyber" type="button">デフォルト</button>
+        <button class="theme-opt" data-theme="classic" type="button">電脳競馬場</button>
+      </div>
+      <div class="mode-switch" id="mode-switch" role="group" aria-label="プレイモード切り替え">
+        <button class="mode-opt active" data-mode="tutorial" type="button">チュートリアル</button>
+        <button class="mode-opt" data-mode="manual" type="button">自分で操作</button>
+      </div>
+    </header>
+
+    <div class="settings-overlay" id="settings-overlay" hidden>
+      <div class="settings-panel">
+        <div class="settings-head">
+          <div class="settings-title">MOBILE SETTINGS</div>
+          <button class="settings-close" id="settings-close" type="button">✕</button>
+        </div>
+        <div class="settings-body">
+          <div class="settings-group">
+            <div class="settings-label">角度プリセット</div>
+            <div class="preset-grid">
+              <button class="preset-btn" data-angle="0" type="button">0°(真上・平面)</button>
+              <button class="preset-btn active" data-angle="10" type="button">10°(手前重視)</button>
+              <button class="preset-btn" data-angle="20" type="button">20°(標準)</button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <span>3D TILT (傾き微調整)</span>
+              <span class="settings-value" id="tilt-value">10°</span>
+            </div>
+            <input type="range" id="tilt-range" min="0" max="60" value="10" step="1">
+          </div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <span>FIELD DEPTH (奥行きパース)</span>
+              <span class="settings-value" id="depth-value">1300px</span>
+            </div>
+            <input type="range" id="depth-range" min="600" max="2200" value="1300" step="50">
+          </div>
+          <div class="settings-group">
+            <div class="settings-row">
+              <span>CAMERA ZOOM (倍率)</span>
+              <span class="settings-value" id="zoom-value">100%</span>
+            </div>
+            <input type="range" id="zoom-range" min="60" max="200" value="100" step="5">
+          </div>
+          <div class="settings-group">
+            <label class="settings-toggle-row">
+              <span>タッチ/マウス 3Dチルト [縦軸のみ]</span>
+              <input type="checkbox" id="touch-tilt-toggle" checked>
+            </label>
+          </div>
+
+          <button class="settings-reset" id="settings-reset" type="button">視点をリセット</button>
+        </div>
+      </div>
+    </div>
+
+    <main class="board" id="board">
+      <div id="closeup-layer">
+        <div class="closeup-label" id="closeup-label"></div>
+        <div class="closeup-card" id="closeup-card"></div>
+        <div class="closeup-toast" id="closeup-toast"></div>
+        <div class="closeup-close-hint">タップ / クリックで閉じる</div>
+      </div>
+      <section class="opponent-strip" id="zone-opponent">
+        <div class="opponent-avatar">🧢</div>
+        <div class="opponent-meta">
+          <div class="opponent-name">あいて</div>
+          <div class="opponent-sub">CPU プレイヤー</div>
+        </div>
+        <div class="opponent-hand-area" id="opponent-hand-display">手札: <span class="count"
+            id="opponent-hand-count">0</span>枚</div>
+        <div class="opponent-bubble" id="opponent-bubble"></div>
+      </section>
+
+      <div class="field-tilt" id="field-tilt">
+        <div class="field-aura"></div>
+        <div class="field-image-wrap" id="field-image-wrap">
+          <div class="field-splash-bg" id="field-splash-bg">
+            <canvas id="field-splash-canvas" class="field-splash-canvas"></canvas>
+          </div>
+          <div class="overlay ov-opp-deck" id="zone-opp-deck">
+            <div class="opp-lanes" id="opp-lanes"></div>
+          </div>
+          <div class="overlay ov-field" id="zone-field">
+            <div class="field-body" id="field-body">
+              <div class="field-placeholder"></div>
+            </div>
+            <div class="field-body field-body-opp" id="field-body-opp">
+              <div class="field-placeholder field-placeholder-opp"></div>
+            </div>
+            <div class="slot-frame" aria-hidden="true">
+              <span class="slot-bracket tl"></span><span class="slot-bracket tr"></span>
+              <span class="slot-bracket bl"></span><span class="slot-bracket br"></span>
+            </div>
+            <div class="slot-frame slot-frame-opp" aria-hidden="true">
+              <span class="slot-bracket tl"></span><span class="slot-bracket tr"></span>
+              <span class="slot-bracket bl"></span><span class="slot-bracket br"></span>
+            </div>
+          </div>
+          <div class="overlay ov-farm" id="zone-farm">
+            <div class="farm-pile" id="farm-pile"></div>
+            <div class="farm-badge" id="farm-count">0</div>
+            <div class="slot-frame" aria-hidden="true">
+              <span class="slot-bracket tl"></span><span class="slot-bracket tr"></span>
+              <span class="slot-bracket bl"></span><span class="slot-bracket br"></span>
+            </div>
+          </div>
+          <div class="overlay ov-situation" id="zone-situation">
+            <div class="zone-body" id="situation-body"></div>
+            <div class="slot-frame" aria-hidden="true">
+              <span class="slot-bracket tl"></span><span class="slot-bracket tr"></span>
+              <span class="slot-bracket bl"></span><span class="slot-bracket br"></span>
+            </div>
+          </div>
+          <!-- コマンドバー（シチュエーション置き場とデッキの間） -->
+          <div id="command-bar" hidden>
+            <div class="cmd-menu" id="cmd-menu">
+              <button class="cmd-menu-btn primary" data-cmd="run" type="button">
+                <span class="btn-icon-wrap"><span class="btn-icon">🏇</span></span>
+                <div class="btn-text-wrap">
+                  <span class="btn-sub">コマンド</span>
+                  <span class="btn-label">走破</span>
+                </div>
+              </button>
+              <button class="cmd-menu-btn" data-cmd="item" type="button">
+                <span class="btn-icon-wrap"><span class="btn-icon">🃏</span></span>
+                <div class="btn-text-wrap">
+                  <span class="btn-sub">コマンド</span>
+                  <span class="btn-label">アイテム</span>
+                </div>
+              </button>
+              <button class="cmd-menu-btn" data-cmd="end" type="button">
+                <span class="btn-icon-wrap"><span class="btn-icon">🚩</span></span>
+                <div class="btn-text-wrap">
+                  <span class="btn-sub">フェイズ切替</span>
+                  <span class="btn-label">ターンエンド</span>
+                </div>
+              </button>
+            </div>
+            <!-- デュエルリンクス風 丸型シルエット FAB -->
+            <button class="cmd-fab" id="cmd-fab" type="button" aria-label="コマンドメニュー">
+              <span class="cmd-fab-badge" id="cmd-fab-badge">COMMAND</span>
+              <span class="cmd-fab-icon-wrap">
+                <svg class="cmd-fab-arrow" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <!-- Dark shadow outline -->
+                  <path d="M 22 8 C 29.73 8 36 14.27 36 22 C 36 29.73 29.73 36 22 36 C 15.6 36 10.23 31.7 8.5 25.8"
+                        stroke="#000000" stroke-width="6" stroke-linecap="round"/>
+                  <path d="M 4.2 27.5 L 9.8 20.2 L 15.8 28.5 Z"
+                        fill="#000000" stroke="#000000" stroke-width="2.6" stroke-linejoin="round"/>
+                  <!-- White crisp arrow body -->
+                  <path d="M 22 8 C 29.73 8 36 14.27 36 22 C 36 29.73 29.73 36 22 36 C 15.6 36 10.23 31.7 8.5 25.8"
+                        stroke="#ffffff" stroke-width="3.6" stroke-linecap="round"/>
+                  <path d="M 4.8 27.2 L 9.8 20.8 L 15.2 28 Z"
+                        fill="#ffffff" stroke="#ffffff" stroke-width="0.8" stroke-linejoin="round"/>
+                </svg>
+              </span>
+            </button>
+          </div>
+          <div class="overlay ov-deck" id="zone-deck">
+            <div class="lanes" id="lanes"></div>
+          </div>
+        </div>
+      </div>
+
+      <footer class="narrator" id="narrator">
+        <span class="drag-handle">⠿</span>
+        <div class="narrator-portrait"><img src="images/narrator.png" alt="ナレーター"></div>
+        <div class="narrator-bubble">
+          <div class="narrator-text" id="narrator-text">読み込み中…</div>
+          <div class="narrator-nav">
+            <button class="narrator-back" id="narrator-back" type="button">◀ 戻る</button>
+            <button class="narrator-forward" id="narrator-forward" type="button">進む ▶</button>
+          </div>
+          <button class="narrator-next" id="narrator-next">つぎへ ▶</button>
+        </div>
+      </footer>
+
+      <section class="hand-zone" id="zone-hand">
+        <div class="zone-label">手札</div>
+        <div class="hand-row" id="hand-row"></div>
+      </section>
+    </main>
+
+    <div class="banner-overlay" id="banner-overlay">
+      <div class="banner-box" id="banner-box"></div>
+      <div class="banner-tap-hint" id="banner-tap-hint">タップして続ける</div>
+    </div>
+
+    <div class="arrow" id="arrow" hidden>
+      <div class="arrow-flag"></div>
+      <svg class="arrow-shape" viewBox="0 0 42 44">
+        <polygon points="21,44 2,18 14,18 14,0 28,0 28,18 40,18"></polygon>
+      </svg>
+    </div>
+
+    <div class="free-hint" id="free-hint" hidden>自分のターン：カードは自動で引かれます。状況カードを使うか選び、走破または終了を選択します。</div>
+
+    <!-- ガードポップアップ -->
+    <div id="guard-popup">
+      <div class="popup-box">
+        <div class="popup-title">🛡️ 相手が走破してきました。</div>
+        <div class="popup-desc" id="guard-desc">相手の走破を手札の馬カードでガードしますか？</div>
+        <div class="popup-btns">
+          <button class="btn-guard" id="guard-yes">🛡️ ガードする</button>
+          <button class="btn-skip" id="guard-no">⏭ ガードしない</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 相手思考ポップアップ -->
+    <div id="opponent-thinking-popup">
+      <div class="popup-box">
+        <div class="popup-title">🤔 相手プレイヤー</div>
+        <div class="popup-desc">ガードをするか考えています...</div>
+      </div>
+    </div>
+
+    <!-- 走破サポート確認 -->
+    <div id="run-support-popup">
+      <div class="popup-box">
+        <div class="popup-title">🧪 走破サポート</div>
+        <div class="popup-desc" id="run-support-desc">走破値を変えるアイテムカードを使いますか？</div>
+        <div class="popup-btns">
+          <button class="btn-guard" id="run-support-yes">使う</button>
+          <button class="btn-skip" id="run-support-no">使わない</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 状況カード使用確認（ターン開始時など） -->
+    <div id="situation-hint-popup">
+      <div class="popup-box">
+        <div class="popup-title">☀️ 状況カード</div>
+        <div class="popup-desc" id="situation-hint-desc">使用可能な状況カードが手札にあります。状況カードを使いますか？</div>
+        <div class="popup-btns">
+          <button class="btn-guard" id="situation-hint-yes">はい</button>
+          <button class="btn-skip" id="situation-hint-no">いいえ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 勝敗演出 -->
+    <div class="victory-overlay" id="victory-overlay">
+      <div class="victory-confetti" id="victory-confetti"></div>
+      <div class="victory-card" id="victory-card">
+        <div class="victory-icon" id="victory-icon">🏆</div>
+        <div class="victory-title" id="victory-title">VICTORY</div>
+        <div class="victory-subtitle" id="victory-subtitle"></div>
+        <div class="victory-message" id="victory-message"></div>
+        <button class="victory-restart" id="victory-restart">⟲ もう一度あそぶ</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+  <script type="module">
+    import * as THREE from 'three';
+    import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+    import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+    import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+
+    // Three.js Cyber Background - Simple & Dark Digital Navy/Black (洗練されたダークサイバー回路背景)
+    const scene = new THREE.Scene();
+    const HORIZON_DARK = 0x01050f;
+    scene.background = new THREE.Color(HORIZON_DARK);
+    // Smooth linear fog fading seamlessly into deep dark navy at the horizon
+    scene.fog = new THREE.Fog(HORIZON_DARK, 220, 1750);
+
+    const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 4000);
+    const defaultDeg = 10;
+    camera.rotation.set(THREE.MathUtils.degToRad(-defaultDeg * 0.40), 0, 0);
+    camera.position.set(0, (defaultDeg / 10) * 18, 300);
+
+    const canvas = document.getElementById('three-bg');
+    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: "high-performance", alpha: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.0;
+
+    // Post-processing Bloom Pass (Subtle, refined neon glow without washing out deep dark tones)
+    const renderScene = new RenderPass(scene, camera);
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.42, 0.35, 0.50
+    );
+
+    const composer = new EffectComposer(renderer);
+    composer.addPass(renderScene);
+    composer.addPass(bloomPass);
+
+    // Procedural Seamless Dark Digital Circuit Texture (Deep Navy & Black with Fine Neon Circuitry)
+    function createCyberTexture() {
+      const size = 2048;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      // 1. Deep Midnight Navy / Black Base
+      ctx.fillStyle = '#01050f';
+      ctx.fillRect(0, 0, size, size);
+
+      // Saturated deep dark blue ambient light pools (Subtle cyber luminescence)
+      const ambientGlows = [
+        { x: size * 0.20, y: size * 0.25, r: size * 0.45, c: 'rgba(0, 30, 95, 0.30)' },
+        { x: size * 0.80, y: size * 0.30, r: size * 0.50, c: 'rgba(0, 45, 120, 0.28)' },
+        { x: size * 0.30, y: size * 0.80, r: size * 0.45, c: 'rgba(0, 35, 100, 0.26)' },
+        { x: size * 0.75, y: size * 0.75, r: size * 0.40, c: 'rgba(0, 50, 130, 0.25)' },
+        { x: size * 0.50, y: size * 0.50, r: size * 0.45, c: 'rgba(0, 25, 80, 0.22)' },
+      ];
+      ambientGlows.forEach(g => {
+        const rad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
+        rad.addColorStop(0, g.c);
+        rad.addColorStop(1, 'rgba(1, 5, 15, 0)');
+        ctx.fillStyle = rad;
+        ctx.fillRect(0, 0, size, size);
+      });
+
+      const gridDivs = 32; // 32x32 grid units = 64px per unit
+      const step = size / gridDivs;
+
+      // Helper function for seamless wrap-around rectangular drawing
+      function drawWrapRect(x, y, w, h, fillStyle, strokeStyle, lineWidth, shadowGlow) {
+        for (let ox of [-size, 0, size]) {
+          for (let oy of [-size, 0, size]) {
+            const rx = x + ox;
+            const ry = y + oy;
+            if (rx + w < 0 || rx > size || ry + h < 0 || ry > size) continue;
+
+            ctx.save();
+            if (shadowGlow) {
+              ctx.shadowColor = shadowGlow.color || '#0099ff';
+              ctx.shadowBlur = shadowGlow.blur || 4;
+            }
+            if (fillStyle) {
+              ctx.fillStyle = fillStyle;
+              ctx.fillRect(rx, ry, w, h);
+            }
+            if (strokeStyle && lineWidth) {
+              ctx.strokeStyle = strokeStyle;
+              ctx.lineWidth = lineWidth;
+              ctx.strokeRect(rx, ry, w, h);
+            }
+            ctx.restore();
+          }
+        }
+      }
+
+      let randSeed = 107;
+      function pseudoRand() {
+        randSeed = (randSeed * 9301 + 49297) % 233280;
+        return randSeed / 233280;
+      }
+
+      // 2. Subtle Dark IC Micro-Modules / Tech Panels (Refined dark plates with subtle cyan borders)
+      const panelConfigs = [
+        { count: 30, minW: 2, maxW: 3, minH: 2, maxH: 4 },
+        { count: 50, minW: 1, maxW: 2, minH: 1, maxH: 2 },
+        { count: 25, minW: 2, maxW: 4, minH: 1, maxH: 3 },
+        { count: 40, minW: 1, maxW: 1, minH: 1, maxH: 1 }
+      ];
+
+      panelConfigs.forEach(cfg => {
+        for (let i = 0; i < cfg.count; i++) {
+          const gw = cfg.minW === cfg.maxW ? cfg.minW : cfg.minW + Math.floor(pseudoRand() * (cfg.maxW - cfg.minW + 1));
+          const gh = cfg.minH === cfg.maxH ? cfg.minH : cfg.minH + Math.floor(pseudoRand() * (cfg.maxH - cfg.minH + 1));
+          const gx = Math.floor(pseudoRand() * gridDivs);
+          const gy = Math.floor(pseudoRand() * gridDivs);
+
+          const px = gx * step;
+          const py = gy * step;
+          const pw = gw * step;
+          const ph = gh * step;
+
+          const styleRoll = pseudoRand();
+          if (styleRoll < 0.45) {
+            // Style 1: Deep translucent slate-navy plate with subtle cyan trace
+            drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
+              'rgba(0, 20, 60, 0.22)',
+              'rgba(0, 150, 255, 0.40)', 1.0, { color: '#0066dd', blur: 4 });
+          } else if (styleRoll < 0.75) {
+            // Style 2: Micro-grid IC chip with fine pins
+            drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
+              'rgba(0, 14, 45, 0.28)', 'rgba(0, 190, 255, 0.55)', 1.2, { color: '#0088ff', blur: 5 });
+            if (pw > step * 1.5 && ph > step * 1.5) {
+              drawWrapRect(px + 6, py + 6, pw - 12, ph - 12,
+                'rgba(0, 30, 80, 0.18)', 'rgba(0, 140, 230, 0.35)', 0.8);
+            }
+          } else {
+            // Style 3: Accent Cyber Node Box
+            drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
+              'rgba(0, 40, 110, 0.20)', 'rgba(60, 220, 255, 0.70)', 1.4, { color: '#00ccff', blur: 6 });
+          }
+        }
+      });
+
+      // 3. Delicate Background Grid Lines (Subtle & Elegant, not blinding)
+      // Minor fine grid lines
+      ctx.strokeStyle = 'rgba(0, 90, 190, 0.16)';
+      ctx.lineWidth = 0.8;
+      for (let i = 0; i <= gridDivs; i++) {
+        const p = i * step;
+        ctx.beginPath();
+        ctx.moveTo(p, 0);
+        ctx.lineTo(p, size);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, p);
+        ctx.lineTo(size, p);
+        ctx.stroke();
+      }
+
+      // Major grid lines (Thin electric blue accent with soft glow)
+      ctx.save();
+      ctx.strokeStyle = 'rgba(0, 150, 255, 0.32)';
+      ctx.lineWidth = 1.2;
+      ctx.shadowColor = '#0077ee';
+      ctx.shadowBlur = 4;
+      for (let i = 0; i <= gridDivs; i += 4) {
+        const p = i * step;
+        ctx.beginPath();
+        ctx.moveTo(p, 0);
+        ctx.lineTo(p, size);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(0, p);
+        ctx.lineTo(size, p);
+        ctx.stroke();
+      }
+      ctx.restore();
+
+      // 4. Intricate PCB Circuit Traces & Data Conduits (繊細な回路パターン)
+      ctx.save();
+      for (let t = 0; t < 70; t++) {
+        const gx = Math.floor(pseudoRand() * gridDivs);
+        const gy = Math.floor(pseudoRand() * gridDivs);
+        const len1 = Math.floor(pseudoRand() * 3 + 1) * step;
+        const len2 = Math.floor(pseudoRand() * 2 + 1) * step;
+        const dirX = pseudoRand() > 0.5 ? 1 : -1;
+        const dirY = pseudoRand() > 0.5 ? 1 : -1;
+
+        const isGlowTrace = pseudoRand() > 0.45;
+        ctx.strokeStyle = isGlowTrace ? 'rgba(0, 210, 255, 0.75)' : 'rgba(0, 140, 240, 0.45)';
+        ctx.lineWidth = isGlowTrace ? 1.5 : 1.0;
+        ctx.shadowColor = isGlowTrace ? '#00bbff' : '#0066dd';
+        ctx.shadowBlur = isGlowTrace ? 6 : 3;
+
+        for (let ox of [-size, 0, size]) {
+          for (let oy of [-size, 0, size]) {
+            const startX = gx * step + ox;
+            const startY = gy * step + oy;
+            const midX = startX + len1 * dirX;
+            const endY = startY + len2 * dirY;
+
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            ctx.lineTo(midX, startY);
+            ctx.lineTo(midX, endY);
+            ctx.stroke();
+
+            // Terminal solder pad (White core + Cyan glowing aura)
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(midX, endY, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Solder pad ring
+            ctx.strokeStyle = 'rgba(0, 220, 255, 0.85)';
+            ctx.lineWidth = 1.0;
+            ctx.beginPath();
+            ctx.arc(midX, endY, 4.0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Start node dot
+            ctx.fillStyle = 'rgba(0, 180, 255, 0.80)';
+            ctx.beginPath();
+            ctx.arc(startX, startY, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+      ctx.restore();
+
+      // 5. Grid intersection node dots & Data junctions
+      ctx.fillStyle = 'rgba(80, 200, 255, 0.70)';
+      for (let i = 0; i <= gridDivs; i += 2) {
+        for (let j = 0; j <= gridDivs; j += 2) {
+          if (pseudoRand() > 0.60) {
+            ctx.beginPath();
+            ctx.arc(i * step, j * step, 1.5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.wrapS = THREE.RepeatWrapping;
+      texture.wrapT = THREE.RepeatWrapping;
+      if (renderer.capabilities && renderer.capabilities.getMaxAnisotropy) {
+        texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      }
+      return texture;
+    }
+
+    const cyberTexture = createCyberTexture();
+
+    // Floor and Ceiling Planes (Symmetrical perspective expanding from center horizon)
+    const planeGeo = new THREE.PlaneGeometry(8000, 8000);
+    const planeMat = new THREE.MeshBasicMaterial({
+      map: cyberTexture,
+      transparent: true,
+      opacity: 0.95,
+      side: THREE.DoubleSide,
+      blending: THREE.NormalBlending,
+      color: 0xffffff,
+      depthWrite: true
+    });
+
+    // Floor plane (Bottom half)
+    const floor = new THREE.Mesh(planeGeo, planeMat);
+    floor.position.set(0, -95, -1100);
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    // Ceiling plane (Top half)
+    const ceiling = new THREE.Mesh(planeGeo, planeMat);
+    ceiling.position.set(0, 95, -1100);
+    ceiling.rotation.x = Math.PI / 2;
+    scene.add(ceiling);
+
+    // Atmospheric Dark Horizon Glow (Soft, deep navy fade)
+    const horizonGlowGeo = new THREE.PlaneGeometry(10000, 24);
+    const horizonGlowMat = new THREE.MeshBasicMaterial({
+      color: 0x0033aa,
+      transparent: true,
+      opacity: 0.28,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide
+    });
+    const horizonGlow = new THREE.Mesh(horizonGlowGeo, horizonGlowMat);
+    horizonGlow.position.set(0, 0, -1800);
+    scene.add(horizonGlow);
+
+    // Soft glowing particle sprite texture
+    function createSparkleTexture() {
+      const pSize = 64;
+      const pCanvas = document.createElement('canvas');
+      pCanvas.width = pSize;
+      pCanvas.height = pSize;
+      const pCtx = pCanvas.getContext('2d');
+
+      const rad = pCtx.createRadialGradient(pSize / 2, pSize / 2, 0, pSize / 2, pSize / 2, pSize / 2);
+      rad.addColorStop(0, 'rgba(255, 255, 255, 1)');
+      rad.addColorStop(0.2, 'rgba(120, 215, 255, 0.85)');
+      rad.addColorStop(0.5, 'rgba(0, 120, 240, 0.35)');
+      rad.addColorStop(1, 'rgba(0, 30, 150, 0)');
+      pCtx.fillStyle = rad;
+      pCtx.fillRect(0, 0, pSize, pSize);
+
+      return new THREE.CanvasTexture(pCanvas);
+    }
+
+    const sparkleTexture = createSparkleTexture();
+
+    // Floating 3D Sparkle / Cyber Dust Particles (Gentle ambient data motes)
+    const particleCount = 320;
+    const particlesGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(particleCount * 3);
+    const colors = new Float32Array(particleCount * 3);
+    const speeds = new Float32Array(particleCount);
+
+    for (let i = 0; i < particleCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 4000; // X
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 190; // Y: floating in the corridor
+      positions[i * 3 + 2] = -Math.random() * 2000 + 200; // Z
+
+      speeds[i] = 25 + Math.random() * 55;
+
+      const pColor = new THREE.Color();
+      if (Math.random() > 0.4) {
+        pColor.setHSL(0.57 + Math.random() * 0.05, 0.90, 0.70 + Math.random() * 0.25);
+      } else {
+        pColor.setRGB(0.95, 0.98, 1.0);
+      }
+      colors[i * 3] = pColor.r;
+      colors[i * 3 + 1] = pColor.g;
+      colors[i * 3 + 2] = pColor.b;
+    }
+
+    particlesGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    particlesGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+    const particlesMat = new THREE.PointsMaterial({
+      size: 11,
+      map: sparkleTexture,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0.85,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      sizeAttenuation: true
+    });
+
+    const particles = new THREE.Points(particlesGeo, particlesMat);
+    scene.add(particles);
+
+    // Responsive Desktop & Mobile Layout Handler
+    function updateLayout() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      const aspect = width / height;
+
+      // Desktop / Landscape: keep moderate FOV (46°) to prevent extreme side stretching
+      // Mobile / Portrait: 62° for good vertical depth
+      if (aspect >= 1.0) {
+        camera.fov = 46;
+      } else {
+        camera.fov = 62;
+      }
+      camera.aspect = aspect;
+      camera.updateProjectionMatrix();
+
+      // Adapt texture repeat across X based on aspect ratio so grid cells stay square and dense on wide desktop screens
+      const baseRepeatY = 4;
+      const repeatX = Math.max(4, Math.round(baseRepeatY * aspect));
+      cyberTexture.repeat.set(repeatX, baseRepeatY);
+
+      renderer.setSize(width, height);
+      composer.setSize(width, height);
+      bloomPass.setSize(width, height);
+    }
+
+    // Animation Loop
+    const clock = new THREE.Clock();
+    const speed = 0.4;
+
+    function animate() {
+      const delta = Math.min(clock.getDelta(), 0.1);
+      const elapsedTime = clock.getElapsedTime();
+
+      // Forward flight effect
+      cyberTexture.offset.y -= delta * speed * 0.045;
+
+      // Particle forward drift and recycling
+      const pPositions = particles.geometry.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        pPositions[i * 3 + 2] += delta * speeds[i];
+
+        if (pPositions[i * 3 + 2] > 300) {
+          pPositions[i * 3 + 2] = -1900 - Math.random() * 200;
+          pPositions[i * 3] = (Math.random() - 0.5) * 4000;
+          pPositions[i * 3 + 1] = (Math.random() - 0.5) * 190;
+        }
+      }
+      particles.geometry.attributes.position.needsUpdate = true;
+
+      // Tilt responsiveness matching board tilt angle
+      const tiltStr = getComputedStyle(document.body).getPropertyValue('--tilt-angle') || '10deg';
+      const currentDeg = parseFloat(tiltStr) || 10;
+      const targetRotX = THREE.MathUtils.degToRad(-currentDeg * 0.40);
+      const targetPosY = (currentDeg / 10) * 18;
+
+      camera.rotation.x += (targetRotX - camera.rotation.x) * 0.08;
+      camera.position.y += (targetPosY - camera.position.y) * 0.08;
+      camera.position.x = Math.sin(elapsedTime * 0.3) * 1.5;
+
+      composer.render();
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', updateLayout);
+    updateLayout();
+    animate();
+  </script>
+</body>
+
+</html>ipt>
+</body>
+
+</html>
