@@ -1837,10 +1837,11 @@
       margin-bottom: 0;
     }
 
-    /* 3D傾き（10°または20°）に応じて相手山札の上の余白を動的に詰める（10°で-185px、20°で-260px） */
+    /* 3D傾き（10°または20°）およびズーム倍率に応じてフィールド余白を動的に詰める */
     body.field-3d .field-tilt {
       margin-top: var(--field-tilt-shift-y, -185px);
-      margin-bottom: 0px;
+      margin-bottom: var(--field-scale-shift-y, 0px);
+      transition: margin-top .45s cubic-bezier(.2, .7, .3, 1), margin-bottom .22s ease;
     }
 
     body.field-3d[data-tilt="0"] .field-tilt {

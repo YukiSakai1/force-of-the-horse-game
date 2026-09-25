@@ -2738,6 +2738,11 @@
       el.style.transformOrigin = '50% 100%';
       el.style.transform = 'translate(' + state.tx + 'px,' + state.ty + 'px) scale(' + state.scale + ')';
       el.style.zIndex = state.scale > 1.01 ? '30' : '';
+
+      // 倍率（scale）に応じてフィールド底面の差分を動的に詰めて余白を解消
+      var h = el.offsetHeight || 600;
+      var scaleShiftY = (state.scale < 1.0) ? (state.scale - 1.0) * h * 0.88 : 0;
+      document.body.style.setProperty('--field-scale-shift-y', scaleShiftY.toFixed(1) + 'px');
     }
     function clamp() {
       var maxPanX = Math.max(0, (el.offsetWidth * (state.scale - 1)) / 2);
