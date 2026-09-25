@@ -1868,7 +1868,7 @@
       margin-top: -195px;
     }
 
-    /* ナレーターは自分のデッキの上あたりに配置（初期デフォルト位置を上寄りに調整） */
+    /* ナレーターは自分のデッキの下に配置（手札とデッキが被らないよう適切な間隔を確保） */
     .narrator {
       position: relative !important;
       top: auto;
@@ -1876,18 +1876,18 @@
       right: auto;
       width: 100%;
       z-index: 30;
-      margin: -155px 0 4px !important;
+      margin: -24px 0 10px !important;
       transition: margin .45s cubic-bezier(.2, .7, .3, 1);
     }
 
-    /* 20度のときはナレーターの位置を下げ、手札と被らない位置に調整 */
+    /* 20度のときのナレーター位置 */
     body.field-3d[data-tilt="20"] .narrator,
     body.field-3d.tilt-20-plus .narrator {
-      margin: -78px 0 6px !important;
+      margin: -14px 0 12px !important;
     }
 
     .hand-zone {
-      margin-top: 0;
+      margin-top: 10px;
       padding-top: 0;
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);
     }
@@ -1898,10 +1898,10 @@
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);
     }
 
-    /* 20度のときは手札のカードの大きさを少し大きくし、位置を多少上に引き上げる */
+    /* 20度のときは手札のカードの大きさを調整 */
     body.field-3d[data-tilt="20"] .hand-zone,
     body.field-3d.tilt-20-plus .hand-zone {
-      transform: perspective(1000px) rotateX(-2deg) scale(1.12) translateY(-26px);
+      transform: perspective(1000px) rotateX(-2deg) scale(1.08) translateY(-14px);
       transform-origin: 50% 100%;
     }
 
