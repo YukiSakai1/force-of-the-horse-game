@@ -1868,7 +1868,7 @@
       margin-top: -195px;
     }
 
-    /* ナレーターは自分のデッキの上あたりに配置（10度時は上寄り、20度時は手札の上に絶妙に収まるよう下げる） */
+    /* ナレーターは自分のデッキの上あたりに配置（初期デフォルト位置を上寄りに調整） */
     .narrator {
       position: relative !important;
       top: auto;
@@ -1876,14 +1876,14 @@
       right: auto;
       width: 100%;
       z-index: 30;
-      margin: -125px 0 4px !important;
+      margin: -155px 0 4px !important;
       transition: margin .45s cubic-bezier(.2, .7, .3, 1);
     }
 
     /* 20度のときはナレーターの位置を下げ、手札と被らない位置に調整 */
     body.field-3d[data-tilt="20"] .narrator,
     body.field-3d.tilt-20-plus .narrator {
-      margin: -60px 0 6px !important;
+      margin: -78px 0 6px !important;
     }
 
     .hand-zone {
