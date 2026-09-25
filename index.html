@@ -229,24 +229,25 @@
         </div>
       </div>
 
-      <footer class="narrator" id="narrator">
-        <span class="drag-handle">⠿</span>
-        <div class="narrator-portrait"><img src="images/narrator.png" alt="ナレーター"></div>
-        <div class="narrator-bubble">
-          <div class="narrator-text" id="narrator-text">読み込み中…</div>
-          <div class="narrator-nav">
-            <button class="narrator-back" id="narrator-back" type="button">◀ 戻る</button>
-            <button class="narrator-forward" id="narrator-forward" type="button">進む ▶</button>
-          </div>
-          <button class="narrator-next" id="narrator-next">つぎへ ▶</button>
-        </div>
-      </footer>
-
       <section class="hand-zone" id="zone-hand">
         <div class="zone-label">手札</div>
         <div class="hand-row" id="hand-row"></div>
       </section>
     </main>
+
+    <!-- ナレーター：手札やボードのレイアウトから完全に分離された独立オーバーレイ要素 -->
+    <footer class="narrator" id="narrator">
+      <span class="drag-handle">⠿</span>
+      <div class="narrator-portrait"><img src="images/narrator.png" alt="ナレーター"></div>
+      <div class="narrator-bubble">
+        <div class="narrator-text" id="narrator-text">読み込み中…</div>
+        <div class="narrator-nav">
+          <button class="narrator-back" id="narrator-back" type="button">◀ 戻る</button>
+          <button class="narrator-forward" id="narrator-forward" type="button">進む ▶</button>
+        </div>
+        <button class="narrator-next" id="narrator-next">つぎへ ▶</button>
+      </div>
+    </footer>
 
     <div class="banner-overlay" id="banner-overlay">
       <div class="banner-box" id="banner-box"></div>

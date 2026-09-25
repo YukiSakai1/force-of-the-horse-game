@@ -2550,19 +2550,34 @@
 
   makeDraggable($('narrator'));
 
-  /* ===================== ナレーターの初期位置（自分の山札エリアに美しく固定） ===================== */
+  /* ===================== ナレーターの初期位置（自分の山札エリア中央に吸着） ===================== */
   function positionNarratorInitial() {
     var narrator = $('narrator');
-    if (!narrator || document.body.dataset.narratorMoved) return;
+    var deck = $('zone-deck');
+    if (!narrator || !deck || document.body.dataset.narratorMoved) return;
 
-    narrator.style.top = '';
-    narrator.style.left = '';
-    narrator.style.right = '';
-    narrator.style.bottom = '';
-    narrator.style.width = '';
-    narrator.style.transform = '';
+    var deckRect = deck.getBoundingClientRect();
+    if (!deckRect.height) return;
+
+    var narratorH = narrator.offsetHeight || 60;
+    // 自分の山札（4レーン）の垂直中央付近にナレーターのフキダシを合わせる
+    var targetTop = deckRect.top + (deckRect.height / 2) - (narratorH / 2);
+
+    // 画面外にはみ出さないようガード
+    targetTop = Math.max(8, Math.min(window.innerHeight - narratorH - 8, targetTop));
+
+    narrator.style.position = 'fixed';
+    narrator.style.top = targetTop.toFixed(1) + 'px';
+    narrator.style.left = '50%';
+    narrator.style.transform = 'translateX(-50%)';
+    narrator.style.width = 'calc(100% - 24px)';
+    narrator.style.maxWidth = '860px';
   }
+
   window.addEventListener('resize', function () {
+    if (!document.body.dataset.narratorMoved) positionNarratorInitial();
+  });
+  window.addEventListener('load', function () {
     if (!document.body.dataset.narratorMoved) positionNarratorInitial();
   });
 
@@ -2680,6 +2695,9 @@
       if (tiltValue) tiltValue.textContent = deg + '°';
       presetBtns.forEach(function (b) { b.classList.toggle('active', Number(b.dataset.angle) === deg); });
       legacyChips.forEach(function (o) { o.classList.toggle('active', o.dataset.angle === String(deg)); });
+      if (!document.body.dataset.narratorMoved) {
+        requestAnimationFrame(positionNarratorInitial);
+      }
     }
     function setDepth(px) {
       px = Math.max(500, Math.min(2400, Number(px) || DEFAULTS.depth));

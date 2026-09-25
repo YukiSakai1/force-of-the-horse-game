@@ -1676,19 +1676,6 @@
       padding-bottom: 224px;
     }
 
-    .narrator {
-      position: relative;
-      margin: -38px 0 10px;
-      z-index: 30;
-      transition: margin .35s cubic-bezier(.2, .7, .3, 1);
-    }
-
-    /* 20度のときはナレーターの位置を少し下げる（手札と重ならない位置） */
-    body.field-3d[data-tilt="20"] .narrator,
-    body.field-3d.tilt-20-plus .narrator {
-      margin: -14px 0 12px;
-    }
-
     .hand-zone {
       position: fixed;
       left: 8px;
@@ -1870,45 +1857,34 @@
 
     /* ナレーターは手札の位置に一切影響を与えない独立レイアウト（ゼロハイト配置）
        デフォルト初期位置は自分のデッキ（山札）の中央あたりにオーバーレイ配置 */
+    /* ナレーターは手札・ゲーム盤から完全に分離されたフロー外オーバーレイ */
     .narrator {
-      position: relative !important;
-      top: auto;
-      left: auto;
-      right: auto;
-      width: 100%;
-      height: 0 !important;
-      min-height: 0 !important;
+      position: fixed !important;
+      left: 50% !important;
+      transform: translateX(-50%) !important;
+      width: calc(100% - 24px) !important;
+      max-width: 860px !important;
+      z-index: 100 !important;
       margin: 0 !important;
       padding: 0 !important;
-      z-index: 30;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transform: translateY(-110px);
-      pointer-events: none;
-      transition: transform .45s cubic-bezier(.2, .7, .3, 1);
+      pointer-events: none !important;
+      transition: opacity .25s ease;
     }
 
     body[data-narrator-moved] .narrator,
     .narrator.dragging {
       transform: none !important;
-      height: auto !important;
       pointer-events: auto !important;
+      z-index: 500 !important;
     }
 
     .narrator > * {
-      pointer-events: auto;
+      pointer-events: auto !important;
     }
 
-    /* 20度のときのナレーター位置 */
-    body.field-3d[data-tilt="20"] .narrator:not(.dragging),
-    body.field-3d.tilt-20-plus .narrator:not(.dragging) {
-      transform: translateY(-110px);
-    }
-
-    /* 手札ゾーンはフィールドから独立した一定の間隔を保ち、ナレーターの位置・高さに一切影響されない */
+    /* 手札ゾーンはフィールド（.field-tilt）の直下に独立して配置され、ナレーターの影響を一切受けない */
     .hand-zone {
-      margin-top: 36px;
+      margin-top: 32px;
       min-height: 220px;
       padding-top: 0;
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);
@@ -2533,22 +2509,30 @@
     }
   }
 
-  /* ---------- Narrator (draggable) ---------- */
-  /* .narrator は位置決めだけを行う透明な入れ物（ポートレート＋吹き出しを横並びに配置） */
+  /* ---------- Narrator (independent floating overlay, draggable) ---------- */
   .narrator {
-    position: relative;
-    width: 100%;
-    z-index: 25;
+    position: fixed;
+    z-index: 100;
+    left: 50%;
+    transform: translateX(-50%);
+    width: calc(100% - 20px);
+    max-width: 860px;
     display: flex;
     align-items: center;
     gap: 9px;
-    margin: -38px 0 10px;
+    margin: 0;
     cursor: grab;
     user-select: none;
     box-sizing: border-box;
     touch-action: none;
+    pointer-events: none;
   }
 
+  .narrator > * {
+    pointer-events: auto;
+  }
+
+  body[data-narrator-moved] .narrator,
   .narrator.dragging {
     position: fixed !important;
     z-index: 500 !important;
@@ -2749,24 +2733,9 @@
     content: 'GUIDE（過去）';
   }
 
-  /* ナレーターは通常手札と山札の間に配置（少し山札と被る位置へ上方にシフト） */
-  .narrator {
-    position: relative;
-    width: 100%;
-    z-index: 30;
-    margin: -38px 0 10px;
-  }
-
   @media (max-width:639px) {
     .narrator {
-      width: 100%;
       gap: 7px;
-      margin: -32px 0 8px;
-    }
-
-    body.field-3d[data-tilt="20"] .narrator,
-    body.field-3d.tilt-20-plus .narrator {
-      margin: -10px 0 10px;
     }
 
     .narrator-portrait {
