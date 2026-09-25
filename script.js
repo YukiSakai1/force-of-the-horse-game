@@ -2072,7 +2072,6 @@
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
-
     setNarrator('ここで相手がガードするか確認しよう…');
     showNextButton(true);
     await waitNext();

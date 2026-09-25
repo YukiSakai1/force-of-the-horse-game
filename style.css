@@ -4515,3 +4515,24 @@
       font-size: 8.5px;
     }
   }
+
+  /* ========== 自分で操作モード：モバイルでの循環ボタン固定表示 ==========
+     手札ゾーンが画面下部に fixed 固定されているため、コマンドバーが
+     手札の下に隠れてしまう問題を解消する。
+     manual-mode 時はコマンドバーごと fixed で手札の真上に固定する。 */
+  @media (max-width: 859px) {
+    body.manual-mode #command-bar {
+      position: fixed;
+      right: 4%;
+      bottom: calc(196px + env(safe-area-inset-bottom, 0px));
+      top: auto;
+      transform: none;
+      z-index: 50;
+    }
+
+    /* 20度の傾きのとき手札が20px上がるため、コマンドバーも合わせてずらす */
+    body.manual-mode.field-3d[data-tilt="20"] #command-bar,
+    body.manual-mode.field-3d.tilt-20-plus #command-bar {
+      bottom: calc(216px + env(safe-area-inset-bottom, 0px));
+    }
+  }
