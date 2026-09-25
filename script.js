@@ -2501,18 +2501,26 @@
       var dx = clientX - startX;
       var dy = clientY - startY;
 
-      // わずかなクリックブレとドラッグを判定
-      if (!movedThreshold && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) {
+      // わずかなクリックブレとドラッグを判定（1px以上動いたらドラッグ開始）
+      if (!movedThreshold && (Math.abs(dx) > 1 || Math.abs(dy) > 1)) {
         movedThreshold = true;
         document.body.dataset.narratorMoved = '1';
         el.classList.add('dragging');
-        el.style.position = 'fixed';
         var rect = el.getBoundingClientRect();
+        initLeft = rect.left;
+        initTop = rect.top;
+        startX = clientX;
+        startY = clientY;
+        dx = 0;
+        dy = 0;
+        el.style.position = 'fixed';
         el.style.transform = 'none';
         el.style.width = rect.width + 'px';
         el.style.margin = '0';
         el.style.bottom = 'auto';
         el.style.right = 'auto';
+        el.style.left = initLeft + 'px';
+        el.style.top = initTop + 'px';
         el.style.zIndex = '500';
       }
 

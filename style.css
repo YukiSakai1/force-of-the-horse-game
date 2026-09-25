@@ -1855,33 +1855,6 @@
       margin-top: -260px;
     }
 
-    /* ナレーターは手札の位置に一切影響を与えない独立レイアウト（ゼロハイト配置）
-       デフォルト初期位置は自分のデッキ（山札）の中央あたりにオーバーレイ配置 */
-    /* ナレーターは手札・ゲーム盤から完全に分離されたフロー外オーバーレイ */
-    .narrator {
-      position: fixed !important;
-      left: 50% !important;
-      transform: translateX(-50%) !important;
-      width: calc(100% - 24px) !important;
-      max-width: 860px !important;
-      z-index: 100 !important;
-      margin: 0 !important;
-      padding: 0 !important;
-      pointer-events: none !important;
-      transition: opacity .25s ease;
-    }
-
-    body[data-narrator-moved] .narrator,
-    .narrator.dragging {
-      transform: none !important;
-      pointer-events: auto !important;
-      z-index: 500 !important;
-    }
-
-    .narrator > * {
-      pointer-events: auto !important;
-    }
-
     /* 手札ゾーンはフィールド（.field-tilt）の直下に独立して配置され、ナレーターの影響を一切受けない */
     .hand-zone {
       margin-top: 32px;
@@ -2525,16 +2498,10 @@
     user-select: none;
     box-sizing: border-box;
     touch-action: none;
-    pointer-events: none;
-  }
-
-  .narrator > * {
     pointer-events: auto;
   }
 
-  body[data-narrator-moved] .narrator,
   .narrator.dragging {
-    position: fixed !important;
     z-index: 500 !important;
     cursor: grabbing;
     opacity: 0.96;
