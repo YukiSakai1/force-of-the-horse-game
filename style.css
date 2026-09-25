@@ -1850,9 +1850,9 @@
     }
 
     /* ---- デスクトップ専用レイアウト ---- */
-    /* 3D傾き（10°または20°）に応じて相手山札の上の余白を動的に詰める（10°で-110px、20°で-195px） */
+    /* 3D傾き（10°または20°）に応じて相手山札の上の余白を動的に詰める（10°で-185px、20°で-260px） */
     body.field-3d .field-tilt {
-      margin-top: var(--field-tilt-shift-y, -110px);
+      margin-top: var(--field-tilt-shift-y, -185px);
       margin-bottom: 6px;
     }
 
@@ -1861,11 +1861,11 @@
     }
 
     body.field-3d[data-tilt="10"] .field-tilt {
-      margin-top: -110px;
+      margin-top: -185px;
     }
 
     body.field-3d[data-tilt="20"] .field-tilt {
-      margin-top: -195px;
+      margin-top: -260px;
     }
 
     /* ナレーターは自分のデッキの下に配置（手札とデッキが被らないよう適切な間隔を確保） */
