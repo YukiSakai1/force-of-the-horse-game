@@ -588,13 +588,6 @@
     // 「最新（現在地）」として履歴に積み、表示を最新メッセージに合わせる
     narratorHistory.push(html);
     renderNarratorAt(narratorHistory.length - 1);
-    // メッセージが変わるたびに、手札の増減など盤面のレイアウト変化に合わせて
-    // 位置を再計算する（ただしユーザーが手動でドラッグした後は動かさない）。
-    if (!document.body.dataset.narratorMoved) {
-      requestAnimationFrame(function () {
-        requestAnimationFrame(positionNarratorInitial);
-      });
-    }
   }
   function showNextButton(show) {
     $('narrator-next').style.display = show ? 'inline-flex' : 'none';
@@ -2460,134 +2453,7 @@
     updateFabDisplay();
   });
 
-  /* ===================== ドラッグ機能（ナレーター） ===================== */
-  function makeDraggable(el, handleSelector) {
-    if (!el) return;
-    var isDragging = false;
-    var startX = 0, startY = 0;
-    var initLeft = 0, initTop = 0;
-    var movedThreshold = false;
 
-    function startDrag(e) {
-      // ボタン類をクリックした時はドラッグを開始せず通常のクリックを優先
-      if (e.target.closest && e.target.closest('button, .narrator-next, .narrator-back, .narrator-forward, .cmd-fab, .cmd-menu-btn')) {
-        return;
-      }
-
-      var clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : null);
-      var clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : null);
-      if (clientX === null || clientY === null) return;
-
-      var rect = el.getBoundingClientRect();
-      startX = clientX;
-      startY = clientY;
-      initLeft = rect.left;
-      initTop = rect.top;
-      isDragging = true;
-      movedThreshold = false;
-
-      if (e.type === 'touchstart') {
-        // スクロールを防止
-        e.preventDefault();
-      }
-    }
-
-    function onDrag(e) {
-      if (!isDragging) return;
-      var clientX = e.clientX !== undefined ? e.clientX : (e.touches && e.touches[0] ? e.touches[0].clientX : null);
-      var clientY = e.clientY !== undefined ? e.clientY : (e.touches && e.touches[0] ? e.touches[0].clientY : null);
-      if (clientX === null || clientY === null) return;
-
-      var dx = clientX - startX;
-      var dy = clientY - startY;
-
-      // わずかなクリックブレとドラッグを判定（1px以上動いたらドラッグ開始）
-      if (!movedThreshold && (Math.abs(dx) > 1 || Math.abs(dy) > 1)) {
-        movedThreshold = true;
-        document.body.dataset.narratorMoved = '1';
-        el.classList.add('dragging');
-        var rect = el.getBoundingClientRect();
-        initLeft = rect.left;
-        initTop = rect.top;
-        startX = clientX;
-        startY = clientY;
-        dx = 0;
-        dy = 0;
-        el.style.position = 'fixed';
-        el.style.transform = 'none';
-        el.style.width = rect.width + 'px';
-        el.style.margin = '0';
-        el.style.bottom = 'auto';
-        el.style.right = 'auto';
-        el.style.left = initLeft + 'px';
-        el.style.top = initTop + 'px';
-        el.style.zIndex = '500';
-      }
-
-      if (movedThreshold) {
-        var newLeft = initLeft + dx;
-        var newTop = initTop + dy;
-
-        var elW = el.offsetWidth || 280;
-        var elH = el.offsetHeight || 60;
-        newLeft = Math.max(4, Math.min(window.innerWidth - elW - 4, newLeft));
-        newTop = Math.max(4, Math.min(window.innerHeight - elH - 4, newTop));
-
-        el.style.left = newLeft + 'px';
-        el.style.top = newTop + 'px';
-      }
-
-      if (e.cancelable) e.preventDefault();
-    }
-
-    function stopDrag() {
-      if (!isDragging) return;
-      isDragging = false;
-      el.classList.remove('dragging');
-    }
-
-    el.addEventListener('mousedown', startDrag);
-    document.addEventListener('mousemove', onDrag, { passive: false });
-    document.addEventListener('mouseup', stopDrag);
-
-    el.addEventListener('touchstart', startDrag, { passive: false });
-    document.addEventListener('touchmove', onDrag, { passive: false });
-    document.addEventListener('touchend', stopDrag);
-    document.addEventListener('touchcancel', stopDrag);
-  }
-
-  makeDraggable($('narrator'));
-
-  /* ===================== ナレーターの初期位置（自分の山札エリア中央に吸着） ===================== */
-  function positionNarratorInitial() {
-    var narrator = $('narrator');
-    var deck = $('zone-deck');
-    if (!narrator || !deck || document.body.dataset.narratorMoved) return;
-
-    var deckRect = deck.getBoundingClientRect();
-    if (!deckRect.height) return;
-
-    var narratorH = narrator.offsetHeight || 60;
-    // 自分の山札（4レーン）の垂直中央付近にナレーターのフキダシを合わせる
-    var targetTop = deckRect.top + (deckRect.height / 2) - (narratorH / 2);
-
-    // 画面外にはみ出さないようガード
-    targetTop = Math.max(8, Math.min(window.innerHeight - narratorH - 8, targetTop));
-
-    narrator.style.position = 'fixed';
-    narrator.style.top = targetTop.toFixed(1) + 'px';
-    narrator.style.left = '50%';
-    narrator.style.transform = 'translateX(-50%)';
-    narrator.style.width = 'calc(100% - 24px)';
-    narrator.style.maxWidth = '860px';
-  }
-
-  window.addEventListener('resize', function () {
-    if (!document.body.dataset.narratorMoved) positionNarratorInitial();
-  });
-  window.addEventListener('load', function () {
-    if (!document.body.dataset.narratorMoved) positionNarratorInitial();
-  });
 
   /* ===================== holographic card shine (pointer-tracked) ===================== */
   (function setupHoloShine() {
@@ -2703,9 +2569,6 @@
       if (tiltValue) tiltValue.textContent = deg + '°';
       presetBtns.forEach(function (b) { b.classList.toggle('active', Number(b.dataset.angle) === deg); });
       legacyChips.forEach(function (o) { o.classList.toggle('active', o.dataset.angle === String(deg)); });
-      if (!document.body.dataset.narratorMoved) {
-        requestAnimationFrame(positionNarratorInitial);
-      }
     }
     function setDepth(px) {
       px = Math.max(500, Math.min(2400, Number(px) || DEFAULTS.depth));
@@ -3287,7 +3150,5 @@
   /* ===================== boot ===================== */
   renderAll();
   runTutorial();
-
-  requestAnimationFrame(function () { requestAnimationFrame(positionNarratorInitial); });
 
 })();

@@ -1855,10 +1855,19 @@
       margin-top: -260px;
     }
 
-    /* 手札ゾーンはフィールド（.field-tilt）の直下に独立して配置され、ナレーターの影響を一切受けない */
+    /* ナレーターは手札とデッキの間に固定配置（幅はフィールドに合わせてスッキリ収める） */
+    .narrator {
+      position: relative;
+      width: 90%;
+      max-width: 660px;
+      margin: 8px auto 12px;
+      z-index: 30;
+    }
+
+    /* 手札ゾーン（ナレーターの下に自然に配置） */
     .hand-zone {
-      margin-top: 32px;
-      min-height: 220px;
+      margin-top: 6px;
+      min-height: 210px;
       padding-top: 0;
       transition: transform .45s cubic-bezier(.2, .7, .3, 1);
     }
@@ -2482,44 +2491,23 @@
     }
   }
 
-  /* ---------- Narrator (independent floating overlay, draggable) ---------- */
+  /* ---------- Narrator (Fixed between deck and hand) ---------- */
   .narrator {
-    position: fixed;
-    z-index: 100;
-    left: 50%;
-    transform: translateX(-50%);
-    width: calc(100% - 20px);
-    max-width: 860px;
+    position: relative;
+    z-index: 30;
+    width: 92%;
+    max-width: 660px;
+    margin: 8px auto 14px;
     display: flex;
     align-items: center;
     gap: 9px;
-    margin: 0;
-    cursor: grab;
     user-select: none;
     box-sizing: border-box;
-    touch-action: none;
-    pointer-events: auto;
-  }
-
-  .narrator.dragging {
-    z-index: 500 !important;
-    cursor: grabbing;
-    opacity: 0.96;
-    box-shadow: 0 12px 32px rgba(0, 0, 0, .8);
   }
 
   .narrator-bubble,
-  .narrator-portrait,
-  .narrator .drag-handle {
+  .narrator-portrait {
     pointer-events: auto;
-    cursor: grab;
-  }
-
-  .narrator.dragging,
-  .narrator.dragging .narrator-bubble,
-  .narrator.dragging .narrator-portrait,
-  .narrator.dragging .drag-handle {
-    cursor: grabbing;
   }
 
   .narrator-next,
@@ -2527,23 +2515,6 @@
   .narrator-forward {
     pointer-events: auto !important;
     cursor: pointer;
-  }
-
-  .narrator .drag-handle {
-    position: absolute;
-    right: 10px;
-    top: 7px;
-    z-index: 3;
-    font-size: 13px;
-    color: var(--rail-dim);
-    opacity: .65;
-    padding: 2px 5px;
-    line-height: 1;
-    letter-spacing: -2px;
-    pointer-events: auto;
-    cursor: grab;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, .15);
   }
 
   /* ポートレートは吹き出しの外側に配置。キャラクターが話している見た目にするため
