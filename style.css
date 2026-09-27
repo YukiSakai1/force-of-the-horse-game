@@ -2640,28 +2640,29 @@
     cursor: pointer;
   }
 
-  /* ポートレートは吹き出しの外側に配置。キャラクターが話している見た目にするため
-     吹き出しのしっぽ（三角形）がこのポートレートの向きを指すようにする */
+  /* ポートレート：枠なし・背景なし。人物画像だけをそのまま表示する */
   .narrator-portrait {
     flex: none;
-    width: 48px;
-    height: 48px;
-    border-radius: 12px;
-    background: radial-gradient(circle at 35% 30%, #3a6b48, #14261b);
+    width: 64px;
+    height: 64px;
+    border-radius: 0;
+    background: none;
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    font-size: 17px;
-    border: 2px solid var(--gold-2);
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, .7), 0 5px 14px rgba(0, 0, 0, .55);
-    overflow: hidden;
+    font-size: 24px;
+    border: none;
+    box-shadow: none;
+    overflow: visible;
     z-index: 2;
+    filter: drop-shadow(0 2px 6px rgba(0,0,0,.6));
   }
 
   .narrator-portrait img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: bottom center;
     display: block;
   }
 
@@ -2675,9 +2676,8 @@
     gap: 12px;
     min-height: 62px;
     border-radius: 10px;
-    padding: 14px 48px 12px 15px;
+    padding: 14px 48px 12px 18px;
     border: 1px solid rgba(246, 210, 122, .72);
-    border-left: 4px solid var(--gold-2);
     box-shadow: 0 8px 26px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .1);
     background: linear-gradient(110deg, rgba(14, 31, 25, .98), rgba(8, 16, 18, .97));
     backdrop-filter: blur(10px);
@@ -2690,33 +2690,34 @@
     border-color: #ffffff;
   }
 
-  /* 吹き出しのしっぽ：吹き出しの左端から、ポートレート（キャラクターの顔）の方向を
-     指す三角形を出す。枠線色の大きい三角形の上に、内側の色で少し小さい三角形を
-     重ねて縁取りを表現する。 */
+  /* 吹き出しのしっぽ：人物（左側）を指す三角形。
+     ::before = 枠線色の外側三角形、::after = 背景色の内側三角形（縁取り表現） */
   .narrator-bubble::before,
   .narrator-bubble::after {
-    content: 'GUIDE';
+    content: '';
     position: absolute;
-    top: -9px;
-    left: 12px;
+    top: 50%;
     pointer-events: none;
-    border: none;
-    border-radius: 4px;
-    padding: 2px 6px;
-    background: var(--gold-2);
-    color: var(--ink);
-    font-family: 'Oswald', sans-serif;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: .12em;
+    width: 0;
+    height: 0;
+    border-style: solid;
   }
 
+  /* 外側（枠線色）の三角形 */
   .narrator-bubble::before {
-    transform: none;
+    left: -13px;
+    transform: translateY(-50%);
+    border-width: 10px 13px 10px 0;
+    border-color: transparent rgba(246, 210, 122, .72) transparent transparent;
   }
 
+  /* 内側（背景色）の三角形：枠線を1pxだけ残して内側を塗りつぶす */
   .narrator-bubble::after {
-    display: none;
+    display: block;
+    left: -10px;
+    transform: translateY(-50%);
+    border-width: 8px 10px 8px 0;
+    border-color: transparent rgba(14, 31, 25, .98) transparent transparent;
   }
 
   .narrator-text {
@@ -2791,7 +2792,7 @@
   }
 
   .narrator.viewing-history .narrator-bubble::before {
-    content: 'GUIDE（過去）';
+    border-color: transparent rgba(180, 180, 180, .5) transparent transparent;
   }
 
   @media (max-width:639px) {
@@ -2800,9 +2801,9 @@
     }
 
     .narrator-portrait {
-      width: 42px;
-      height: 42px;
-      border-radius: 10px;
+      width: 54px;
+      height: 54px;
+      border-radius: 0;
     }
 
     .narrator-bubble {
