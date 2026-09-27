@@ -426,10 +426,11 @@
   }
 
   .horse-icon {
-    font-size: 14px;
+    font-size: 13px;
     line-height: 1;
-    transform: scaleX(-1); /* 進行方向（右）を向かせる */
-    filter: drop-shadow(0 0 4px rgba(255, 255, 255, .6));
+    color: #00f0ff;
+    text-shadow: 0 0 6px rgba(0, 240, 255, .9);
+    display: block;
   }
 
   .horse-pin-arrow {
