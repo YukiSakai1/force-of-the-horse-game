@@ -2623,7 +2623,7 @@
     margin: 8px auto 14px;
     display: flex;
     align-items: center;
-    gap: 9px;
+    gap: 16px;
     user-select: none;
     box-sizing: border-box;
   }
