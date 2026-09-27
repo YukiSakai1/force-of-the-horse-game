@@ -1858,16 +1858,16 @@
   /* モバイル（480px以下）では手札カードを大きく表示 */
   @media (max-width:480px) {
     .card {
-      width: 88px;
-      height: 123px;
+      width: 95px;
+      height: 133px;
     }
   }
 
   /* 中くらいのモバイル（481px-760px）でもカードサイズを大きく */
   @media (min-width:481px) and (max-width:760px) {
     .card {
-      width: 100px;
-      height: 140px;
+      width: 110px;
+      height: 154px;
     }
   }
 
@@ -1974,7 +1974,7 @@
       margin-top: -100px;
     }
 
-    body.field-3d[data-tilt="20"] .field-tilt {
+    body.field-3d[data-tilt="25"] .field-tilt {
       margin-top: -100px;
     }
 
