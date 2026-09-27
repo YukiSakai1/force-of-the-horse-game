@@ -1527,7 +1527,7 @@
         farm.push(card);
       }
       renderAll();
-      FieldCamera.pulseTo(destRect2);
+
       Haptics.place();
 
       selectionCount++;
@@ -2830,25 +2830,8 @@
       var localY = (rectCenterY - wrapCenterY) / state.scale;
       return { tx: -localX * scale, ty: -localY * scale };
     }
-    // brief zoom toward a rect and back out (used when a card lands on a zone)
-    function pulseTo(rect, opts) {
-      if (!rect) return;
-      opts = opts || {};
-      var peak = opts.peak || 1.3;
-      var holdMs = opts.holdMs || 260;
-      busy = true;
-      var startState = { scale: state.scale, tx: state.tx, ty: state.ty };
-      var off = rectToCenterOffset(rect, peak);
-      state.scale = peak; state.tx = off.tx; state.ty = off.ty;
-      clamp();
-      apply(true);
-      setTimeout(function () {
-        state.scale = startState.scale; state.tx = startState.tx; state.ty = startState.ty;
-        clamp();
-        apply(true);
-        setTimeout(function () { busy = false; }, 260);
-      }, holdMs);
-    }
+    // pulseTo: 無効化（カード着地時のズームイン演出を削除）
+    function pulseTo(rect, opts) { /* no-op */ }
     // zoom in on a rect and stay there (used for double-tap focus); tap again to reset
     function focusRect(rect, scale) {
       if (!rect) return;
