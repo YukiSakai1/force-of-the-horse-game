@@ -2646,7 +2646,7 @@
     flex: none;
     width: 78px;
     height: 78px;
-    border-radius: 14px;
+    border-radius: 50%;
     background: radial-gradient(circle at 35% 30%, #3a6b48, #14261b);
     display: flex;
     align-items: center;
@@ -2803,7 +2803,7 @@
     .narrator-portrait {
       width: 66px;
       height: 66px;
-      border-radius: 12px;
+      border-radius: 50%;
     }
 
     .narrator-bubble {
