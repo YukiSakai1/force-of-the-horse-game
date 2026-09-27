@@ -2640,22 +2640,21 @@
     cursor: pointer;
   }
 
-  /* ポートレート：枠なし・背景なし。人物画像だけをそのまま表示する */
+  /* ポートレート：枠あり・角丸・背景付き */
   .narrator-portrait {
     flex: none;
     width: 78px;
     height: 78px;
-    border-radius: 0;
-    background: none;
+    border-radius: 14px;
+    background: radial-gradient(circle at 35% 30%, #3a6b48, #14261b);
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     justify-content: center;
     font-size: 24px;
-    border: none;
-    box-shadow: none;
-    overflow: visible;
+    border: 2px solid var(--gold-2);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, .7), 0 5px 14px rgba(0, 0, 0, .55);
+    overflow: hidden;
     z-index: 2;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,.6));
   }
 
   .narrator-portrait img {
@@ -2803,7 +2802,7 @@
     .narrator-portrait {
       width: 66px;
       height: 66px;
-      border-radius: 0;
+      border-radius: 12px;
     }
 
     .narrator-bubble {
