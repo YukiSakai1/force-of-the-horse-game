@@ -2643,8 +2643,8 @@
   /* ポートレート：枠なし・背景なし。人物画像だけをそのまま表示する */
   .narrator-portrait {
     flex: none;
-    width: 64px;
-    height: 64px;
+    width: 78px;
+    height: 78px;
     border-radius: 0;
     background: none;
     display: flex;
@@ -2801,8 +2801,8 @@
     }
 
     .narrator-portrait {
-      width: 54px;
-      height: 54px;
+      width: 66px;
+      height: 66px;
       border-radius: 0;
     }
 
