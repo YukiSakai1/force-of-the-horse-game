@@ -503,6 +503,18 @@
   // その分だけ追加でずらす（CSSの計算だけに頼らない安全策）
   function adjustFieldDiagonalLayout() {
     var zoneFieldEl = $('zone-field');
+
+    // デスクトップ（860px以上）では 3D パース変換後に getBoundingClientRect() が
+    // 実レイアウト位置と乖離するため、重なり補正を行うと逆に大きなスペースが生まれる。
+    // デスクトップは grid の row-gap で十分なスペースを確保しているのでスキップする。
+    if (typeof window !== 'undefined' && window.innerWidth >= 860) {
+      if (zoneFieldEl) {
+        zoneFieldEl.style.setProperty('--field-opp-extra-shift', '0px');
+        zoneFieldEl.style.setProperty('--field-extra-shift', '0px');
+      }
+      return;
+    }
+
     var oppDeckEl = $('zone-opp-deck');
     var fieldOppEl = $('field-body-opp');
     var deckEl = $('zone-deck');
