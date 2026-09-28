@@ -4253,8 +4253,8 @@
   }
 
   .cmd-fab-arrow {
-    width: 26px;
-    height: 26px;
+    width: 33px;
+    height: 33px;
     display: block;
     filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.9));
     transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.3, 1);
@@ -4480,8 +4480,8 @@
     }
 
     .cmd-fab {
-      width: 54px;
-      height: 54px;
+      width: 60px;
+      height: 60px;
     }
 
     .cmd-menu-btn {
@@ -4507,8 +4507,13 @@
     }
 
     .cmd-fab {
-      width: 46px;
-      height: 46px;
+      width: 54px;
+      height: 54px;
+    }
+
+    .cmd-fab-arrow {
+      width: 30px;
+      height: 30px;
     }
 
     .cmd-menu-btn {
