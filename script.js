@@ -1005,7 +1005,9 @@
     prevPhase = null;
     selectedForces = [];
     var cost = selectedHorse ? (selectedHorse.cost || 2) : 2;
-    setNarrator('コスト分の<b>フォースカード</b>を ' + cost + ' 枚選んでタップしてください。');
+    var horseName = (selectedHorse && selectedHorse.name) ? selectedHorse.name : '馬カード';
+    setNarrator('<b>' + horseName + '</b>のコスト分のフォースカードを捨ててください。（残り ' + cost + ' 枚）');
+    showToast('馬カードのコスト分のフォースカードを捨ててください');
     renderAll();
   }
 
@@ -1648,7 +1650,9 @@
         if (selectedForces.length >= cost) {
           executeRun();
         } else {
-          setNarrator('あと ' + (cost - selectedForces.length) + ' 枚選んでください。');
+          var remaining = cost - selectedForces.length;
+          var horseName = (selectedHorse && selectedHorse.name) ? selectedHorse.name : '馬カード';
+          setNarrator('<b>' + horseName + '</b>のコスト分のフォースカードを捨ててください。（残り ' + remaining + ' 枚）');
           updateCommandButtons();
         }
         return;
