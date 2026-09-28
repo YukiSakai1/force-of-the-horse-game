@@ -1668,6 +1668,7 @@
   }
 
   .hand-nav-btn {
+    display: none; /* デスクトップでは手札の矢印を非表示 */
     position: absolute;
     top: calc(50% + 8px);
     transform: translateY(-50%);
@@ -1675,7 +1676,6 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    display: flex;
     align-items: center;
     justify-content: center;
     background: rgba(14, 25, 42, 0.90);
@@ -1791,6 +1791,10 @@
     .hand-zone .zone-label {
       font-size: 11px;
       line-height: 14px;
+    }
+
+    .hand-nav-btn {
+      display: flex; /* モバイルでのみ表示 */
     }
 
     body.field-3d .hand-zone {
