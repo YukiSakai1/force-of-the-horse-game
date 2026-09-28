@@ -901,9 +901,14 @@
 
   /* ===================== コマンドバーの初期位置（画面右下に固定） ===================== */
   function showCommandBar(show) {
-    $('command-bar').style.display = show ? 'flex' : 'none';
+    var bar = $('command-bar');
+    if (!bar) return;
+    bar.hidden = !show;
+    bar.classList.toggle('hidden', !show);
+    bar.style.display = show ? 'flex' : 'none';
     if (show) {
       updateCommandButtons();
+      updateFabDisplay();
     }
   }
 
@@ -2105,14 +2110,6 @@
     return chain;
   }
 
-  /* ===================== command bar visibility ===================== */
-  function showCommandBar(show) {
-    var bar = $('command-bar');
-    if (!bar) return;
-    bar.hidden = !show;
-    bar.classList.toggle('hidden', !show);
-    bar.style.display = show ? 'flex' : 'none';
-  }
 
   function findHandCardClosestToCenter(matcher) {
     var matches = [];
@@ -2325,7 +2322,7 @@
     hasRunThisTurn = false;
     opponentHandCount = 0;
     // 相手（CPU）にも自分と同じく初期手札7枚を配る（フォース・馬をバランスよく持たせ、序盤から走破できるようにする）
-    cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), hibiscus()];
+    cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
     opponentHandCount = cpuHand.length;
     cpuHorseCard = null;
     if (cpuTotalDeck() <= 0) CPU_LANES.forEach(function (l) { l.count = 10; });
@@ -2357,7 +2354,7 @@
     CPU_LANES.forEach(function (l) { l.count = 10; });
     farm = [];
     hand = [];
-    cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), hibiscus()];
+    cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
     opponentHandCount = cpuHand.length;
     field = null;
     fieldGuard = null;
