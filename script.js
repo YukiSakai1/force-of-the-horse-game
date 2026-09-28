@@ -691,18 +691,23 @@
     var overlay = $('banner-overlay');
     var box = $('banner-box');
     var cardBackdrop = $('banner-card-backdrop');
+    var stage = $('banner-stage');
+    var hasCard = false;
     if (cardBackdrop) {
       cardBackdrop.innerHTML = '';
-      var targetCard = horseCard || ((text.indexOf('走破成功') >= 0 || text.indexOf('走破！') >= 0) ? (field || selectedHorse) : null);
+      var targetCard = horseCard || ((text.indexOf('走破成功') >= 0 || text.indexOf('走破！') >= 0) ? (field || selectedHorse || goldShip()) : null);
       if (targetCard) {
         var cEl = buildCardEl(targetCard);
         cEl.classList.add('banner-horse-card');
         cardBackdrop.appendChild(cEl);
         cardBackdrop.style.display = 'block';
+        hasCard = true;
       } else {
         cardBackdrop.style.display = 'none';
       }
     }
+    if (stage) stage.classList.toggle('has-card', hasCard);
+    if (overlay) overlay.classList.toggle('has-card', hasCard);
     box.innerHTML = '<span class="banner-shine"></span><span class="banner-box-text">' + text + '</span>';
     box.classList.add('show');
     overlay.classList.add('active');
@@ -715,6 +720,8 @@
         clearTimeout(timer);
         box.classList.remove('show');
         overlay.classList.remove('active');
+        if (stage) stage.classList.remove('has-card');
+        if (overlay) overlay.classList.remove('has-card');
         if (cardBackdrop) {
           cardBackdrop.style.display = 'none';
           cardBackdrop.innerHTML = '';
@@ -3389,6 +3396,9 @@
     setTimeout(doScroll, 60);
     setTimeout(doScroll, 250);
   }
+
+  window._showBanner = showBanner;
+  window._goldShip = goldShip;
 
   renderAll();
   runTutorial();

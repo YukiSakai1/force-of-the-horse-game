@@ -2496,12 +2496,12 @@
   .banner-overlay {
     position: fixed;
     inset: 0;
-    z-index: 70;
+    z-index: 100;
     display: flex;
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 14px;
+    gap: 16px;
     pointer-events: none;
     background: rgba(0, 0, 0, 0);
     transition: background .3s;
@@ -2510,28 +2510,54 @@
   .banner-overlay.active {
     pointer-events: auto;
     cursor: pointer;
-    background: rgba(4, 6, 4, .4);
-    backdrop-filter: blur(2px);
-    -webkit-backdrop-filter: blur(2px);
+    background: rgba(3, 7, 12, .78);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+
+  .banner-stage {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 90vw;
+  }
+
+  .banner-stage.has-card {
+    position: relative;
+    animation: bannerStagePop .4s cubic-bezier(.16, 1, .3, 1) both;
+  }
+
+  @keyframes bannerStagePop {
+    0% {
+      opacity: 0;
+      transform: scale(.8) translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
   }
 
   .banner-tap-hint {
     opacity: 0;
-    font-size: 12px;
-    color: var(--rail-dim);
+    font-size: 13px;
+    color: #a4c2db;
     letter-spacing: .08em;
+    text-shadow: 0 2px 6px rgba(0, 0, 0, .85);
     transition: opacity .3s;
   }
 
   .banner-overlay.active .banner-tap-hint {
-    opacity: .85;
+    opacity: .9;
   }
 
+  /* ---- 通常バナーボックス（カードなし） ---- */
   .banner-box {
     position: relative;
     background: linear-gradient(165deg, rgba(18, 26, 20, .94), rgba(8, 12, 9, .97));
     color: #fdf6e3;
-    font-family: 'Oswald', sans-serif;
+    font-family: 'Hiragino Sans', 'Noto Sans JP', 'Oswald', sans-serif;
     font-weight: 800;
     font-size: clamp(20px, 6vw, 32px);
     padding: 20px 44px;
@@ -2543,7 +2569,6 @@
     transition: opacity .4s cubic-bezier(.22, .9, .28, 1.2), transform .4s cubic-bezier(.22, .9, .28, 1.2);
     text-align: center;
     letter-spacing: .05em;
-    text-transform: uppercase;
     text-shadow: 0 2px 12px rgba(227, 178, 60, .55);
     overflow: hidden;
   }
@@ -2573,6 +2598,7 @@
     background-size: 220% 100%;
     background-position: 120% 0;
     pointer-events: none;
+    z-index: 3;
   }
 
   .banner-box.show .banner-shine {
@@ -2594,32 +2620,105 @@
     transform: scale(1) translateY(0);
   }
 
+  /* ---- 走破成功など：馬カード背景表示 ---- */
   .banner-card-backdrop {
     display: none;
-    margin-bottom: 8px;
-    z-index: 71;
-    animation: bannerCardPop .45s cubic-bezier(.22, .9, .28, 1.2);
     pointer-events: none;
+    position: relative;
   }
 
+  .banner-stage.has-card .banner-card-backdrop {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .banner-card-backdrop .banner-horse-card.card,
   .banner-card-backdrop .banner-horse-card {
-    width: min(180px, 44vw);
-    aspect-ratio: 5/7;
-    border-radius: 12px;
-    box-shadow: 0 16px 40px rgba(0, 0, 0, .85), 0 0 30px rgba(227, 178, 60, .55);
-    border: 2px solid var(--gold-2);
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    animation: none !important;
+    width: min(300px, 76vw) !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7.1 !important;
+    max-height: 64vh !important;
+    border-radius: 14px;
+    box-shadow:
+      0 20px 60px rgba(0, 0, 0, .95),
+      0 0 35px rgba(0, 240, 255, .5),
+      0 0 0 1px rgba(255, 255, 255, .2) inset;
+    border: 2.5px solid #00f0ff;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     pointer-events: none;
+    overflow: hidden;
+    margin: 0 auto;
   }
 
-  @keyframes bannerCardPop {
-    0% {
-      opacity: 0;
-      transform: scale(.7) translateY(24px);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
+  /* 走破成功時：カード中央に「走破成功！」バッジを美しく重ねて表示 */
+  .banner-stage.has-card .banner-box {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    width: 68%;
+    max-width: 220px;
+    padding: 14px 16px;
+    background: linear-gradient(180deg, #181d24 0%, #0d1217 100%);
+    border: 2px solid #e5c07b;
+    border-radius: 6px;
+    box-shadow:
+      0 14px 40px rgba(0, 0, 0, 0.95),
+      0 0 25px rgba(227, 178, 60, 0.45);
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    overflow: hidden;
+  }
+
+  .banner-stage.has-card .banner-box::before {
+    content: '';
+    position: absolute;
+    inset: 3.5px;
+    left: 3.5px;
+    right: 3.5px;
+    height: auto;
+    border: 1px solid rgba(229, 192, 123, 0.7);
+    border-radius: 5px;
+    pointer-events: none;
+    background: transparent;
+    box-shadow: inset 0 0 8px rgba(227, 178, 60, 0.2);
+  }
+
+  .banner-stage.has-card .banner-box::after {
+    display: none;
+  }
+
+  .banner-stage.has-card .banner-box .banner-box-text {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-size: clamp(22px, 5.5vw, 27px);
+    font-weight: 900;
+    color: #fff6db;
+    letter-spacing: 0.12em;
+    text-shadow:
+      0 0 14px rgba(255, 235, 160, 0.9),
+      0 2px 6px rgba(0, 0, 0, 0.95);
+    white-space: nowrap;
+    position: relative;
+    z-index: 2;
+  }
+
+  .banner-stage.has-card .banner-box.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 
   /* ---------- Arrow coach mark ---------- */
