@@ -703,9 +703,10 @@
     var cardBackdrop = $('banner-card-backdrop');
     var stage = $('banner-stage');
     var hasCard = false;
+    var isGuard = text.indexOf('ガード！') >= 0;
     if (cardBackdrop) {
       cardBackdrop.innerHTML = '';
-      var targetCard = horseCard || ((text.indexOf('走破成功') >= 0 || text.indexOf('走破！') >= 0) ? (field || selectedHorse || cpuHorseCard || goldShip()) : null);
+      var targetCard = horseCard || ((text.indexOf('走破成功') >= 0 || text.indexOf('走破！') >= 0 || isGuard) ? (fieldGuard || field || selectedHorse || cpuHorseCard || goldShip()) : null);
       if (targetCard) {
         var cEl = buildCardEl(targetCard);
         cEl.classList.add('banner-horse-card');
@@ -716,8 +717,14 @@
         cardBackdrop.style.display = 'none';
       }
     }
-    if (stage) stage.classList.toggle('has-card', hasCard);
-    if (overlay) overlay.classList.toggle('has-card', hasCard);
+    if (stage) {
+      stage.classList.toggle('has-card', hasCard);
+      stage.classList.toggle('is-guard', isGuard && hasCard);
+    }
+    if (overlay) {
+      overlay.classList.toggle('has-card', hasCard);
+      overlay.classList.toggle('is-guard', isGuard && hasCard);
+    }
     var subHtml = subText ? '<div class="banner-sub-caption">' + subText + '</div>' : '';
     box.innerHTML = '<span class="banner-shine"></span>' + subHtml + '<span class="banner-box-text">' + text + '</span>';
     box.classList.add('show');
@@ -731,8 +738,14 @@
         clearTimeout(timer);
         box.classList.remove('show');
         overlay.classList.remove('active');
-        if (stage) stage.classList.remove('has-card');
-        if (overlay) overlay.classList.remove('has-card');
+        if (stage) {
+          stage.classList.remove('has-card');
+          stage.classList.remove('is-guard');
+        }
+        if (overlay) {
+          overlay.classList.remove('has-card');
+          overlay.classList.remove('is-guard');
+        }
         if (cardBackdrop) {
           cardBackdrop.style.display = 'none';
           cardBackdrop.innerHTML = '';
@@ -1261,9 +1274,11 @@
         farm.push(card);
         phase = 'idle';
         renderAll();
-        CardCloseup.show(card, { label: '🛡️ ガード！', autoHideMs: 1300 });
+        var guardText = '自分がガード！ ' + card.name + ' / ガード ' + guardVal;
         setNarrator('🛡️ ガード値 <b>' + guardVal + '</b> でガード！ 相手のドローが ' + guardVal + ' 減少します。');
-        sleep(800).then(function () { executeCpuDraw(cpuRunValue - guardVal); });
+        showBanner(guardText, 2800, card).then(function () {
+          executeCpuDraw(cpuRunValue - guardVal);
+        });
       });
     }
   }
@@ -1398,7 +1413,8 @@
             var guardVal = guardHorse.guard || 0;
             fieldGuard = guardHorse;
             renderField();
-            return showBanner('相手がガード！ ' + guardHorse.name + ' / ガード ' + guardVal).then(function () {
+            var guardText = '相手がガード！ ' + guardHorse.name + ' / ガード ' + guardVal;
+            return showBanner(guardText, 3000, guardHorse).then(function () {
               if (totalRun <= guardVal) {
                 setNarrator('❌ 走破失敗。実効走破値 ' + totalRun + ' は実効ガード値 ' + guardVal + ' を上回れなかった。');
                 return sendHorseToFarmAndReset();
@@ -3447,6 +3463,8 @@
   window._showToast = showToast;
   window._showGuardPopup = showGuardPopup;
   window._doDeuce = doDeuce;
+  window._silkMobius = silkMobius;
+  window._seiunSky = seiunSky;
   window._getHand = function() { return hand; };
   window._setHand = function(h) { hand = h; };
 
