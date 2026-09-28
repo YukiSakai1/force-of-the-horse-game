@@ -3205,7 +3205,28 @@
   })();
 
   /* ===================== boot ===================== */
+  // スマホ表示時の安全な初期スクロール（初回1回のみ、手札とナレーターが見える位置へ自動スクロール）
+  var initialMobileScrolled = false;
+  function safeInitialMobileScroll() {
+    if (initialMobileScrolled) return;
+    if (window.innerWidth > 859) return; // モバイル（859px以下）のみ対象。PC・大画面時はスクロールなし
+    var board = $('board');
+    if (!board) return;
+    initialMobileScrolled = true;
+
+    function doScroll() {
+      if (board.scrollHeight > board.clientHeight) {
+        board.scrollTop = board.scrollHeight;
+      }
+    }
+
+    requestAnimationFrame(doScroll);
+    setTimeout(doScroll, 60);
+    setTimeout(doScroll, 250);
+  }
+
   renderAll();
   runTutorial();
+  safeInitialMobileScroll();
 
 })();
