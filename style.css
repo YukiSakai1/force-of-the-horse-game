@@ -2667,9 +2667,9 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%) scale(0.9);
-    width: 68%;
-    max-width: 220px;
-    padding: 14px 16px;
+    width: 80%;
+    max-width: 250px;
+    padding: 13px 14px;
     background: linear-gradient(180deg, #181d24 0%, #0d1217 100%);
     border: 2px solid #e5c07b;
     border-radius: 6px;
@@ -2678,8 +2678,10 @@
       0 0 25px rgba(227, 178, 60, 0.45);
     text-align: center;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
+    gap: 3px;
     z-index: 10;
     overflow: hidden;
   }
@@ -2702,9 +2704,21 @@
     display: none;
   }
 
+  .banner-stage.has-card .banner-box .banner-sub-caption {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-size: clamp(11px, 3.1vw, 13px);
+    font-weight: 700;
+    color: #ffdc7d;
+    letter-spacing: 0.04em;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
+    position: relative;
+    z-index: 2;
+    white-space: nowrap;
+  }
+
   .banner-stage.has-card .banner-box .banner-box-text {
     font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-    font-size: clamp(22px, 5.5vw, 27px);
+    font-size: clamp(21px, 5.2vw, 26px);
     font-weight: 900;
     color: #fff6db;
     letter-spacing: 0.12em;

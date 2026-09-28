@@ -687,7 +687,7 @@
     }
   }
 
-  function showBanner(text, maxWait, horseCard) {
+  function showBanner(text, maxWait, horseCard, subText) {
     var overlay = $('banner-overlay');
     var box = $('banner-box');
     var cardBackdrop = $('banner-card-backdrop');
@@ -695,7 +695,7 @@
     var hasCard = false;
     if (cardBackdrop) {
       cardBackdrop.innerHTML = '';
-      var targetCard = horseCard || ((text.indexOf('走破成功') >= 0 || text.indexOf('走破！') >= 0) ? (field || selectedHorse || goldShip()) : null);
+      var targetCard = horseCard || ((text.indexOf('走破成功') >= 0 || text.indexOf('走破！') >= 0) ? (field || selectedHorse || cpuHorseCard || goldShip()) : null);
       if (targetCard) {
         var cEl = buildCardEl(targetCard);
         cEl.classList.add('banner-horse-card');
@@ -708,7 +708,8 @@
     }
     if (stage) stage.classList.toggle('has-card', hasCard);
     if (overlay) overlay.classList.toggle('has-card', hasCard);
-    box.innerHTML = '<span class="banner-shine"></span><span class="banner-box-text">' + text + '</span>';
+    var subHtml = subText ? '<div class="banner-sub-caption">' + subText + '</div>' : '';
+    box.innerHTML = '<span class="banner-shine"></span>' + subHtml + '<span class="banner-box-text">' + text + '</span>';
     box.classList.add('show');
     overlay.classList.add('active');
     return new Promise(function (resolve) {
@@ -1244,15 +1245,18 @@
       return;
     }
     var maxDraw = Math.min(actualDraw, cpuTotalDeck());
-    setNarrator('🧠 相手が ' + maxDraw + ' 枚引いた！（走破 ' + cpuRunValue + ' - ガード ' + guardValue + ' = ' + actualDraw + '）');
-    var chain = Promise.resolve();
-    var opponentRect = $('zone-opponent').getBoundingClientRect();
-    for (var i = 0; i < maxDraw; i++) {
-      (function () {
-        chain = chain.then(function () {
-          var deckRect = cpuDeckSourceRect();
-          var dummy = makeSmallCardDummy(deckRect);
-          return flyGhost(dummy, opponentRect, 0.6).then(function () {
+    setNarrator('相手（CPU）は走破に成功しました。山札から ' + maxDraw + ' 枚引きます。（走破 ' + cpuRunValue + ' - ガード ' + guardValue + ' = ' + actualDraw + '）');
+
+    var horse = cpuHorseCard || goldShip();
+    showBanner('走破成功！', 3000, horse, '相手（CPU）は走破に成功しました').then(function () {
+      var chain = Promise.resolve();
+      var opponentRect = $('zone-opponent').getBoundingClientRect();
+      for (var i = 0; i < maxDraw; i++) {
+        (function () {
+          chain = chain.then(function () {
+            var deckRect = cpuDeckSourceRect();
+            var dummy = makeSmallCardDummy(deckRect);
+            return flyGhost(dummy, opponentRect, 0.6).then(function () {
             dummy.remove();
             var rewardMaker;
             var rewardRoll = Math.random();
@@ -1281,6 +1285,7 @@
       renderAll();
       checkVictory();
       if (!victoryShown) cmdDraw(); // 自分のターンの初めに自動でカードを1枚引く
+    });
     });
   }
 
