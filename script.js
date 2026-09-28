@@ -3445,6 +3445,10 @@
   window._showBanner = showBanner;
   window._goldShip = goldShip;
   window._showToast = showToast;
+  window._showGuardPopup = showGuardPopup;
+  window._doDeuce = doDeuce;
+  window._getHand = function() { return hand; };
+  window._setHand = function(h) { hand = h; };
 
   renderAll();
   runTutorial();

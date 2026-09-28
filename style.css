@@ -3480,7 +3480,6 @@
     pointer-events: none;
   }
 
-  #guard-popup,
   #opponent-thinking-popup,
   #run-support-popup,
   #situation-hint-popup {
@@ -3494,7 +3493,6 @@
     backdrop-filter: blur(3px);
   }
 
-  #guard-popup .popup-box,
   #opponent-thinking-popup .popup-box,
   #run-support-popup .popup-box,
   #situation-hint-popup .popup-box {
@@ -3508,7 +3506,6 @@
     text-align: center;
   }
 
-  #guard-popup .popup-title,
   #opponent-thinking-popup .popup-title,
   #run-support-popup .popup-title,
   #situation-hint-popup .popup-title {
@@ -3518,23 +3515,6 @@
     margin-bottom: 8px;
   }
 
-  .guard-horse-slot {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    margin: 8px auto 12px;
-    width: 100%;
-  }
-
-  .guard-horse-slot .card {
-    width: min(130px, 36vw);
-    aspect-ratio: 5/7;
-    pointer-events: none;
-    border-radius: 10px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.75), 0 0 18px rgba(227, 178, 60, 0.4);
-  }
-
-  #guard-popup .popup-desc,
   #opponent-thinking-popup .popup-desc,
   #run-support-popup .popup-desc,
   #situation-hint-popup .popup-desc {
@@ -3544,7 +3524,6 @@
     margin-bottom: 16px;
   }
 
-  #guard-popup .popup-btns,
   #run-support-popup .popup-btns,
   #situation-hint-popup .popup-btns {
     display: flex;
@@ -3553,7 +3532,6 @@
     flex-wrap: wrap;
   }
 
-  #guard-popup .popup-btns button,
   #run-support-popup .popup-btns button,
   #situation-hint-popup .popup-btns button {
     padding: 8px 20px;
@@ -3565,24 +3543,17 @@
     transition: transform 0.1s;
   }
 
-  #guard-popup .popup-btns button:active {
+  #run-support-popup .popup-btns button:active,
+  #situation-hint-popup .popup-btns button:active {
     transform: scale(0.95);
   }
 
-  #guard-popup .btn-guard,
   #run-support-popup .btn-guard,
   #situation-hint-popup .btn-guard {
     background: var(--guard);
     color: #fff;
   }
 
-  #guard-popup .btn-guard:hover,
-  #run-support-popup .btn-guard:hover,
-  #situation-hint-popup .btn-guard:hover {
-    background: #d55a52;
-  }
-
-  #guard-popup .btn-skip,
   #run-support-popup .btn-skip,
   #situation-hint-popup .btn-skip {
     background: rgba(244, 240, 230, 0.15);
@@ -3590,10 +3561,170 @@
     border: 1px solid var(--line);
   }
 
-  #guard-popup .btn-skip:hover,
-  #run-support-popup .btn-skip:hover,
-  #situation-hint-popup .btn-skip:hover {
-    background: rgba(244, 240, 230, 0.25);
+  /* ========== 相手の走破宣言・ガード確認モーダル ========== */
+  #guard-popup {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    background: rgba(3, 7, 12, 0.82);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    padding: 16px;
+    box-sizing: border-box;
+    overflow-y: auto;
+  }
+
+  #guard-popup .guard-horse-slot {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: auto;
+    margin: 0;
+    animation: guardHorsePop 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  #guard-popup .guard-horse-slot .card {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    top: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    animation: none !important;
+    width: min(280px, 74vw) !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7.1 !important;
+    max-height: 48vh !important;
+    border-radius: 12px;
+    box-shadow:
+      0 18px 50px rgba(0, 0, 0, 0.95),
+      0 0 28px rgba(0, 240, 255, 0.45);
+    border: 2px solid #00f0ff;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    pointer-events: none;
+    overflow: hidden;
+  }
+
+  @keyframes guardHorsePop {
+    0% {
+      opacity: 0;
+      transform: scale(0.85) translateY(-14px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  #guard-popup .popup-box {
+    position: relative;
+    background: linear-gradient(180deg, #151d1e 0%, #0d1416 100%);
+    border: 2px solid #e5c07b;
+    border-radius: 10px;
+    padding: 16px 20px;
+    width: min(340px, 88vw);
+    box-sizing: border-box;
+    box-shadow:
+      0 16px 45px rgba(0, 0, 0, 0.9),
+      0 0 22px rgba(227, 178, 60, 0.25);
+    text-align: center;
+    animation: guardBoxPop 0.38s cubic-bezier(0.16, 1, 0.3, 1) 0.05s both;
+  }
+
+  #guard-popup .popup-box::before {
+    content: '';
+    position: absolute;
+    inset: 4px;
+    border: 1px solid rgba(229, 192, 123, 0.65);
+    border-radius: 6px;
+    pointer-events: none;
+    box-shadow: inset 0 0 8px rgba(227, 178, 60, 0.15);
+  }
+
+  @keyframes guardBoxPop {
+    0% {
+      opacity: 0;
+      transform: scale(0.9) translateY(14px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  #guard-popup .popup-title {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-size: clamp(15.5px, 4.2vw, 18.5px);
+    font-weight: 900;
+    color: #ffe694;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+    text-shadow: 0 0 12px rgba(255, 230, 150, 0.7), 0 2px 4px rgba(0, 0, 0, 0.9);
+  }
+
+  #guard-popup .popup-desc {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-size: clamp(12px, 3.2vw, 13.5px);
+    color: #d8e5e8;
+    line-height: 1.65;
+    margin: 0 0 15px 0;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+  }
+
+  #guard-popup .popup-desc b {
+    color: #ffeb99;
+    font-size: 1.15em;
+  }
+
+  #guard-popup .popup-btns {
+    display: flex;
+    gap: 14px;
+    justify-content: center;
+    align-items: center;
+  }
+
+  #guard-popup .popup-btns button {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-weight: 800;
+    font-size: 13.5px;
+    padding: 9px 22px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  #guard-popup .popup-btns button:active {
+    transform: scale(0.95);
+  }
+
+  #guard-popup .btn-guard {
+    background: linear-gradient(180deg, #c74239 0%, #9e2a22 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 140, 130, 0.4);
+    box-shadow: 0 4px 14px rgba(180, 40, 30, 0.5);
+  }
+
+  #guard-popup .btn-guard:hover {
+    background: linear-gradient(180deg, #d84f45 0%, #ad322a 100%);
+    box-shadow: 0 4px 18px rgba(220, 50, 40, 0.7);
+  }
+
+  #guard-popup .btn-skip {
+    background: linear-gradient(180deg, #374340 0%, #252e2c 100%);
+    color: #e2ede8;
+    border: 1px solid rgba(160, 180, 175, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.45);
+  }
+
+  #guard-popup .btn-skip:hover {
+    background: linear-gradient(180deg, #43524e 0%, #2f3a37 100%);
   }
 
   /* ---------- Closeup layer (card focus / preview / activation) ---------- */
