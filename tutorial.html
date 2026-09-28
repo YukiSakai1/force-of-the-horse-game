@@ -236,21 +236,26 @@
         <div class="narrator-portrait"><img src="images/narrator.png" alt="ナレーター"></div>
         <div class="narrator-bubble">
           <div class="narrator-text" id="narrator-text">読み込み中…</div>
-          <div class="narrator-nav">
-            <button class="narrator-back" id="narrator-back" type="button">◀ 戻る</button>
-            <button class="narrator-forward" id="narrator-forward" type="button">進む ▶</button>
+          <div class="narrator-actions">
+            <div class="narrator-nav">
+              <button class="narrator-back" id="narrator-back" type="button">◀ 戻る</button>
+              <button class="narrator-forward" id="narrator-forward" type="button">進む ▶</button>
+            </div>
+            <button class="narrator-next" id="narrator-next">つぎへ ▶</button>
           </div>
-          <button class="narrator-next" id="narrator-next">つぎへ ▶</button>
         </div>
       </footer>
 
       <section class="hand-zone" id="zone-hand">
+        <button class="hand-nav-btn hand-prev" id="hand-prev" type="button" aria-label="手札を左へスクロール">◀</button>
         <div class="zone-label">手札</div>
         <div class="hand-row" id="hand-row"></div>
+        <button class="hand-nav-btn hand-next" id="hand-next" type="button" aria-label="手札を右へスクロール">▶</button>
       </section>
     </main>
 
     <div class="banner-overlay" id="banner-overlay">
+      <div class="banner-card-backdrop" id="banner-card-backdrop"></div>
       <div class="banner-box" id="banner-box"></div>
       <div class="banner-tap-hint" id="banner-tap-hint">タップして続ける</div>
     </div>
@@ -267,9 +272,10 @@
     <!-- ガードポップアップ -->
     <div id="guard-popup">
       <div class="popup-box">
-        <div class="popup-title">🛡️ 相手が走破してきました。</div>
+        <div class="popup-title" id="guard-title">🏇 相手が走破してきました！</div>
+        <div class="guard-horse-slot" id="guard-horse-slot"></div>
         <div class="popup-desc" id="guard-desc">相手の走破を手札の馬カードでガードしますか？</div>
-        <div class="popup-btns">
+        <div class="popup-btns" id="guard-btns">
           <button class="btn-guard" id="guard-yes">🛡️ ガードする</button>
           <button class="btn-skip" id="guard-no">⏭ ガードしない</button>
         </div>
