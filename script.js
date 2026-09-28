@@ -1208,7 +1208,7 @@
     }
     var titleEl = $('guard-title');
     if (titleEl) {
-      titleEl.innerHTML = horseCard ? ('🏇 相手が「<b>' + horseCard.name + '</b>」で走破！') : '🛡️ 相手が走破してきました！';
+      titleEl.innerHTML = horseCard ? ('相手が「<b>' + horseCard.name + '</b>」で走破！') : '相手が走破してきました！';
     }
 
     var canGuard = hand.some(function (c) { return c.type === 'horse'; });
@@ -1383,7 +1383,7 @@
           field = horseInPlay;
           fieldGuard = null;
           renderAll();
-          CardCloseup.show(horseInPlay, { label: '🏇 走破！', autoHideMs: 1800 });
+          CardCloseup.show(horseInPlay, { label: '走破！', autoHideMs: 1800 });
           return sleep(500);
         });
       });
@@ -1473,7 +1473,7 @@
     }
 
     function finishRun(finalRun, usedGuard, usedGuardVal) {
-      var msg = '🏇 <b>走破成功！</b> ' + finalRun + '枚引いたよ！';
+      var msg = '<b>走破成功！</b> ' + finalRun + '枚引いたよ！';
       if (usedGuard) msg += '（ガードで' + usedGuardVal + '減少）';
       if (runBonus > 0) msg += '（ボーナス+' + runBonus + '）';
       setNarrator(msg);
