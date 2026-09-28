@@ -104,19 +104,29 @@
   }
 
   var FREEPLAY_POOL = [
+    // フォースカード：馬・アイテムに比べてやや引きやすい比率（45%）に調整
     function () { return forceCard(); },
     function () { return forceCard(); },
-    function () { return whip(); },
-    function () { return kutsuwa(); },
-    function () { return eliteJockey(); },
-    function () { return veterinarian(); },
-    function () { return situationCard('かんかん照り', '馬場状態を一段階良くする', KANKAN_IMG); },
+    function () { return forceCard(); },
+    function () { return forceCard(); },
+    function () { return forceCard(); },
+    function () { return forceCard(); },
+    function () { return forceCard(); },
+    function () { return forceCard(); },
+    function () { return forceCard(); },
+    // 馬カード（30%：各馬均等）
     function () { return goldShip(); },
     function () { return rousham(); },
     function () { return seferRasiel(); },
     function () { return silkMobius(); },
     function () { return seiunSky(); },
-    function () { return doDeuce(); }
+    function () { return doDeuce(); },
+    // アイテム・騎手・状況カード（25%）
+    function () { return whip(); },
+    function () { return kutsuwa(); },
+    function () { return eliteJockey(); },
+    function () { return veterinarian(); },
+    function () { return situationCard('かんかん照り', '馬場状態を一段階良くする', KANKAN_IMG); }
   ];
 
   // 次にドローするカードを強制的に指定する（1回消費すると自動でクリアされる）
@@ -854,6 +864,20 @@
     setTimeout(function () { el.classList.remove('shake'); }, 400);
   }
 
+  var toastTimer = null;
+  function showToast(msg, duration) {
+    var toast = $('game-toast');
+    if (!toast) return;
+    toast.textContent = msg;
+    toast.classList.remove('show');
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () {
+      toast.classList.remove('show');
+    }, duration || 2400);
+  }
+
   /* ===================== コマンドバー制御 ===================== */
   function updateFabDisplay() {
     var fab = $('cmd-fab');
@@ -888,7 +912,7 @@
         if (phase !== 'idle') btn.disabled = true;
         if (canDraw) btn.disabled = true;
         if (hasRunThisTurn) btn.disabled = true;
-        if (hand.filter(function (c) { return c.type === 'horse'; }).length === 0) btn.disabled = true;
+        // 馬やフォース不足時もクリック可能にし、cmdRun()側で「フォースカードが不足しています」等の案内を出す
       }
       if (cmd === 'item') {
         if (phase !== 'idle') btn.disabled = true;
@@ -931,7 +955,20 @@
   function cmdRun() {
     if (phase !== 'idle' || isCpuTurn || hasRunThisTurn || canDraw) return;
     var horses = hand.filter(function (c) { return c.type === 'horse'; });
-    if (horses.length === 0) { setNarrator('手札に馬カードがありません。'); return; }
+    if (horses.length === 0) {
+      showToast('手札に馬カードがありません');
+      setNarrator('手札に馬カードがありません。');
+      Haptics.warn();
+      return;
+    }
+    var forces = hand.filter(function (c) { return c.type === 'force'; });
+    var minCost = Math.min.apply(null, horses.map(function (h) { return h.cost || 2; }));
+    if (forces.length < minCost) {
+      showToast('フォースカードが不足しています');
+      setNarrator('⚠️ コストとなる<b>フォースカードが不足しています</b>。（必要: ' + minCost + '枚 / 手札: ' + forces.length + '枚）');
+      Haptics.warn();
+      return;
+    }
     hasRunThisTurn = true;
     phase = 'select_horse';
     selectedHorse = null;
@@ -1573,7 +1610,10 @@
         var cost = card.cost || 2;
         var forces = hand.filter(function (c) { return c.type === 'force'; });
         if (forces.length < cost) {
-          setNarrator('フォースカードが足りません（必要 ' + cost + '枚）');
+          showToast('フォースカードが不足しています');
+          setNarrator('⚠️ コストとなる<b>フォースカードが不足しています</b>（必要: ' + cost + '枚 / 手札: ' + forces.length + '枚）');
+          Haptics.warn();
+          shakeCard(id);
           phase = 'idle'; selectedHorse = null; hasRunThisTurn = false;
           renderAll();
           return;
@@ -3404,6 +3444,7 @@
 
   window._showBanner = showBanner;
   window._goldShip = goldShip;
+  window._showToast = showToast;
 
   renderAll();
   runTutorial();
