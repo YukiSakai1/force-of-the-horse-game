@@ -198,6 +198,17 @@
     z-index: 30;
   }
 
+  .topbar-menu {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: nowrap;
+  }
+
+  .short-label {
+    display: none;
+  }
+
   .brand {
     font-weight: 700;
     font-size: 13px;
@@ -666,12 +677,66 @@
     font-weight: 700;
   }
 
-  /* settings panel & gear: 一時非表示 */
-  .settings-gear,
-  body.field-3d .settings-gear,
-  .settings-overlay,
+  /* settings panel & gear: 表示設定 */
+  .settings-gear {
+    background: rgba(20, 16, 10, .6);
+    border: 1px solid rgba(227, 178, 60, .4);
+    border-radius: 999px;
+    color: var(--rail-dim);
+    font-size: 11px;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    font-weight: 500;
+    padding: 3px 10px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background .15s, color .15s, border-color .15s, transform .15s;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    user-select: none;
+  }
+
+  .settings-gear:hover {
+    background: var(--gold);
+    color: var(--ink);
+    border-color: var(--gold);
+  }
+
+  .settings-gear:active {
+    transform: scale(0.95);
+  }
+
+  .settings-gear {
+    display: none;
+  }
+
+  .settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, .65);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    z-index: 1000;
+    display: flex;
+    justify-content: flex-end;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .25s cubic-bezier(.2, .7, .3, 1);
+  }
+
   .settings-overlay.show {
-    display: none !important;
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .settings-panel {
+    transform: translateX(100%);
+    transition: transform .25s cubic-bezier(.2, .7, .3, 1);
+  }
+
+  .settings-overlay.show .settings-panel {
+    transform: translateX(0);
   }
 
   .settings-panel {
@@ -1672,7 +1737,7 @@
     position: absolute;
     top: calc(50% + 8px);
     transform: translateY(-50%);
-    z-index: 45;
+    z-index: 300;
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -1711,6 +1776,7 @@
   .hand-row {
     flex: 1;
     position: relative;
+    z-index: 10;
     min-width: 0;
     height: 166px;
     overflow-x: visible;
@@ -1794,19 +1860,25 @@
     }
 
     .hand-nav-btn {
-      display: flex; /* モバイルでのみ表示 */
+      display: none;
+    }
+
+    /* 手札が配られてカードが存在するときのみモバイルで矢印を表示 */
+    .hand-zone.has-cards .hand-nav-btn,
+    .hand-zone:has(.card) .hand-nav-btn {
+      display: flex;
     }
 
     body.field-3d .hand-zone {
       transform: none;
     }
 
-    /* モバイル用トップバー：ブランド非表示・折り返し対応でヘッダー切れ防止 */
+    /* モバイル用トップバー：ブランド非表示・トラックバー全幅・メニューは1段に横並び */
     .topbar {
       flex-wrap: wrap;
-      gap: 4px 6px;
-      padding: 5px 8px calc(3px + env(safe-area-inset-top, 0px));
-      padding-top: calc(5px + env(safe-area-inset-top, 0px));
+      gap: 3px 4px;
+      padding: 4px 6px calc(2px + env(safe-area-inset-top, 0px));
+      padding-top: calc(4px + env(safe-area-inset-top, 0px));
     }
 
     .topbar .brand {
@@ -1818,25 +1890,61 @@
       flex-basis: 100%;
     }
 
+    .topbar-menu {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 3px;
+      flex-wrap: nowrap;
+      width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .topbar-menu::-webkit-scrollbar {
+      display: none;
+    }
+
+    .full-label {
+      display: none;
+    }
+
+    .short-label {
+      display: inline;
+    }
+
     .bgm-toggle {
-      padding: 3px 7px;
-      font-size: 9px;
+      padding: 2.5px 5px;
+      font-size: 8.5px;
+      flex-shrink: 0;
     }
 
     .tilt-opt {
-      padding: 2px 5px;
+      padding: 2.5px 5px;
+      font-size: 8px;
+      flex-shrink: 0;
+    }
+
+    .settings-gear {
+      padding: 2.5px 5px;
       font-size: 8.5px;
+      flex-shrink: 0;
     }
 
     .theme-opt,
     .mode-opt {
-      padding: 3px 7px;
-      font-size: 9px;
+      padding: 2.5px 5.5px;
+      font-size: 8.5px;
+      font-weight: 600;
+      flex-shrink: 0;
     }
 
     .theme-switch,
     .mode-switch {
-      gap: 2px;
+      gap: 1.5px;
+      padding: 1.5px;
+      flex-shrink: 0;
     }
 
   }
@@ -1850,19 +1958,26 @@
     }
   }
 
-  /* スモールモバイル（480px以下）では手札カードをひと回り小さく表示 */
+  /* スモールモバイル（480px以下）では手札枠の高さを150pxに調整し、カード上部の見切れを完全防止 */
   @media (max-width:480px) {
     .board {
-      padding-bottom: 195px;
+      padding-bottom: 180px;
     }
 
     .hand-zone {
-      height: 160px;
-      min-height: 160px;
+      height: 150px;
+      min-height: 150px;
+      padding: 2px 5px 2px;
+    }
+
+    .hand-zone .zone-label {
+      font-size: 11px;
+      line-height: 13px;
+      margin-bottom: 2px;
     }
 
     .hand-row {
-      height: 140px;
+      height: 126px;
     }
   }
 
@@ -1898,19 +2013,26 @@
     user-select: none;
   }
 
-  /* モバイル（480px以下）では手札カードを大きく表示 */
+  /* モバイル（480px以下）では手札枠(150px)に合わせてカードを82*115pxに調整し、上部が絶対に切れないよう余裕を確保 */
   @media (max-width:480px) {
     .card {
-      width: 95px;
-      height: 133px;
+      width: 82px;
+      height: 115px;
     }
   }
 
-  /* 中くらいのモバイル（481px-760px）でもカードサイズを大きく */
+  /* 中くらいのモバイル（481px-760px） */
   @media (min-width:481px) and (max-width:760px) {
+    .hand-zone {
+      height: 170px;
+      min-height: 170px;
+    }
+    .hand-row {
+      height: 146px;
+    }
     .card {
-      width: 110px;
-      height: 154px;
+      width: 95px;
+      height: 133px;
     }
   }
 
@@ -2382,13 +2504,33 @@
 
   .card.selectable {
     cursor: pointer;
+    touch-action: manipulation;
   }
 
-  .card.selectable:hover {
-    --fan-lift: -26px;
-    --fan-scale: 1.2;
-    z-index: 80;
-    box-shadow: 0 10px 20px rgba(0, 0, 0, .55), 0 0 0 2px rgba(227, 178, 60, .7), 0 0 16px rgba(227, 178, 60, .55);
+  .card.selectable:active {
+    filter: brightness(1.12);
+  }
+
+  /* ホバー挙動はPC（マウス操作）でのみ有効化。スマホでの1タップ目がhoverに取られて反応しなくなる現象を完全防止 */
+  @media (hover: hover) and (pointer: fine) {
+    .card.selectable:hover {
+      --fan-lift: -26px;
+      --fan-scale: 1.2;
+      z-index: 80;
+      box-shadow: 0 10px 20px rgba(0, 0, 0, .55), 0 0 0 2px rgba(227, 178, 60, .7), 0 0 16px rgba(227, 178, 60, .55);
+    }
+
+    .card.highlighted:hover {
+      --fan-lift: -30px;
+      --fan-scale: 1.2;
+      z-index: 80;
+    }
+
+    .card.selected:hover {
+      --fan-lift: -26px;
+      --fan-scale: 1.2;
+      z-index: 80;
+    }
   }
 
   .card.highlighted {
@@ -2398,26 +2540,24 @@
     animation: cardGlow 1.2s ease-in-out infinite;
   }
 
-  .card.highlighted:hover {
-    --fan-lift: -30px;
-    --fan-scale: 1.2;
-    z-index: 80;
-  }
-
   .card.selected {
     box-shadow: 0 6px 14px rgba(0, 0, 0, .5), 0 0 0 3px #ffffff, 0 0 14px rgba(255, 255, 255, .6);
     --fan-lift: -18px;
     z-index: 50;
   }
 
-  .card.selected:hover {
-    --fan-lift: -26px;
-    --fan-scale: 1.2;
-    z-index: 80;
-  }
-
   .card.disabled {
     opacity: .4;
+  }
+
+  /* モバイル環境でのハイライト・選択時の引き上げ量(--fan-lift)を微小に制御（手札枠の上部見切れ防止） */
+  @media (max-width:859px) {
+    .card.highlighted {
+      --fan-lift: -4px;
+    }
+    .card.selected {
+      --fan-lift: -4px;
+    }
   }
 
   .card.shake {

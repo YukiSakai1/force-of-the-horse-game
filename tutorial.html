@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noodp, noimageindex">
   <meta name="googlebot" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
   <meta name="googlebot-news" content="noindex">
@@ -17,7 +17,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=4">
   <script type="importmap">
 {
     "imports": {
@@ -63,23 +63,33 @@
         </div>
       </div>
       <div class="race-info" id="race-info" aria-label="レース情報"></div>
-      <button class="bgm-toggle" id="bgm-toggle">🔊 BGM</button>
-      <div class="tilt-select" id="tilt-select">
-        <button class="tilt-opt active" data-angle="10" type="button">Flat View</button>
-        <button class="tilt-opt" data-angle="25" type="button">Perspective View</button>
-      </div>
-      <button class="settings-gear" id="settings-gear" type="button" title="角度・カメラ設定" hidden>⚙</button>
-      <div class="theme-switch" id="theme-switch" role="group" aria-label="テーマ切り替え">
-        <button class="theme-opt active" data-theme="cyber" type="button">デフォルト</button>
-        <button class="theme-opt" data-theme="classic" type="button">電脳競馬場</button>
-      </div>
-      <div class="mode-switch" id="mode-switch" role="group" aria-label="プレイモード切り替え">
-        <button class="mode-opt active" data-mode="tutorial" type="button">チュートリアル</button>
-        <button class="mode-opt" data-mode="manual" type="button">自分で操作</button>
+      <div class="topbar-menu" id="topbar-menu">
+        <button class="bgm-toggle" id="bgm-toggle" title="BGM切替">🔊 BGM</button>
+        <div class="tilt-select" id="tilt-select">
+          <button class="tilt-opt active" data-angle="10" type="button">
+            <span class="full-label">Flat View</span><span class="short-label">Flat</span>
+          </button>
+          <button class="tilt-opt" data-angle="25" type="button">
+            <span class="full-label">Perspective View</span><span class="short-label">3D</span>
+          </button>
+        </div>
+        <button class="settings-gear" id="settings-gear" type="button" title="角度・カメラ設定">⚙<span class="full-label"> 設定</span></button>
+        <div class="theme-switch" id="theme-switch" role="group" aria-label="テーマ切り替え">
+          <button class="theme-opt active" data-theme="cyber" type="button">Default</button>
+          <button class="theme-opt" data-theme="classic" type="button">Cyber</button>
+        </div>
+        <div class="mode-switch" id="mode-switch" role="group" aria-label="プレイモード切り替え">
+          <button class="mode-opt active" data-mode="tutorial" type="button">
+            <span class="full-label">Tutorial</span><span class="short-label">Tutorial</span>
+          </button>
+          <button class="mode-opt" data-mode="manual" type="button">
+            <span class="full-label">Manual</span><span class="short-label">Manual</span>
+          </button>
+        </div>
       </div>
     </header>
 
-    <div class="settings-overlay" id="settings-overlay" hidden>
+    <div class="settings-overlay" id="settings-overlay">
       <div class="settings-panel">
         <div class="settings-head">
           <div class="settings-title">MOBILE SETTINGS</div>
@@ -194,6 +204,12 @@
                   <span class="btn-label">走破</span>
                 </div>
               </button>
+              <button class="cmd-menu-btn" data-cmd="situation" type="button">
+                <div class="btn-text-wrap">
+                  <span class="btn-sub">コマンド</span>
+                  <span class="btn-label">状況</span>
+                </div>
+              </button>
               <button class="cmd-menu-btn" data-cmd="item" type="button">
                 <div class="btn-text-wrap">
                   <span class="btn-sub">コマンド</span>
@@ -247,9 +263,9 @@
       </footer>
 
       <section class="hand-zone" id="zone-hand">
-        <button class="hand-nav-btn hand-prev" id="hand-prev" type="button" aria-label="手札を左へスクロール">◀</button>
         <div class="zone-label">手札</div>
         <div class="hand-row" id="hand-row"></div>
+        <button class="hand-nav-btn hand-prev" id="hand-prev" type="button" aria-label="手札を左へスクロール">◀</button>
         <button class="hand-nav-btn hand-next" id="hand-next" type="button" aria-label="手札を右へスクロール">▶</button>
       </section>
     </main>

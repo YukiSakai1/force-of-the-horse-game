@@ -362,6 +362,10 @@
       row.appendChild(el);
     });
     layoutHandFan();
+    var zone = $('zone-hand');
+    if (zone) {
+      zone.classList.toggle('has-cards', hand.length > 0);
+    }
   }
   window.addEventListener('resize', function () { layoutHandFan(); adjustFieldDiagonalLayout(); });
 
@@ -927,6 +931,11 @@
         if (hasRunThisTurn) btn.disabled = true;
         // 馬やフォース不足時もクリック可能にし、cmdRun()側で「フォースカードが不足しています」等の案内を出す
       }
+      if (cmd === 'situation') {
+        if (phase !== 'idle' || canDraw || isCpuTurn) btn.disabled = true;
+        var hasSituation = hand.some(function (c) { return c.type === 'situation'; });
+        if (!hasSituation) btn.disabled = true;
+      }
       if (cmd === 'item') {
         if (phase !== 'idle') btn.disabled = true;
         if (canDraw) btn.disabled = true;
@@ -1063,14 +1072,51 @@
     renderAll();
   }
 
+  function activateSituationCard(card) {
+    if (!card || card.type !== 'situation') return;
+    hand = hand.filter(function (c) { return c.id !== card.id; });
+    var el = cardElById(card.id);
+    var dest = $('zone-situation');
+    var destRect = dest ? dest.getBoundingClientRect() : null;
+
+    function finish() {
+      situation = card;
+      race.trackCondition = '良';
+      phase = 'idle';
+      SoundFX.shimmer();
+      Haptics.place();
+      setNarrator('☀️ 状況カード「<b>' + card.name + '</b>」を発動した！ 馬場状態が<b>良</b>になった！');
+      renderRaceInfo();
+      renderAll();
+      showToast('☀️ 状況カード「' + card.name + '」を発動！');
+      CardCloseup.show(card, { label: '状況カード発動！', autoHideMs: 1500 });
+      checkHintsAvailable();
+    }
+
+    if (el && destRect) {
+      flyGhost(el, destRect).then(finish);
+    } else {
+      finish();
+    }
+  }
+
   function cmdSituation() {
     if (phase !== 'idle' || isCpuTurn || canDraw) return;
     var situations = hand.filter(function (c) { return c.type === 'situation'; });
-    if (!situations.length) { setNarrator('手札に状況カードがありません。'); return; }
-    prevPhase = phase;
-    phase = 'select_situation';
-    setNarrator('使う<b>状況カード</b>を選んでタップしてください。');
-    renderAll();
+    if (!situations.length) {
+      showToast('手札に状況カードがありません');
+      setNarrator('手札に状況カードがありません。');
+      Haptics.warn();
+      return;
+    }
+    if (situations.length === 1) {
+      activateSituationCard(situations[0]);
+    } else {
+      prevPhase = phase;
+      phase = 'select_situation';
+      setNarrator('使う<b>状況カード</b>を選んでタップしてください。');
+      renderAll();
+    }
   }
 
   function cmdEndTurn() {
@@ -1328,18 +1374,87 @@
         });
       })();
     }
-    chain.then(function () {
-      setNarrator('🧠 相手のターン終了！ あなたの番です。');
-      showCommandBar(true);
-      isCpuTurn = false;
-      canDraw = true;
-      phase = 'idle';
-      hasRunThisTurn = false;
-      cpuHorseCard = null;
-      renderAll();
-      checkVictory();
-      if (!victoryShown) cmdDraw(); // 自分のターンの初めに自動でカードを1枚引く
-    });
+      chain.then(function () {
+        // 走破成功時：走破数 - 1 枚を手札から捨てる（プレイヤーと同ルール）
+        var discardCount = Math.max(0, maxDraw - 1);
+        var needDiscard = Math.min(discardCount, cpuHand.length);
+
+        function cpuPickCardToDiscard() {
+          if (!cpuHand.length) return null;
+          // 1. アイテムカード（既に使わなかったもの）
+          var itemIdx = cpuHand.findIndex(function (c) { return c.type === 'item'; });
+          if (itemIdx >= 0) return cpuHand.splice(itemIdx, 1)[0];
+
+          // 2. 馬カードが複数あれば、走破値の低い馬を捨てる
+          var horses = cpuHand.filter(function (c) { return c.type === 'horse'; });
+          if (horses.length > 1) {
+            horses.sort(function (a, b) { return (a.run || 0) - (b.run || 0); });
+            var worstHorse = horses[0];
+            var hIdx = cpuHand.findIndex(function (c) { return c.id === worstHorse.id; });
+            if (hIdx >= 0) return cpuHand.splice(hIdx, 1)[0];
+          }
+
+          // 3. フォースカードが4枚以上あればフォースを捨てる
+          var forces = cpuHand.filter(function (c) { return c.type === 'force'; });
+          if (forces.length >= 4) {
+            var fIdx = cpuHand.findIndex(function (c) { return c.type === 'force'; });
+            if (fIdx >= 0) return cpuHand.splice(fIdx, 1)[0];
+          }
+
+          // 4. その他は末尾のカードを捨てる
+          return cpuHand.pop();
+        }
+
+        var discardChain = Promise.resolve();
+        if (needDiscard > 0) {
+          setNarrator('相手（CPU）は走破ルールに従い、手札から <b>' + needDiscard + '枚</b> をファームに送ります…');
+          var oppZone = $('zone-opponent');
+          var oppRect = oppZone ? oppZone.getBoundingClientRect() : { left: 100, top: 50, width: 60, height: 40 };
+          var farmZone = $('zone-farm');
+          var farmRect = farmZone ? farmZone.getBoundingClientRect() : { left: 50, top: 400, width: 80, height: 110 };
+
+          for (var d = 0; d < needDiscard; d++) {
+            (function (idx) {
+              discardChain = discardChain.then(function () {
+                var discarded = cpuPickCardToDiscard();
+                if (discarded) {
+                  farm.push(discarded);
+                  opponentHandCount = cpuHand.length;
+                  renderAll();
+                }
+                var dummy = makeSmallCardDummy(oppRect);
+                return flyGhost(dummy, farmRect, 0.5).then(function () {
+                  dummy.remove();
+                  if (window.SoundFX && typeof SoundFX.cardSlide === 'function') SoundFX.cardSlide();
+                  return sleep(160);
+                });
+              });
+            })(d);
+          }
+        }
+
+        return discardChain.then(function () {
+          if (cpuHorseCard) {
+            farm.push(cpuHorseCard);
+            cpuHorseCard = null;
+          }
+          var endMsg = needDiscard > 0
+            ? ('🧠 相手のターン終了！ 手札を ' + needDiscard + '枚 捨てました（相手の残り手札: ' + cpuHand.length + '枚）。あなたの番です。')
+            : '🧠 相手のターン終了！ あなたの番です。';
+          setNarrator(endMsg);
+          if (needDiscard > 0) {
+            showToast('相手が手札を' + needDiscard + '枚捨てました', 'info', 2200);
+          }
+          showCommandBar(true);
+          isCpuTurn = false;
+          canDraw = true;
+          phase = 'idle';
+          hasRunThisTurn = false;
+          renderAll();
+          checkVictory();
+          if (!victoryShown) cmdDraw(); // 自分のターンの初めに自動でカードを1枚引く
+        });
+      });
     });
   }
 
@@ -1703,20 +1818,23 @@
 
       if (phase === 'select_situation') {
         if (card.type !== 'situation') { shakeCard(id); return; }
-        hand = hand.filter(function (c) { return c.id !== card.id; });
-        situation = card;
-        race.trackCondition = '良';
-        phase = 'idle';
-        setNarrator('☀️ 「' + card.name + '」を状況エリアに置いた。馬場は<b>良</b>になった！');
-        renderRaceInfo();
-        renderAll();
+        activateSituationCard(card);
         return;
       }
 
       if (phase === 'idle') {
+        if (card.type === 'situation') {
+          activateSituationCard(card);
+          return;
+        }
         CardCloseup.show(card, { label: 'カード詳細' });
         return;
       }
+      return;
+    }
+
+    if (card.type === 'situation' && (!interactionMode || interactionMode === 'freeplay')) {
+      activateSituationCard(card);
       return;
     }
 
@@ -2556,25 +2674,76 @@
 
   /* ===================== events ===================== */
   var suppressNextHandClick = false;
-  $('hand-row').addEventListener('click', function (e) {
-    var el = e.target.closest ? e.target.closest('.card') : null;
-    if (!el) return;
-    if (suppressNextHandClick) { suppressNextHandClick = false; return; }
-    onHandCardClick(el.dataset.id);
-  });
+  var lastHandCardTapTime = 0;
+  var handTouchTapId = null;
+  var handTouchStartX = 0;
+  var handTouchStartY = 0;
+  var handTouchStartTime = 0;
+
+  var handRowEl = $('hand-row');
+  if (handRowEl) {
+    // スマホでの1回タップを最速・確実に拾うタッチリスナー（ブラウザの合成click遅延・微小ブレによるclick消失を完全回避）
+    handRowEl.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) { handTouchTapId = null; return; }
+      var touch = e.touches[0];
+      var cardEl = touch.target && touch.target.closest ? touch.target.closest('.card') : null;
+      if (!cardEl) { handTouchTapId = null; return; }
+      handTouchTapId = cardEl.dataset.id;
+      handTouchStartX = touch.clientX;
+      handTouchStartY = touch.clientY;
+      handTouchStartTime = Date.now();
+    }, { passive: true });
+
+    handRowEl.addEventListener('touchend', function (e) {
+      if (!handTouchTapId) return;
+      var touch = e.changedTouches && e.changedTouches[0];
+      if (!touch) { handTouchTapId = null; return; }
+      var dx = Math.abs(touch.clientX - handTouchStartX);
+      var dy = Math.abs(touch.clientY - handTouchStartY);
+      var dt = Date.now() - handTouchStartTime;
+      var targetId = handTouchTapId;
+      handTouchTapId = null;
+
+      // 350ms以内の指離し＆指の移動が14px以内なら確実なシングルタップとして即座に実行
+      if (dx < 14 && dy < 14 && dt < 350 && !suppressNextHandClick) {
+        lastHandCardTapTime = Date.now();
+        onHandCardClick(targetId);
+      }
+    }, { passive: true });
+
+    handRowEl.addEventListener('touchcancel', function () {
+      handTouchTapId = null;
+    }, { passive: true });
+
+    handRowEl.addEventListener('click', function (e) {
+      // 直前のtouchstart/touchendで処理済みの場合は重複呼び出しをスキップ
+      if (Date.now() - lastHandCardTapTime < 500) {
+        suppressNextHandClick = false;
+        return;
+      }
+      var el = e.target.closest ? e.target.closest('.card') : null;
+      if (!el) return;
+      if (suppressNextHandClick) { suppressNextHandClick = false; return; }
+      onHandCardClick(el.dataset.id);
+    });
+  }
 
   // カード詳細拡大表示（スマホ長押し＆PC右クリック）
   (function setupCardInspection() {
     var pressTimer = null;
     var pressedTarget = null;
     var touchStartX = 0, touchStartY = 0;
-    var LONG_PRESS_MS = 380;
+    var LONG_PRESS_MS = 480;
 
     function getCardFromEvent(target) {
       if (!target || !target.closest) return null;
       // 1. 手札カード
       var handCardEl = target.closest('#hand-row .card');
       if (handCardEl) {
+        // 走破（馬・フォース選択時）や手札選択中は、長押し詳細よりも1タップでのカード選択操作を最優先する
+        if (interactionMode || phase === 'select_horse' || phase === 'select_force' || phase === 'discard_select') {
+          return null;
+        }
         var hCard = hand.find(function (c) { return c.id === handCardEl.dataset.id; });
         return hCard ? { card: hCard, label: '手札カード詳細' } : null;
       }
@@ -2706,6 +2875,7 @@
     Haptics.tap();
     var cmd = btn.dataset.cmd;
     if (cmd === 'run') cmdRun();
+    else if (cmd === 'situation') cmdSituation();
     else if (cmd === 'item') cmdItemIdle();
     else if (cmd === 'end') cmdEndTurn();
     $('cmd-menu').classList.remove('open');
@@ -2900,8 +3070,13 @@
       scheduleFieldCorrection();
     }
     function setZoom(pct) {
-      pct = Math.max(60, Math.min(200, Number(pct) || DEFAULTS.zoom));
-      if (zoomRange) zoomRange.value = pct;
+      var isMob = typeof window !== 'undefined' && window.innerWidth < 860;
+      var minPct = isMob ? 100 : 80;
+      pct = Math.max(minPct, Math.min(200, Number(pct) || DEFAULTS.zoom));
+      if (zoomRange) {
+        zoomRange.min = String(minPct);
+        zoomRange.value = pct;
+      }
       if (zoomValue) zoomValue.textContent = pct + '%';
       if (FieldCamera && typeof FieldCamera.setBaseScale === 'function') {
         FieldCamera.setBaseScale(pct / 100);
@@ -3031,8 +3206,13 @@
   var FieldCamera = (function () {
     var el = $('field-image-wrap');
     if (!el) return { pulseTo: function () { }, focusRect: function () { }, reset: function () { }, setBaseScale: function () { }, isBusy: function () { return false; } };
-    var MIN_SCALE = 0.6, MAX_SCALE = 2.6;
+    var isMobile = function () { return typeof window !== 'undefined' && window.innerWidth < 860; };
     var baseScale = (typeof window !== 'undefined' && window.innerWidth >= 860) ? 0.8 : 1;
+    function getMinScale() {
+      // スマホでは手で画面（盤面）を縮小できないよう最小倍率を1.0（標準サイズ）に固定
+      return isMobile() ? 1.0 : Math.min(1.0, baseScale);
+    }
+    var MAX_SCALE = 2.6;
     var state = { scale: baseScale, tx: 0, ty: 0 };
     var gesture = null; // {startDist, startMid, startScale, startTx, startTy}
     var lastTapTime = 0;
@@ -3114,7 +3294,9 @@
         var d = dist(e.touches[0], e.touches[1]);
         var m = mid(e.touches[0], e.touches[1]);
         var ratio = d / gesture.startDist;
-        state.scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, gesture.startScale * ratio));
+        var minScale = getMinScale();
+        // スマホでは縮小(1.0未満)を完全に禁止
+        state.scale = Math.max(minScale, Math.min(MAX_SCALE, gesture.startScale * ratio));
         state.tx = gesture.startTx + (m.x - gesture.startMid.x);
         state.ty = gesture.startTy + (m.y - gesture.startMid.y);
         clamp();
@@ -3125,7 +3307,8 @@
     function endGesture(e) {
       if (e.touches.length < 2) {
         gesture = null;
-        if (!busy && Math.abs(state.scale - baseScale) < 0.05) { reset(); }
+        var minScale = getMinScale();
+        if (!busy && state.scale <= minScale + 0.05) { reset(); }
       }
     }
     el.addEventListener('touchend', function (e) {
@@ -3154,7 +3337,8 @@
     // externally-driven base zoom (e.g. the settings panel slider); replaces
     // the current scale/pan outright, same as a pinch gesture landing there
     function setBaseScale(scale) {
-      scale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+      var minScale = getMinScale();
+      scale = Math.max(minScale, Math.min(MAX_SCALE, scale));
       baseScale = scale;
       state.scale = scale; state.tx = 0; state.ty = 0;
       clamp();
@@ -3169,6 +3353,11 @@
       isBusy: function () { return busy; }
     };
   })();
+
+  // iOS Safari等でのページ全体の二本指ピンチズーム縮小を完全防止
+  document.addEventListener('gesturestart', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('gesturechange', function (e) { e.preventDefault(); }, { passive: false });
+  document.addEventListener('gestureend', function (e) { e.preventDefault(); }, { passive: false });
 
   /* ===================== card closeup layer ===================== */
   var CardCloseup = (function () {
@@ -3212,6 +3401,24 @@
       toastEl.innerHTML = detailHtml;
       toastEl.style.display = detailHtml ? '' : 'none';
 
+      // 既存の発動ボタンがあれば除去
+      var oldBtn = layer.querySelector('.closeup-action-btn');
+      if (oldBtn) oldBtn.remove();
+
+      // 手札の状況カードで詳細表示中なら、ここから直接発動できるボタンを表示
+      if (card.type === 'situation' && !opts.autoHideMs && !isCpuTurn && hand.some(function (c) { return c.id === card.id; })) {
+        var actBtn = document.createElement('button');
+        actBtn.className = 'closeup-action-btn btn-guard';
+        actBtn.style.cssText = 'margin-top:14px;padding:9px 24px;font-size:13.5px;font-weight:700;border-radius:24px;cursor:pointer;pointer-events:auto;box-shadow:0 4px 12px rgba(227,178,60,0.4);border:1.5px solid var(--gold);';
+        actBtn.innerHTML = '☀️ この状況カードを発動する';
+        actBtn.addEventListener('click', function (e) {
+          e.stopPropagation();
+          hide();
+          activateSituationCard(card);
+        });
+        layer.appendChild(actBtn);
+      }
+
       layer.classList.add('show');
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
       if (opts.autoHideMs) {
@@ -3221,6 +3428,9 @@
 
     function hide() {
       layer.classList.remove('show');
+      var oldBtn = layer.querySelector('.closeup-action-btn');
+      if (oldBtn) oldBtn.remove();
+      suppressNextHandClick = false;
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
     }
 
@@ -3453,7 +3663,9 @@
 
     function doScroll() {
       if (board.scrollHeight > board.clientHeight) {
-        board.scrollTop = board.scrollHeight;
+        var maxScroll = board.scrollHeight - board.clientHeight;
+        // 一番下までスクロールせず、ナレーターと手札の間のスペースを詰めるため少し上（50px手前）で止める
+        board.scrollTop = Math.max(0, maxScroll - 50);
       }
     }
 
@@ -3471,6 +3683,13 @@
   window._seiunSky = seiunSky;
   window._getHand = function() { return hand; };
   window._setHand = function(h) { hand = h; };
+  window._situationCard = situationCard;
+  window._activateSituationCard = activateSituationCard;
+  window._getSituation = function() { return situation; };
+  window._getPhase = function() { return phase; };
+  window._getInteractionMode = function() { return interactionMode; };
+  window._renderAll = renderAll;
+  window._FieldCamera = FieldCamera;
 
   renderAll();
   runTutorial();
