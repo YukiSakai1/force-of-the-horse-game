@@ -1070,7 +1070,8 @@
             const bgm = document.getElementById('bgmAudio');
             const btnSoundToggle = document.getElementById('btnSoundToggle');
             const soundIcon = document.getElementById('soundIcon');
-            let isMuted = true;
+            let isMuted = false;
+            soundIcon.textContent = '🔊';
 
             // BGM toggle
             btnSoundToggle.addEventListener('click', () => {
@@ -1116,6 +1117,28 @@
                 viewport.appendChild(ripple);
                 setTimeout(() => ripple.remove(), 750);
             }
+
+            // Auto-start BGM on page load (with user interaction fallback)
+            function startBGM() {
+                if (bgm.paused) {
+                    bgm.volume = 0.5;
+                    bgm.play().then(() => {
+                        isMuted = false;
+                        soundIcon.textContent = '🔊';
+                    }).catch(err => {
+                        console.log('Audio autoplay prevented:', err);
+                    });
+                }
+            }
+
+            // Try to start BGM immediately
+            startBGM();
+
+            // Also start on first user interaction (for browsers that block autoplay)
+            document.addEventListener('click', function initBGM() {
+                startBGM();
+                document.removeEventListener('click', initBGM);
+            }, { once: true });
 
             // Screen tap to start handler
             const gameViewport = document.querySelector('.game-viewport');
