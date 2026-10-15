@@ -208,7 +208,32 @@
   }
   function renderRaceInfo() {
     var el = $('race-info');
-    if (el) el.textContent = '🏁 ' + race.racecourse + '・' + race.surface + '・' + race.distance + '・' + race.trackCondition;
+    if (!el) return;
+    el.textContent = '';
+
+    var title = document.createElement('span');
+    title.className = 'race-info-title';
+    title.textContent = 'レース条件';
+    el.appendChild(title);
+
+    [
+      ['競馬場', race.racecourse],
+      ['コース', race.surface],
+      ['距離', race.distance],
+      ['馬場', race.trackCondition]
+    ].forEach(function (entry) {
+      var item = document.createElement('span');
+      item.className = 'race-condition';
+      var label = document.createElement('span');
+      label.className = 'race-condition-label';
+      label.textContent = entry[0];
+      var value = document.createElement('span');
+      value.className = 'race-condition-value';
+      value.textContent = entry[1];
+      item.appendChild(label);
+      item.appendChild(value);
+      el.appendChild(item);
+    });
   }
 
   var interactionMode = null;   // 'draw' | 'select-force' | 'select-horse' | 'select-any' | 'freeplay' | null
@@ -2869,6 +2894,7 @@
     cpuHorseCard = null;
     opponentHandCount = 7;
     situation = null;
+    renderRaceInfo();
     renderAll();
 
     setNarrator('ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ まずは対戦の準備をしよう。');
@@ -3807,15 +3833,23 @@
     gear.addEventListener('click', function () {
       Haptics.tap();
       overlay.classList.add('show');
+      gear.setAttribute('aria-expanded', 'true');
     });
+    function closeSettings() {
+      overlay.classList.remove('show');
+      gear.setAttribute('aria-expanded', 'false');
+    }
     if (closeBtn) {
       closeBtn.addEventListener('click', function () {
         Haptics.tap();
-        overlay.classList.remove('show');
+        closeSettings();
       });
     }
     overlay.addEventListener('click', function (e) {
-      if (e.target === overlay) overlay.classList.remove('show');
+      if (e.target === overlay) closeSettings();
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && overlay.classList.contains('show')) closeSettings();
     });
 
     presetBtns.forEach(function (b) {
@@ -3907,6 +3941,10 @@
       opt.addEventListener('click', function () {
         Haptics.tap();
         applyMode(opt.dataset.mode);
+        var settingsOverlay = $('settings-overlay');
+        var settingsGear = $('settings-gear');
+        if (settingsOverlay) settingsOverlay.classList.remove('show');
+        if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
       });
     });
   })();
