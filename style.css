@@ -1193,8 +1193,8 @@
 
   .opponent-bubble {
     position: absolute;
-    left: 52px;
-    top: 6px;
+    left: 58px;
+    top: 50%;
     background: var(--rail);
     color: var(--ink);
     font-weight: 700;
@@ -1203,7 +1203,7 @@
     border-radius: 10px;
     box-shadow: 0 6px 14px rgba(0, 0, 0, .4);
     opacity: 0;
-    transform: translateY(-4px) scale(.92);
+    transform: translate(-4px, -50%) scale(.92);
     transition: opacity .25s, transform .25s;
     pointer-events: none;
     white-space: nowrap;
@@ -1212,17 +1212,18 @@
 
   .opponent-bubble.show {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translate(0, -50%) scale(1);
   }
 
   .opponent-bubble::after {
     content: '';
     position: absolute;
-    left: 14px;
-    bottom: -6px;
-    border-width: 6px 6px 0 0;
+    left: -7px;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 6px 7px 6px 0;
     border-style: solid;
-    border-color: var(--rail) transparent transparent transparent;
+    border-color: transparent var(--rail) transparent transparent;
   }
 
   .zone-body {
@@ -1276,10 +1277,11 @@
 
   .lane.active {
     border-style: solid;
-    border-color: var(--gold);
+    border-color: #fff0a8;
     box-shadow:
-      inset 0 0 12px rgba(227, 178, 60, .25),
-      0 0 14px rgba(227, 178, 60, .55);
+      inset 0 0 18px rgba(255, 224, 112, .34),
+      0 0 0 3px rgba(255, 224, 112, .26),
+      0 0 24px rgba(255, 216, 92, .82);
   }
 
   .lane.empty {
@@ -1367,15 +1369,23 @@
     position: absolute;
     right: -6px;
     bottom: -6px;
-    background: var(--gold);
-    color: var(--ink);
-    font-weight: 700;
-    font-size: 11px;
-    min-width: 18px;
+    z-index: 6;
+    background: #07131e;
+    color: #fff;
+    font-weight: 900;
+    font-size: 16px;
+    line-height: 1;
+    min-width: 28px;
     text-align: center;
-    padding: 1px 4px;
-    border-radius: 8px;
-    border: 2px solid var(--ink);
+    padding: 4px 6px;
+    border-radius: 10px;
+    border: 2px solid #ffe070;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .8), 0 0 10px rgba(255, 224, 112, .5);
+    text-shadow: 0 1px 2px #000;
+  }
+
+  .opp-lane .lane-badge {
+    transform: rotate(180deg);
   }
 
   .lane-label {
@@ -1383,12 +1393,19 @@
     font-size: 9px;
     font-weight: 700;
     letter-spacing: .04em;
-    color: var(--rail);
-    text-shadow: 0 1px 3px rgba(0, 0, 0, .9), 0 0 2px rgba(0, 0, 0, .9);
+    color: #fff;
+    background: rgba(3, 8, 14, .88);
+    border: 1px solid rgba(255, 255, 255, .28);
+    border-radius: 999px;
+    padding: 2px 7px;
+    text-shadow: 0 1px 3px #000;
   }
 
   .lane.active .lane-label {
-    color: var(--gold-2);
+    color: #211704;
+    background: #fff0a8;
+    border-color: #fff7cf;
+    text-shadow: none;
   }
 
   .deck-card {
@@ -1714,9 +1731,10 @@
   }
 
   .hand-zone {
-    flex: 1;
+    flex: none;
     display: flex;
     flex-direction: column;
+    position: relative;
     min-height: 120px;
     min-width: 0;
     padding-bottom: 2px;
@@ -1730,6 +1748,130 @@
 
   .hand-zone .zone-label {
     padding-left: 2px;
+  }
+
+  .selection-cancel-btn {
+    position: absolute;
+    top: 4px;
+    left: 8px;
+    z-index: 420;
+    padding: 6px 10px;
+    border: 1px solid rgba(255, 224, 112, .82);
+    border-radius: 999px;
+    background: rgba(8, 18, 28, .94);
+    color: #fff0a8;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.2;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .6);
+    cursor: pointer;
+  }
+
+  .selection-confirm-btn {
+    position: absolute;
+    top: 4px;
+    right: 8px;
+    z-index: 421;
+    padding: 6px 10px;
+    border: 1px solid rgba(94, 239, 182, .9);
+    border-radius: 999px;
+    background: rgba(9, 50, 40, .96);
+    color: #caffeb;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.2;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .6), 0 0 12px rgba(52, 235, 172, .25);
+    cursor: pointer;
+  }
+
+  .selection-confirm-btn:disabled {
+    opacity: .45;
+    cursor: default;
+  }
+
+  .selection-confirm-btn[hidden] {
+    display: none !important;
+  }
+
+  .selection-cancel-btn[hidden] {
+    display: none !important;
+  }
+
+  .manual-selection-guide {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 430;
+    max-width: calc(100% - 24px);
+    padding: 7px 12px;
+    border: 1px solid rgba(255, 224, 112, .9);
+    border-radius: 999px;
+    background: rgba(8, 18, 28, .96);
+    color: #fff0a8;
+    font-size: 12px;
+    font-weight: 900;
+    line-height: 1.25;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, .68);
+  }
+
+  .manual-selection-guide[hidden],
+  .selected-horse-preview[hidden] {
+    display: none !important;
+  }
+
+  .selected-horse-preview {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    z-index: 410;
+    width: 95px;
+    height: 133px;
+    transform: translateX(-50%);
+    border: 3px solid #fff0a8;
+    border-radius: 10px;
+    background-color: #fff;
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: contain;
+    box-shadow: 0 14px 30px rgba(0, 0, 0, .78), 0 0 24px rgba(255, 216, 92, .82);
+    pointer-events: none;
+  }
+
+  .selected-horse-preview::after {
+    content: attr(data-label);
+    position: absolute;
+    left: 50%;
+    bottom: -24px;
+    transform: translateX(-50%);
+    min-width: 84px;
+    padding: 4px 8px;
+    border: 1px solid rgba(255, 224, 112, .9);
+    border-radius: 999px;
+    background: rgba(8, 18, 28, .96);
+    color: #fff0a8;
+    font-size: 10px;
+    font-weight: 900;
+    line-height: 1;
+    text-align: center;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .7);
+  }
+
+  /* アイテム選択中は、走破に使う馬を手札の外へ固定して全体を見せる。 */
+  .hand-zone.item-selecting .selected-horse-preview {
+    top: -158px;
+  }
+
+  /* フォース／アイテム選択中は馬を手札の外へ出し、残りのカード操作を妨げない。 */
+  .hand-zone.run-selecting .selected-horse-preview {
+    top: -158px;
+  }
+
+  .card.run-horse-source {
+    visibility: hidden;
   }
 
   .hand-nav-btn {
@@ -1871,6 +2013,23 @@
 
     body.field-3d .hand-zone {
       transform: none;
+    }
+
+    body.manual-mode .hand-zone.run-selecting {
+      height: 190px;
+      min-height: 190px;
+    }
+
+    body.manual-mode .hand-zone.run-selecting .hand-row {
+      height: 170px;
+    }
+
+    body.manual-mode .hand-zone.run-selecting .selected-horse-preview {
+      top: -158px;
+    }
+
+    body.manual-mode .hand-zone.run-selecting.item-selecting .selected-horse-preview {
+      top: -158px;
     }
 
     /* モバイル用トップバー：ブランド非表示・トラックバー全幅・メニューは1段に横並び */
@@ -2162,7 +2321,21 @@
 
     /* manual-modeの時はナレーターのスペースを詰める */
     body.manual-mode .hand-zone {
-      margin-top: -16px;
+      width: min(calc(100% - 24px), 900px);
+      height: 158px;
+      min-height: 158px;
+      margin: 0 auto 4px;
+      padding-top: 0;
+      overflow: visible;
+    }
+
+    body.manual-mode .hand-row {
+      height: 154px;
+    }
+
+    body.manual-mode .card {
+      width: 106px;
+      height: 148px;
     }
 
     .hand-row {
@@ -2546,6 +2719,59 @@
     z-index: 50;
   }
 
+  .card.run-item-selected {
+    --fan-lift: -22px;
+    --fan-scale: 1.08;
+    z-index: 95 !important;
+    opacity: 1 !important;
+    filter: brightness(1.12) saturate(1.18);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .7), 0 0 0 5px #61efba, 0 0 28px rgba(63, 231, 169, .95);
+  }
+
+  .field-total-badge {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    z-index: 12;
+    min-width: 34px;
+    padding: 2px 4px;
+    border: 1.5px solid #fff;
+    border-radius: 8px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, .8);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .65);
+  }
+
+  .field-total-run {
+    background: linear-gradient(160deg, #ff6f6f, #b92335);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .65), 0 0 9px rgba(255, 92, 92, .45);
+  }
+
+  .field-total-guard {
+    background: linear-gradient(160deg, #26d88e, #087e5b);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .65), 0 0 9px rgba(43, 238, 166, .45);
+  }
+
+  .field-total-label {
+    font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+    font-size: 8px;
+    font-weight: 900;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  .field-total-value {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 15px;
+    font-weight: 900;
+    line-height: 1.05;
+  }
+
   .card.disabled {
     opacity: .4;
   }
@@ -2557,6 +2783,27 @@
     }
     .card.selected {
       --fan-lift: -4px;
+    }
+
+    .card.run-item-selected {
+      --fan-lift: -12px;
+      --fan-scale: 1.08;
+    }
+  }
+
+  /* 走破に使う馬は、マウスのホバー有無に関係なく選択状態を大きく表示する。 */
+  .card.run-horse-selected {
+    --fan-lift: -24px;
+    --fan-scale: 1.16;
+    z-index: 90 !important;
+    opacity: 1;
+    box-shadow: 0 12px 26px rgba(0, 0, 0, .72), 0 0 0 3px #fff0a8, 0 0 24px rgba(255, 216, 92, .8);
+  }
+
+  @media (max-width:859px) {
+    .card.run-horse-selected {
+      --fan-lift: -8px;
+      --fan-scale: 1.14;
     }
   }
 
@@ -2636,7 +2883,7 @@
   .banner-overlay {
     position: fixed;
     inset: 0;
-    z-index: 100;
+    z-index: 500;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -2665,6 +2912,8 @@
 
   .banner-stage.has-card {
     position: relative;
+    flex-direction: column;
+    gap: 14px;
     animation: bannerStagePop .4s cubic-bezier(.16, 1, .3, 1) both;
   }
 
@@ -2786,7 +3035,7 @@
     width: min(300px, 76vw) !important;
     height: auto !important;
     aspect-ratio: 5 / 7.1 !important;
-    max-height: 64vh !important;
+    max-height: 52vh !important;
     border-radius: 14px;
     box-shadow:
       0 20px 60px rgba(0, 0, 0, .95),
@@ -2801,14 +3050,14 @@
     margin: 0 auto;
   }
 
-  /* 走破成功時：カード中央に「走破成功！」バッジを美しく重ねて表示 */
+  /* 走破成功時：カード画像を隠さないよう、結果をカードの下に分けて表示 */
   .banner-stage.has-card:not(.is-guard) .banner-box {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%) scale(0.9);
-    width: 80%;
-    max-width: 250px;
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: scale(0.9);
+    width: min(82vw, 300px);
+    max-width: none;
     padding: 13px 14px;
     background: linear-gradient(180deg, #181d24 0%, #0d1217 100%);
     border: 2px solid #e5c07b;
@@ -2872,7 +3121,7 @@
 
   .banner-stage.has-card:not(.is-guard) .banner-box.show {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    transform: scale(1);
   }
 
   /* ガード時：カードの下に「相手（自分）がガード！ 馬名 / ガード X」バナーを表示 */
@@ -3228,6 +3477,26 @@
     margin-top: 2px;
   }
 
+  .selection-progress {
+    margin-right: auto;
+    padding: 6px 10px;
+    border: 1px solid rgba(94, 234, 212, .72);
+    border-radius: 999px;
+    background: rgba(6, 78, 92, .72);
+    color: #d8fffb;
+    font-size: 11px;
+    font-weight: 800;
+    line-height: 1.2;
+    white-space: nowrap;
+    box-shadow: 0 0 14px rgba(45, 212, 191, .2);
+  }
+
+  .selection-progress.complete {
+    border-color: rgba(246, 210, 122, .9);
+    background: rgba(113, 76, 15, .82);
+    color: #fff3c4;
+  }
+
   .narrator-next {
     flex: none;
     background: linear-gradient(160deg, var(--gold-2), var(--gold));
@@ -3321,6 +3590,68 @@
     .narrator-forward {
       padding: 3px 6px;
       font-size: 8px;
+    }
+
+    .selection-progress {
+      padding: 5px 7px;
+      font-size: 9px;
+    }
+  }
+
+  /* チュートリアルの案内を盤面とは別の領域に置き、カードとの重なりを防ぐ。 */
+  body:not(.manual-mode) .narrator {
+    position: relative;
+    flex: none;
+    z-index: 120;
+    margin: 4px auto 6px;
+  }
+
+  body:not(.manual-mode) .board {
+    scroll-padding-top: 18px;
+    scroll-padding-bottom: 18px;
+  }
+
+  body:not(.manual-mode) .hand-zone {
+    flex: none;
+    width: min(calc(100% - 16px), 900px);
+    margin: 0 auto 4px;
+    border-color: rgba(74, 190, 255, .58);
+    background: linear-gradient(180deg, rgba(9, 35, 58, .82), rgba(5, 18, 34, .9));
+    box-shadow: 0 -7px 22px rgba(35, 154, 230, .18);
+  }
+
+  body:not(.manual-mode) .hand-zone > .zone-label {
+    display: none;
+  }
+
+  body:not(.manual-mode) .hand-zone:not(.has-cards) {
+    display: none;
+  }
+
+  body:not(.manual-mode) .opponent-strip {
+    border-color: rgba(255, 112, 112, .58);
+    background: linear-gradient(180deg, rgba(61, 20, 27, .9), rgba(35, 13, 20, .7));
+    box-shadow: 0 0 18px rgba(225, 67, 82, .14);
+  }
+
+  @media (max-width:859px) {
+    body:not(.manual-mode) .narrator {
+      width: min(96%, 660px);
+      margin-bottom: 4px;
+    }
+
+    body:not(.manual-mode) .board {
+      padding-bottom: 8px;
+      scroll-padding-bottom: 18px;
+    }
+
+    body:not(.manual-mode) .hand-zone {
+      position: relative;
+      left: auto;
+      right: auto;
+      bottom: auto;
+      width: calc(100% - 12px);
+      margin: 0 6px calc(2px + env(safe-area-inset-bottom, 0px));
     }
   }
 
@@ -3936,6 +4267,7 @@
 
   #guard-popup .popup-btns {
     display: flex;
+    flex-wrap: wrap;
     gap: 14px;
     justify-content: center;
     align-items: center;
@@ -4439,7 +4771,7 @@
   }
 
   body.field-cyber .field-placeholder::before {
-    content: '馬カード置き場（自分）';
+    content: '自分の場';
     font-size: 8px;
     letter-spacing: .06em;
     font-family: 'Orbitron', sans-serif;
@@ -4450,10 +4782,17 @@
   }
 
   body.field-cyber .field-placeholder-opp::before {
-    content: '馬カード置き場（相手）';
+    content: '相手の場';
     font-size: 7.5px;
     letter-spacing: .06em;
     font-family: 'Orbitron', sans-serif;
+  }
+
+  /* 相手の馬カードが表示されている間は、位置案内の文字を確実に隠す。 */
+  .field-body-opp.has-card .field-placeholder-opp,
+  .field-body-opp.has-card .field-placeholder-opp::before {
+    display: none !important;
+    content: none !important;
   }
 
   body.field-cyber .farm-pile:empty::before {
@@ -4483,6 +4822,19 @@
     text-shadow: 0 0 6px rgba(62, 224, 255, .6);
     font-family: 'Orbitron', sans-serif;
     letter-spacing: .04em;
+  }
+
+  body.field-cyber .lane.active .lane-label {
+    color: #211704;
+    text-shadow: none;
+  }
+
+  body.field-cyber .lane-badge {
+    color: #fff;
+    background: #07131e;
+    border-color: #69efff;
+    text-shadow: 0 1px 2px #000;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .8), 0 0 12px rgba(62, 224, 255, .72);
   }
 
   body.field-cyber .tilt-select {
