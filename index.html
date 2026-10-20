@@ -576,6 +576,23 @@
             pointer-events: auto;
         }
 
+        #tapStartTrigger:focus-visible { outline: 2px solid #00e5ff; outline-offset: 4px; border-radius: 999px; }
+
+        .cpu-coming-soon {
+            margin-bottom: 14px;
+            padding: 8px 16px;
+            border: 0;
+            border-radius: 999px;
+            background: rgba(8, 14, 25, .45);
+            color: #b8c6cd;
+            font: inherit;
+            font-size: .78rem;
+            line-height: 1.5;
+            cursor: default;
+            text-shadow: 0 1px 4px #000;
+        }
+        .cpu-coming-soon small { margin-left: 8px; font-size: .68rem; color: #91a2ac; }
+
         .tap-start-badge {
             position: relative;
             display: inline-flex;
@@ -593,6 +610,7 @@
             transform: scale(1.06);
             filter: brightness(1.2);
         }
+
 
         .tap-main-text {
             font-family: 'Cinzel', 'Noto Sans JP', sans-serif;
@@ -1005,12 +1023,13 @@
             <div class="tap-start-container" id="tapStartTrigger" role="button" tabindex="0">
                 <div class="tap-start-badge">
                     <span class="tap-main-text">START TUTORIAL</span>
-                    <span class="tap-sub-text">画面をタップしてチュートリアルを開始</span>
+                    <span class="tap-sub-text">タップしてレッスンの一覧へ</span>
                 </div>
             </div>
 
             <!-- Bottom Catchphrase & Official Site -->
             <footer class="footer-section">
+                <button class="cpu-coming-soon" type="button" disabled>CPUと対戦する<small>準備中</small></button>
                 <p class="catchphrase">実名馬レースバトルカードゲーム</p>
                 <div class="footer-official-row">
                     <a href="https://force-of-the-horse.com/" target="_blank" rel="noopener noreferrer" class="official-site-link" title="公式サイトへ (新しいタブで開く)">
@@ -1045,7 +1064,7 @@
                 <h4>基本ルール</h4>
                 <p>1. <strong>競走馬カード</strong>：走破数、ガード値、得意距離・脚質などのステータスを持ちます。</p>
                 <p>2. <strong>フォース・アイテム</strong>：天候・馬場変化やムチ、ハミなどのアイテムでレース局面に介入します。</p>
-                <p>3. <strong>チュートリアル</strong>：タイトル画面をタップしてゲームを開始し、チュートリアルバトルをお楽しみいただけます。</p>
+                <p>3. <strong>チュートリアル</strong>：「START TUTORIAL」から遊び方の一覧へ進み、レッスンを選べます。</p>
                 
                 <h4>勝利条件</h4>
                 <p>・馬カードで走破を繰り返し、相手より先に山札を無くした（引ききった）プレイヤーの勝利となります！<br>
@@ -1101,7 +1120,7 @@
                 loader.classList.add('active');
 
                 setTimeout(() => {
-                    window.location.href = 'tutorial.html';
+                    window.location.href = 'lessons.html';
                 }, 1000);
             }
 
@@ -1143,6 +1162,7 @@
             // Screen tap to start handler
             const gameViewport = document.querySelector('.game-viewport');
             gameViewport.addEventListener('click', (e) => {
+                if (e.target.closest('.cpu-coming-soon')) return;
                 // Ignore clicks on header action buttons, links, or inside modal dialogues
                 if (e.target.closest('.top-actions') || e.target.closest('.modal-card') || e.target.closest('a')) {
                     return;
@@ -1153,7 +1173,7 @@
                 }
 
                 createRipple(e.clientX, e.clientY);
-                launchGame('チュートリアルを開始中...');
+                launchGame('遊び方の一覧を準備中...');
             });
 
             // Official site link click feedback
@@ -1172,7 +1192,7 @@
                         e.preventDefault();
                         const rect = tapStartTrigger.getBoundingClientRect();
                         createRipple(rect.left + rect.width / 2, rect.top + rect.height / 2);
-                        launchGame('チュートリアルを開始中...');
+                        launchGame('遊び方の一覧を準備中...');
                     }
                 });
             }

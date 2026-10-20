@@ -17,7 +17,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=79">
+  <link rel="stylesheet" href="style.css?v=87">
   <script type="importmap">
 {
     "imports": {
@@ -81,6 +81,9 @@
           <button class="settings-close" id="settings-close" type="button" aria-label="設定を閉じる">✕</button>
         </div>
         <div class="settings-body">
+          <div class="settings-group">
+            <a href="lessons.html" style="color:var(--rail);font-weight:700;text-decoration:none">‹ 遊びかたの一覧へ</a>
+          </div>
           <div class="settings-group">
             <div class="settings-label">プレイモード</div>
             <div class="mode-switch" id="mode-switch" role="group" aria-label="プレイモード切り替え">
@@ -294,6 +297,14 @@
       <div class="banner-tap-hint" id="banner-tap-hint">タップして続ける</div>
     </div>
 
+    <dialog class="lesson-complete" id="lesson-complete" aria-labelledby="lesson-complete-title">
+      <p class="lesson-complete-kicker">LESSON 00 · COMPLETE</p>
+      <h2 id="lesson-complete-title">バトルの基本を覚えたね！</h2>
+      <p>各エリアの役割とレース条件、勝利条件が分かったら準備完了。<br>次は「走破」で馬を走らせてみよう。</p>
+      <a class="lesson-complete-link" id="lesson-complete-next" href="tutorial.html?lesson=run">次へ：走破してみよう！ ›</a>
+      <a class="lesson-complete-back" href="lessons.html">一覧に戻る</a>
+    </dialog>
+
     <!-- ゲーム内トースト通知 -->
     <div class="game-toast" id="game-toast"></div>
 
@@ -365,7 +376,7 @@
 
   </div>
 
-  <script src="script.js?v=18"></script>
+  <script src="script.js?v=35"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';

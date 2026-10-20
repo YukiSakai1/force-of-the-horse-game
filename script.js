@@ -461,7 +461,15 @@
         el.classList.add('selected', 'run-item-selected');
         el.setAttribute('aria-pressed', 'true');
       }
-      if (interactionMode === 'select-force') {
+      if (interactionMode === 'select-any' && c.id === lessonReservedHorseId) {
+        el.classList.add('disabled');
+      } else if (interactionMode === 'select-horse' && lessonRunHorseId) {
+        el.classList.add(c.id === lessonRunHorseId ? 'selectable' : 'disabled');
+      } else if (interactionMode === 'lesson-situation' || interactionMode === 'lesson-situation-busy') {
+        el.classList.add(c.type === 'situation' && interactionMode === 'lesson-situation' ? 'selectable' : 'disabled');
+      } else if (interactionMode === 'lesson-item' || interactionMode === 'lesson-item-busy') {
+        el.classList.add(lessonItemSelection && lessonItemSelection.id === c.id ? 'selectable' : 'disabled');
+      } else if (interactionMode === 'select-force') {
         el.classList.add(c.type === 'force' ? 'selectable' : 'disabled');
       } else if (interactionMode === 'select-horse' || interactionMode === 'select-guard' || phase === 'guard_select') {
         el.classList.add(c.type === 'horse' ? 'selectable' : 'disabled');
@@ -937,8 +945,22 @@
     }
   });
 
-  var STEP_TOTAL = 19;
+  var isIntroLesson = new URLSearchParams(window.location.search).get('lesson') === 'intro';
+  var isRunLesson = new URLSearchParams(window.location.search).get('lesson') === 'run';
+  var isGuardLesson = new URLSearchParams(window.location.search).get('lesson') === 'guard';
+  var isItemLesson = new URLSearchParams(window.location.search).get('lesson') === 'items';
+  var isStyleLesson = new URLSearchParams(window.location.search).get('lesson') === 'style';
+  var isAbilityLesson = new URLSearchParams(window.location.search).get('lesson') === 'ability';
+  var isSituationLesson = new URLSearchParams(window.location.search).get('lesson') === 'situation';
+  var isResponseLesson = new URLSearchParams(window.location.search).get('lesson') === 'responses';
+  var lessonSituationSelection = null;
+  var lessonItemSelection = null;
+  var lessonRunHorseId = null;
+  var lessonReservedHorseId = null;
+  var STEP_TOTAL = isResponseLesson ? 12 : (isSituationLesson ? 8 : (isIntroLesson ? 11 : (isRunLesson ? 7 : (isGuardLesson ? 8 : (isItemLesson ? 10 : (isStyleLesson ? 15 : (isAbilityLesson ? 9 : 19)))))));
   function setProgress(step) {
+    if (isRunLesson && step >= 8) step -= 7;
+    if (isGuardLesson && step >= 15) step = ({15: 1, 16: 2, 17: 7, 18: 8})[step] || 8;
     var pct = Math.min(100, (step / STEP_TOTAL) * 100);
     var cur = Math.min(step, STEP_TOTAL);
     var fillEl = $('track-fill');
@@ -947,6 +969,8 @@
     if (horseEl) horseEl.style.left = pct + '%';
 
     var curEl = $('step-current');
+    var totalEl = document.querySelector('.step-total');
+    if (totalEl) totalEl.textContent = STEP_TOTAL;
     if (curEl) {
       curEl.textContent = cur;
     } else {
@@ -958,6 +982,10 @@
     if (flagEl) {
       flagEl.classList.toggle('goal-reached', cur >= STEP_TOTAL);
     }
+  }
+
+  function showOpponentGuardBanner(card, value) {
+    return showBanner('相手がガード！ ' + card.name + ' / ガード ' + value, 3000, card);
   }
 
   function showBanner(text, maxWait, horseCard, subText) {
@@ -1002,7 +1030,6 @@
         }
         done = true;
         overlay.removeEventListener('click', finish);
-        clearTimeout(timer);
         box.classList.remove('show');
         overlay.classList.remove('active');
         if (stage) {
@@ -1020,7 +1047,7 @@
         setTimeout(resolve, 250);
       }
       overlay.addEventListener('click', finish);
-      var timer = setTimeout(finish, maxWait || 3200);
+      // 「タップして続ける」の表示は、ユーザーの操作まで進めない。
     });
   }
 
@@ -1460,7 +1487,7 @@
     renderAll();
   }
 
-  function activateSituationCard(card) {
+  function activateSituationCard(card, onComplete, runId) {
     if (!card || card.type !== 'situation') return;
     hand = hand.filter(function (c) { return c.id !== card.id; });
     var el = cardElById(card.id);
@@ -1468,17 +1495,21 @@
     var destRect = dest ? dest.getBoundingClientRect() : null;
 
     function finish() {
+      if (runId != null && runId !== tutorialRunId) return;
       situation = card;
-      race.trackCondition = '良';
+      var conditions = ['不良', '重', '稍重', '良'];
+      var conditionIndex = conditions.indexOf(race.trackCondition);
+      race.trackCondition = conditions[Math.min(3, Math.max(0, conditionIndex) + 1)];
       phase = 'idle';
       SoundFX.shimmer();
       Haptics.place();
-      setNarrator('☀️ 状況カード「<b>' + card.name + '</b>」を発動した！ 馬場状態が<b>良</b>になった！');
+      setNarrator('状況カード「<b>' + card.name + '</b>」を使用した！ 馬場状態が<b>' + race.trackCondition + '</b>になった！');
       renderRaceInfo();
       renderAll();
-      showToast('☀️ 状況カード「' + card.name + '」を発動！');
-      CardCloseup.show(card, { label: '状況カード発動！', autoHideMs: 1500 });
-      checkHintsAvailable();
+      showToast('状況カード「' + card.name + '」を使用！');
+      CardCloseup.show(card, { label: '状況カード使用！', autoHideMs: 1500 });
+      if (onComplete) onComplete();
+      else checkHintsAvailable();
     }
 
     if (el && destRect) {
@@ -1973,8 +2004,7 @@
             var guardVal = guardHorse.guard || 0;
             fieldGuard = guardHorse;
             renderField();
-            var guardText = '相手がガード！ ' + guardHorse.name + ' / ガード ' + guardVal;
-            return showBanner(guardText, 3000, guardHorse).then(function () {
+            return showOpponentGuardBanner(guardHorse, guardVal).then(function () {
               if (totalRun <= guardVal) {
                 setNarrator('❌ 走破失敗。実効走破値 ' + totalRun + ' は実効ガード値 ' + guardVal + ' を上回れなかった。');
                 return sendHorseToFarmAndReset();
@@ -2082,10 +2112,10 @@
     opts = opts || {};
     var isCpuOwner = opts.owner === 'cpu';
     var effectHand = isCpuOwner ? cpuHand : hand;
-    if (!opts.silent) CardCloseup.show(card, { label: '発動！', autoHideMs: 1100 });
+    if (!opts.silent) CardCloseup.show(card, { label: '使用！', autoHideMs: 1100 });
     var msg = isCpuOwner
-      ? '🧠 相手がアイテム「' + card.name + '」を使った！'
-      : '🧪 アイテム「' + card.name + '」を使った！';
+      ? '相手がアイテム「' + card.name + '」を使った！'
+      : 'アイテム「' + card.name + '」を使った！';
     switch (card.effectType) {
       case 'run_bonus':
         runBonus += card.effectValue;
@@ -2158,6 +2188,66 @@
     var el = cardElById(id);
     if (!el || el.style.pointerEvents === 'none') return;
     Haptics.select();
+
+    if (interactionMode === 'lesson-situation-busy') return;
+    if (interactionMode === 'lesson-situation') {
+      var situationChoice = lessonSituationSelection;
+      if (!situationChoice || card.type !== 'situation') return;
+      CardCloseup.show(card, {
+        label: '状況カード詳細',
+        actionLabel: 'この状況カードを使用する',
+        onAction: function () {
+          if (situationChoice.runId !== tutorialRunId || lessonSituationSelection !== situationChoice) return;
+          lessonSituationSelection = null;
+          interactionMode = 'lesson-situation-busy';
+          renderHand();
+          activateSituationCard(card, function () {
+            interactionMode = null;
+            situationChoice.resolve();
+          }, situationChoice.runId);
+        }
+      });
+      return;
+    }
+
+    if (interactionMode === 'select-any' && card.id === lessonReservedHorseId) {
+      showToast('この馬は2ターン目の練習に残しておこう');
+      return;
+    }
+
+    if (interactionMode === 'select-horse' && lessonRunHorseId && card.id !== lessonRunHorseId) {
+      showToast('今回は案内されている馬カードを選んでください');
+      return;
+    }
+
+    if (interactionMode === 'lesson-item-busy') return;
+    if (interactionMode === 'lesson-item') {
+      var itemChoice = lessonItemSelection;
+      if (!itemChoice || card.id !== itemChoice.id) {
+        showToast('案内されているアイテムを選んでください');
+        return;
+      }
+      CardCloseup.show(card, {
+        label: 'アイテムカード詳細',
+        actionLabel: 'このカードを使う',
+        onAction: async function () {
+          if (itemChoice.runId !== tutorialRunId || lessonItemSelection !== itemChoice) return;
+          lessonItemSelection = null;
+          interactionMode = 'lesson-item-busy';
+          renderHand();
+          await flyGhost(cardElById(card.id), $('zone-farm').getBoundingClientRect());
+          if (itemChoice.runId !== tutorialRunId) return;
+          hand = hand.filter(function (c) { return c.id !== card.id; });
+          farm.push(card);
+          applyItemEffect(card, { silent: true });
+          interactionMode = null;
+          hideSelectionProgress();
+          renderAll();
+          itemChoice.resolve();
+        }
+      });
+      return;
+    }
 
     // ガード選択中に操作できるのは馬カードだけ。
     // CPUターン中は通常の自由操作分岐を通らないため、ここで先に止めて
@@ -2729,6 +2819,10 @@
   })();
 
   /* ===================== 初期50枚カード配布演出 ===================== */
+  function makeStarterHand() {
+    return [forceCard(), forceCard(), forceCard(), goldShip(), rousham(), whip(), goggles()];
+  }
+
   async function dealInitialCards(isManual, runId) {
     // 画面中央に50枚デッキスタックを生成
     var centerEl = document.createElement('div');
@@ -2863,15 +2957,7 @@
     // 先に最終表示位置を確定させてから配札アニメーションを始める。
     // さらに各カードの直前に位置を取り直し、1枚目の追加によるレイアウト変化にも追従する。
     if (handArea) handArea.classList.add('has-cards');
-    var starterHand = [
-      forceCard(),
-      forceCard(),
-      forceCard(),
-      goldShip(),
-      rousham(),
-      whip(),
-      goggles()
-    ];
+    var starterHand = makeStarterHand();
 
     for (var hi = 0; hi < starterHand.length; hi++) {
       if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
@@ -2938,6 +3024,470 @@
   /* ===================== main tutorial flow ===================== */
   var tutorialRunId = 0;
 
+  // 総合ルール702.6d〜i：ガード後は非ターン側からサポートを使い、
+  // その側が追加を終えるともう一方が追加するかパスを選ぶ。双方のパス後に比較する。
+  async function runResponseLesson(runId) {
+    var horse = hand.find(function (c) { return c.type === 'horse'; });
+    var whips = hand.filter(function (c) { return c.effectType === 'run_bonus'; });
+    var cpuGuard = rousham();
+    var cpuSupport = goggles();
+
+    setProgress(1);
+    await explainStep($('zone-hand'), 'zone-hand', '<b>タイプ：馬</b>のアイテムは、走破宣言時に使うだけでなく、<b>相手のガード宣言後にも追加できる</b>よ。今回は最初は使わずに走破を宣言し、相手のガードを見てから使ってみよう。');
+    if (runId !== tutorialRunId) return;
+    setProgress(2);
+    lessonRunHorseId = horse.id;
+    runHorseSelectionConfirmedId = null;
+    setNarrator('<b>ゴールドシップ</b>を選んで「<b>この馬で走破</b>」を押そう。今回は逃げエリアなので、脚質一致の加算はなく<b>走破3</b>だよ。');
+    showNextButton(false);
+    await waitSelect('select-horse', 1);
+    if (runId !== tutorialRunId) return;
+    lessonRunHorseId = null;
+    setProgress(3);
+    setNarrator('コストの<b>フォース2枚</b>をファームへ送ろう。鞭はまだ使わずに残しておいてね。');
+    await waitSelect('select-force', horse.cost);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(4);
+    fieldGuard = cpuGuard;
+    opponentHandCount--;
+    guardValue = cpuGuard.guard;
+    renderAll();
+    showNextButton(false);
+    await showOpponentGuardBanner(cpuGuard, guardValue);
+    if (runId !== tutorialRunId) return;
+    setNarrator('相手が<b>ローシャムパークでガード2</b>。ガード側からサポートを使えるけれど、今回は相手は<b>追加せずに見送った</b>よ。ここで自分がアイテムを追加できるんだ。まだ走破の結果は確定していないよ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+
+    setProgress(5);
+    setNarrator('1枚目の<b>「鞭」</b>を使おう。ガードされた後でも、自分の走破数を<b>3→4</b>に増やせるよ。今回は1枚使って相手に確認を渡すね。');
+    await waitLessonItem(whips[0], runId);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(6);
+    showNextButton(false);
+    await showBanner('相手がアイテムを追加！', 2400, cpuSupport, 'ゴーグル：ガード値 +1');
+    if (runId !== tutorialRunId) return;
+    opponentHandCount--;
+    guardValue += cpuSupport.effectValue;
+    fieldGuard = Object.assign({}, cpuGuard, { guard: guardValue });
+    renderAll();
+    setNarrator('相手も<b>「ゴーグル」</b>を追加して、ガードが<b>2→3</b>になった！ 相手はこれ以上の追加を見送ったので、もう一度自分が追加するか選べるよ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+
+    setProgress(7);
+    setNarrator('残っている<b>2枚目の「鞭」</b>を追加しよう。走破が<b>4→5</b>になるよ。相手がアイテムを使っても、先に使った鞭の<b>+1は消えずに残る</b>んだ。');
+    await waitLessonItem(whips[1], runId);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(8);
+    showNextButton(false);
+    await showOpponentBubble('これ以上は追加しません');
+    if (runId !== tutorialRunId) return;
+    setNarrator('相手は<b>これ以上アイテムを使わない</b>よ。今回は自分も追加せずに進もう。<b>お互いに追加しないと決まったら</b>、走破数とガード値を比べるよ。「つぎへ」を押してね。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+
+    setProgress(9);
+    var runValue = effectiveRun(field, runBonus, currentLane());
+    var drawCount = Math.max(0, runValue - guardValue);
+    setNarrator('<b>走破' + runValue + ' − ガード' + guardValue + ' ＝ ' + drawCount + '枚</b>引けるね。<b>お互いにこれ以上追加しないことを確認してから</b>、走破数とガード値を比べるよ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+    showNextButton(false);
+    await showBanner('走破成功！', 2400, horse, drawCount + '枚ドロー');
+    if (runId !== tutorialRunId) return;
+    await rewardDraw(drawCount);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(10);
+    var discardCount = Math.max(0, drawCount - 1);
+    setNarrator('<b>' + drawCount + '枚引いたので、' + discardCount + '枚</b>を選んでファームへ送ろう。追加したアイテムの効果も含めた、最後の結果で引く枚数が決まるよ。');
+    discardSelectionConfirmedId = null;
+    await waitSelect('select-any', discardCount);
+    if (runId !== tutorialRunId) return;
+    setProgress(11);
+    setNarrator('走破とガードに使用した<b>馬カードを、それぞれのファームへ移動</b>して終わろう。<b>走破前の使用 → ガード → 双方の追加確認 → 結果の確定</b>が基本の流れ。ガードを見送った後に、アイテム追加のタイミングで新しくガード馬を出すことはできないよ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+    await flyGhost(document.querySelector('#field-body .field-mini'), $('zone-farm').getBoundingClientRect());
+    if (runId !== tutorialRunId) return;
+    farm.push(field);
+    field = null;
+    fieldGuard = null;
+    guardValue = 0;
+    runBonus = 0;
+    interactionMode = null;
+    renderAll();
+    hideArrow();
+    clearZoneActive();
+    hideSelectionProgress();
+    showNextButton(false);
+    setProgress(12);
+    $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 07 · COMPLETE';
+    $('lesson-complete-title').textContent = 'アイテムの追加使用を覚えたね！';
+    $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = 'ガード後にもアイテムを追加でき、相手の追加を見てさらに使うこともできるね。お互いに追加を見送ってから、最終的な走破数とガード値を比べよう！';
+    $('lesson-complete-next').href = 'lessons.html';
+    $('lesson-complete-next').textContent = '遊びかたの一覧へ';
+    $('lesson-complete').querySelector('.lesson-complete-back').hidden = true;
+    $('lesson-complete').showModal();
+  }
+
+  async function runSituationLesson(runId) {
+    setProgress(1);
+    await explainStep($('race-info'), 'race-info', '今の馬場は<b>「稍重」</b>だね。馬場状態は<b>良・稍重・重・不良</b>の4段階。状況カードで、このレース条件を変えてみよう。');
+    if (runId !== tutorialRunId) return;
+    setProgress(2);
+    await explainStep($('zone-situation'), 'zone-situation', '使った状況カードは、ここに置くよ。状況カードは<b>お互いに共通するレース条件</b>などへ影響するカードなんだ。');
+    if (runId !== tutorialRunId) return;
+    setProgress(3);
+    setNarrator('手札の<b>「かんかん照り」</b>をタップして効果を確認し、「<b>この状況カードを使用する</b>」を押そう。馬場状態を<b>一段階良くする</b>カードだよ。');
+    showNextButton(false);
+    await new Promise(function (resolve) {
+      lessonSituationSelection = { runId: runId, resolve: resolve };
+      interactionMode = 'lesson-situation';
+      renderAll();
+    });
+    if (runId !== tutorialRunId) return;
+    setProgress(4);
+    await explainStep($('race-info'), 'race-info', '馬場が<b>「稍重」→「良」</b>に変わったね！「かんかん照り」は<b>一段階</b>良くするので、重なら稍重、不良なら重になるよ。すでに良なら、それ以上は変わらないよ。');
+    if (runId !== tutorialRunId) return;
+    setProgress(5);
+    await explainStep($('zone-situation'), 'zone-situation', '<b>「かんかん照り」</b>が状況カード置き場に置かれたね。変わった馬場は<b>自分にも相手にも共通</b>だよ。今回は、カードを使って条件が変わるところまで覚えればOK！');
+    if (runId !== tutorialRunId) return;
+    setProgress(6);
+    await explainStep($('race-info'), 'race-info', '一部の<b>馬カードやフォース能力、サポートカード</b>は、<b>良馬場・道悪（重・不良）</b>などの馬場状態や、<b>芝・ダート</b>の条件によって効果が変わったり、強化されたりするよ。どの条件で有利になるかは、カードごとの文章を確認しよう。');
+    if (runId !== tutorialRunId) return;
+    setProgress(7);
+    await explainStep($('zone-situation'), 'zone-situation', '状況カードの効果は、<b>馬場を変えるものだけではない</b>よ。ほかにもさまざまな効果があるので、そのカードが<b>何に影響するか</b>を確認して使おう！');
+    if (runId !== tutorialRunId) return;
+    interactionMode = null;
+    hideArrow();
+    clearZoneActive();
+    showNextButton(false);
+    setProgress(8);
+    $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 06 · COMPLETE';
+    $('lesson-complete-title').textContent = '状況カードを使えたね！';
+    $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = 'かんかん照りで、馬場が稍重から良に変わったね。状況カードはお互いに共通するレース条件などに影響するので、効果を確認して使おう！';
+    $('lesson-complete-next').href = 'tutorial.html?lesson=responses';
+    $('lesson-complete-next').textContent = '次へ：アイテムの追加使用を覚えよう！ ›';
+    $('lesson-complete').querySelector('.lesson-complete-back').hidden = false;
+    $('lesson-complete').showModal();
+  }
+
+  async function runAbilityLesson(runId) {
+    var horse = hand.find(function (card) { return card.name === 'ローシャムパーク'; });
+    // 支払いに使うカードではなく、開始時からファームにあるカードを回収する。
+    var recoveryCard = farm.find(function (card) { return card.type === 'force' && card.name === 'フォース'; });
+
+    setProgress(1);
+    await explainStep($('race-info'), 'race-info', '今回は<b>中山・芝・中距離</b>のレース。フォース能力には、<b>条件を満たすと自動で働くもの</b>があるよ。ローシャムパークの能力を体験してみよう！');
+    if (runId !== tutorialRunId) return;
+
+    setProgress(2);
+    await explainStep(cardElById(horse.id), null, 'ローシャムパークの能力は、<b>得意競馬場で走破するために出した時、ファームのノーマルフォースを1枚手札に戻す</b>もの。カード下部の得意競馬場に<b>「中山」</b>があるので、今回は条件を満たしているよ。');
+    if (runId !== tutorialRunId) return;
+
+    setProgress(3);
+    lessonRunHorseId = horse.id;
+    runHorseSelectionConfirmedId = null;
+    setNarrator('<b>ローシャムパーク</b>をタップして、能力の文章と得意競馬場を確認し、「<b>この馬で走破</b>」を押そう。');
+    showNextButton(false);
+    await waitSelect('select-horse', 1);
+    if (runId !== tutorialRunId) return;
+    lessonRunHorseId = null;
+
+    setProgress(4);
+    setNarrator('まずは馬を出すコストとして、<b>フォースカードを' + horse.cost + '枚</b>ファームへ送ろう。その後に、馬を出した時の能力を確認するよ。');
+    await waitSelect('select-force', horse.cost);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(5);
+    var forcesBefore = hand.filter(function (card) { return card.type === 'force'; }).length;
+    showNextButton(false);
+    setNarrator('<b>得意競馬場の中山で、走破するために馬を出した</b>ので、フォース能力が自動で発動するよ！');
+    await showBanner('フォース能力 発動！', 2600, horse, 'ファームのノーマルフォース1枚を手札に戻す');
+    if (runId !== tutorialRunId) return;
+
+    var recoveryDummy = makeSmallCardDummy($('zone-farm').getBoundingClientRect());
+    recoveryDummy.style.backgroundImage = 'url(' + recoveryCard.img + ')';
+    await flyGhost(recoveryDummy, $('hand-row').getBoundingClientRect());
+    recoveryDummy.remove();
+    if (runId !== tutorialRunId) return;
+    farm = farm.filter(function (card) { return card.id !== recoveryCard.id; });
+    hand.push(recoveryCard);
+    renderAll();
+    SoundFX.deal();
+    var forcesAfter = hand.filter(function (card) { return card.type === 'force'; }).length;
+    setNarrator('<b>フォースが' + forcesBefore + '枚 → ' + forcesAfter + '枚に増えたね！</b> ファームから手札へ1枚戻ったよ。この能力は<b>走破に成功した後ではなく、走破するために馬を出した時</b>に働くんだ。発動のための追加ボタンや追加コストはないよ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+
+    setProgress(6);
+    var drawCount = Math.max(0, effectiveRun(field, 0, currentLane()));
+    setNarrator('能力の処理が終わったら、いつも通り走破するよ。今回は相手は見送るので、<b>走破数ぶんの' + drawCount + '枚</b>を引こう。<b>能力で戻った1枚は、走破のドローとは別</b>だよ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+    showNextButton(false);
+    await showBanner('走破成功！', 2600, horse);
+    if (runId !== tutorialRunId) return;
+    await rewardDraw(drawCount);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(7);
+    var discardCount = Math.max(0, drawCount - 1);
+    setNarrator('走破で<b>' + drawCount + '枚</b>引いたので、手札から<b>' + discardCount + '枚</b>をファームへ送ろう。能力で手札に戻したフォースは、この「走破で引いた枚数」には数えないよ。');
+    discardSelectionConfirmedId = null;
+    await waitSelect('select-any', discardCount);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(8);
+    setNarrator('最後に<b>ローシャムパークをファームへ</b>送って、走破を終えよう。フォース能力は<b>カードに書かれた条件とタイミング</b>を確認することが大事だよ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+    await flyGhost(document.querySelector('#field-body .field-mini'), $('zone-farm').getBoundingClientRect());
+    if (runId !== tutorialRunId) return;
+    farm.push(field);
+    field = null;
+    interactionMode = null;
+    renderAll();
+    hideArrow();
+    clearZoneActive();
+    hideSelectionProgress();
+    showNextButton(false);
+    setProgress(9);
+    $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 05 · COMPLETE';
+    $('lesson-complete-title').textContent = 'フォース能力を体験できたね！';
+    $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = 'ローシャムパークを得意競馬場で出すと、ノーマルフォース1枚が手札に戻ったね。馬によって能力の条件やタイミングは違うので、カードの文章を確認して使おう！';
+    $('lesson-complete-next').href = 'tutorial.html?lesson=situation';
+    $('lesson-complete-next').textContent = '次へ：状況カードを使おう！ ›';
+    $('lesson-complete').querySelector('.lesson-complete-back').hidden = false;
+    $('lesson-complete').showModal();
+  }
+
+  async function runStyleLesson(runId) {
+    var horses = [
+      hand.find(function (card) { return card.name === 'セイウンスカイ'; }),
+      hand.find(function (card) { return card.name === 'シルクメビウス'; })
+    ];
+    lessonReservedHorseId = horses[1].id;
+    setProgress(1);
+    await explainStep($('race-info'), 'race-info', '今回は練習用に<b>芝・長距離</b>のレースを用意したよ。走破数は、<b>今いるエリアと馬の脚質</b>、そして<b>距離・コースの適性</b>によって変わるんだ。2ターンで比べてみよう！');
+    if (runId !== tutorialRunId) return;
+
+    for (var turn = 0; turn < 2; turn++) {
+      if (turn === 1) lessonReservedHorseId = null;
+      var horse = horses[turn];
+      var step = 2 + turn * 7;
+      setProgress(step);
+      var explanation = turn === 0
+        ? '今いるエリアは<b>逃げ</b>。<b>セイウンスカイの脚質にも「逃げ」</b>があるので、脚質一致で<b>走破数が+1</b>になるよ。芝と長距離の適性も合っているね。'
+        : '2ターン目は<b>シルクメビウス</b>で走破しよう。この馬は<b>ダート・マイル／中距離</b>が適性。今回の<b>芝・長距離</b>とは両方違うので、<b>距離で−1、コースで−1</b>になるよ。脚質も今の「逃げ」と一致していないね。';
+      await explainStep(cardElById(horse.id), null, explanation);
+      if (runId !== tutorialRunId) return;
+
+      setProgress(step + 1);
+      lessonRunHorseId = horse.id;
+      runHorseSelectionConfirmedId = null;
+      setNarrator('<b>' + horse.name + '</b>をタップし、カードの脚質と適性を確認して「<b>この馬で走破</b>」を押そう。');
+      showNextButton(false);
+      await waitSelect('select-horse', 1);
+      if (runId !== tutorialRunId) return;
+      lessonRunHorseId = null;
+
+      setProgress(step + 2);
+      setNarrator('馬を出すコストとして、<b>フォースカードを' + horse.cost + '枚</b>ファームへ送ろう。');
+      await waitSelect('select-force', horse.cost);
+      if (runId !== tutorialRunId) return;
+
+      setProgress(step + 3);
+      var drawCount = Math.max(0, effectiveRun(field, 0, currentLane()));
+      setNarrator(turn === 0
+        ? 'カードに書かれた走破数<b>' + horse.run + '＋脚質一致1＝' + drawCount + '</b>！ 場のカードの数字も増えたね。距離とコースが合っているので、減点はないよ。今回は相手は見送るので<b>' + drawCount + '枚</b>引けるよ。'
+        : 'カードに書かれた走破数<b>' + horse.run + '−距離不一致1−コース不一致1＝' + drawCount + '</b>。<b>脚質の不一致には減点はなく、+1されないだけ</b>だよ。適性が合わなくても走破はできるけれど、今回は<b>' + drawCount + '枚</b>になるんだ。');
+      focusTutorialTarget($('field-body'));
+      await waitNext();
+      if (runId !== tutorialRunId) return;
+
+      showNextButton(false);
+      await showBanner('走破成功！', 2600, field, turn === 0 ? '脚質一致で走破 +1' : '距離とコースの不一致で走破 −2');
+      if (runId !== tutorialRunId) return;
+      await rewardDraw(drawCount);
+      if (runId !== tutorialRunId) return;
+
+      setProgress(step + 4);
+      var discardCount = Math.max(0, drawCount - 1);
+      if (discardCount > 0) {
+        setNarrator('<b>' + drawCount + '枚引けたね！</b> 引いた枚数より1枚少ない<b>' + discardCount + '枚</b>を選んで、ファームへ送ろう。<b>シルクメビウスは2ターン目に使うので残しておこう</b>。');
+        discardSelectionConfirmedId = null;
+        await waitSelect('select-any', discardCount);
+      } else {
+        setNarrator('<b>' + drawCount + '枚引けたね。</b> 捨てる枚数は「引いた枚数−1」なので、今回は<b>0枚</b>。手札を捨てずに進もう。');
+        await waitNext();
+      }
+      if (runId !== tutorialRunId) return;
+
+      setProgress(step + 5);
+      setNarrator('使い終わった<b>' + horse.name + '</b>をファームへ送って、このターンの走破を終えよう。');
+      await waitNext();
+      if (runId !== tutorialRunId) return;
+      await flyGhost(document.querySelector('#field-body .field-mini'), $('zone-farm').getBoundingClientRect());
+      if (runId !== tutorialRunId) return;
+      farm.push(field);
+      field = null;
+      renderAll();
+
+      if (turn === 0) {
+        setProgress(8);
+        showNextButton(false);
+        await showOpponentBubble('今回は走破せずに見送ります');
+        if (runId !== tutorialRunId) return;
+        await rewardDraw(1);
+        if (runId !== tutorialRunId) return;
+        setNarrator('相手は練習のため走破せずにターンを終えたよ。<b>自分の2ターン目</b>が始まり、最初の<b>1枚を引いた</b>よ。同じレース条件で、次は適性が合わない馬を使ってみよう。');
+        await waitNext();
+        if (runId !== tutorialRunId) return;
+      }
+    }
+
+    interactionMode = null;
+    hideArrow();
+    clearZoneActive();
+    hideSelectionProgress();
+    showNextButton(false);
+    setProgress(15);
+    $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 04 · COMPLETE';
+    $('lesson-complete-title').textContent = '条件に合わせた走破を覚えたね！';
+    $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = '脚質一致は+1。距離不一致とコース不一致は、それぞれ−1。1ターン目は4枚、2ターン目は1枚引けたね。今いるエリアとレース条件を見て、走破する馬を選ぼう！';
+    $('lesson-complete-next').href = 'tutorial.html?lesson=ability';
+    $('lesson-complete-next').textContent = '次へ：フォース能力を使おう！ ›';
+    $('lesson-complete').querySelector('.lesson-complete-back').hidden = false;
+    $('lesson-complete').showModal();
+  }
+
+  function waitLessonItem(card, runId) {
+    return new Promise(function (resolve) {
+      lessonItemSelection = { id: card.id, runId: runId, resolve: resolve };
+      interactionMode = 'lesson-item';
+      selectionNeeded = 1;
+      selectionCount = 0;
+      showNextButton(false);
+      updateSelectionProgress(false);
+      renderAll();
+    });
+  }
+
+  async function runItemLesson(runId) {
+    var areaItem = hand.find(function (card) { return card.effectType === 'farm_recovery'; });
+    var horseItem = hand.find(function (card) { return card.effectType === 'run_bonus'; });
+
+    setProgress(1);
+    await explainStep($('zone-hand'), 'zone-hand', 'アイテムは<b>使うタイミング</b>が大事。「<b>タイプ：エリア</b>」は自分のターン開始後から走破前に、「<b>タイプ：馬</b>」は走破やガードをする馬と一緒に使うよ。');
+    if (runId !== tutorialRunId) return;
+
+    setProgress(2);
+    var forcesBefore = hand.filter(function (card) { return card.type === 'force'; }).length;
+    setNarrator('まずは走破する前に、<b>タイプ：エリアの「獣医師」</b>を使おう。今回はファームのフォースを1枚手札に戻せるよ。カードをタップして、効果を確認して使ってみよう！');
+    await waitLessonItem(areaItem, runId);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(3);
+    var forcesAfter = hand.filter(function (card) { return card.type === 'force'; }).length;
+    setNarrator('<b>フォースが' + forcesBefore + '枚 → ' + forcesAfter + '枚に増えたね！</b> 獣医師はファームへ移り、効果でフォースが手札に戻ったよ。本番では<b>操作メニューの「エリアアイテム」</b>から使えるんだ。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+
+    setProgress(4);
+    setNarrator('次は<b>タイプ：馬の「鞭」</b>を、走破する馬と一緒に使おう。まずは<b>ゴールドシップ</b>を選んでね。');
+    showNextButton(false);
+    await waitSelect('select-horse', 1);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(5);
+    var cost = field.cost || 2;
+    setNarrator('馬を出すコストとして、<b>フォースカードを' + cost + '枚</b>ファームへ送ろう。');
+    await waitSelect('select-force', cost);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(6);
+    var runBefore = effectiveRun(field, runBonus, currentLane());
+    setNarrator('馬を出せたね！ このまま走破する前に、<b>「鞭」をタップして使おう</b>。鞭には<b>走破数を+1する</b>効果があるよ。');
+    await waitLessonItem(horseItem, runId);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(7);
+    var runAfter = effectiveRun(field, runBonus, currentLane());
+    setNarrator('<b>走破値が' + runBefore + ' → ' + runAfter + 'になった！</b> 馬カードの右下の数字も増えているね。本番では、馬とコストを選んだ後のアイテム選択で使うよ。今回は相手は見送るので、<b>' + runAfter + '枚引ける</b>よ。');
+    focusTutorialTarget($('field-body'));
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+
+    showNextButton(false);
+    await showBanner('走破成功！', 2800, field, '鞭で走破値 +1');
+    if (runId !== tutorialRunId) return;
+    await rewardDraw(runAfter);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(8);
+    var discardCount = Math.max(0, runAfter - 1);
+    setNarrator('<b>' + runAfter + '枚引けたね！</b> 走破の後はいつもと同じ。引いた枚数より1枚少ない<b>' + discardCount + '枚</b>を選んでファームへ送ろう。');
+    discardSelectionConfirmedId = null;
+    await waitSelect('select-any', discardCount);
+    if (runId !== tutorialRunId) return;
+
+    setProgress(9);
+    setNarrator('最後に、<b>走破した馬をファームへ</b>送るよ。鞭も使い終わったので、すでにファームに置かれているね。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+    await flyGhost(document.querySelector('#field-body .field-mini'), $('zone-farm').getBoundingClientRect());
+    if (runId !== tutorialRunId) return;
+    farm.push(field);
+    field = null;
+    runBonus = 0;
+    interactionMode = null;
+    renderAll();
+    hideArrow();
+    clearZoneActive();
+    hideSelectionProgress();
+    showNextButton(false);
+    setProgress(10);
+    $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 03 · COMPLETE';
+    $('lesson-complete-title').textContent = 'アイテムの使い方を覚えたね！';
+    $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = 'エリアアイテムは走破前に、馬タイプのアイテムは馬と一緒に。ガードを強めるアイテムもあるので、カードに書かれた効果とタイミングを確認して使おう。';
+    $('lesson-complete-next').href = 'tutorial.html?lesson=style';
+    $('lesson-complete-next').textContent = '次へ：脚質一致で走破しよう！ ›';
+    $('lesson-complete').querySelector('.lesson-complete-back').hidden = false;
+    $('lesson-complete').showModal();
+  }
+
+  // 00は盤面の案内だけで完結し、走破・ガードの操作へ進まない。
+  async function runIntroLesson(runId) {
+    var steps = [
+      ['race-info', 'ここに表示されているのが<b>レース条件</b>。<b>競馬場</b>は開催場所、<b>コース</b>は芝かダート、<b>距離</b>はレースの長さ、<b>馬場</b>は「良」「稍重」「重」「不良」といった馬場状態を表しているよ。'],
+      ['race-info', '今回は<b>' + race.racecourse + '・' + race.surface + '・' + race.distance + '・' + race.trackCondition + '</b>のレースだよ。この条件は<b>お互いに共通</b>。馬カードの適性や能力に関わるので、走破やガードに使う馬を選ぶときに確認しよう！'],
+      ['field-body', 'ここが<b>自分の場</b>。走破する馬や、ガードに使う馬を置く場所だよ。'],
+      ['field-body-opp', 'ここが<b>相手の場</b>。相手が出した馬カードが表示されるよ。自分の場と見比べながら勝負しよう。'],
+      ['zone-farm', 'ここが<b>ファーム</b>。最初に配られる3枚と、使い終わったカードを置く場所だよ。'],
+      ['zone-situation', 'ここは<b>状況カード置き場</b>。レース全体に影響する状況カードを置くよ。詳しい使い方は、状況カードのレッスンで覚えよう。'],
+      ['zone-hand', '画面下に並んでいるのが<b>自分の手札</b>。<b>馬カード</b>で走破やガードを行い、馬を出すために<b>フォースカード</b>を使うよ。<b>アイテムカード</b>は馬や自分の行動を助けてくれるんだ。'],
+      ['zone-deck', 'これが<b>距離エリア（山札）</b>。「逃げ」「先行」「差し」「追込」の4つに、それぞれ10枚ずつ配られるよ。<b>逃げから順番に</b>カードを引いて進んでいこう。'],
+      ['zone-deck', '<b>4つの山札を先にすべて引ききったプレイヤーの勝ち！</b> 馬を走らせてカードを引き、相手より先にゴールを目指そう。']
+    ];
+    for (var i = 0; i < steps.length; i++) {
+      if (runId !== tutorialRunId) return;
+      setProgress(i + 2);
+      await explainStep($(steps[i][0]), steps[i][0], steps[i][1]);
+    }
+    if (runId !== tutorialRunId) return;
+    hideArrow();
+    clearZoneActive();
+    showNextButton(false);
+    setProgress(STEP_TOTAL);
+    $('lesson-complete').showModal();
+  }
+
   async function runTutorial() {
     var myRunId = ++tutorialRunId;
     document.body.classList.remove('manual-mode');
@@ -2981,15 +3531,45 @@
     hideSelectionProgress();
 
     // 初期状態をクリア
-    LANES.forEach(function (l) { l.count = 0; });
+    lessonItemSelection = null;
+    lessonRunHorseId = null;
+    lessonReservedHorseId = null;
+    lessonSituationSelection = null;
+    var predealtLesson = isRunLesson || isGuardLesson || isItemLesson || isStyleLesson || isAbilityLesson || isSituationLesson || isResponseLesson;
+    LANES.forEach(function (l) { l.count = predealtLesson ? 10 : 0; });
     CPU_LANES.forEach(function (l) { l.count = 10; }); // 相手は最初から自分の山札を持っている
-    farm = [];
-    hand = [];
+    farm = predealtLesson ? [forceCard(), forceCard(), forceCard()] : [];
+    hand = predealtLesson ? makeStarterHand() : [];
+    if (isItemLesson) hand = [forceCard(), forceCard(), forceCard(), goldShip(), whip(), veterinarian(), goggles()];
+    if (isStyleLesson) {
+      race.surface = '芝';
+      race.distance = '長距離';
+      hand = [forceCard(), forceCard(), forceCard(), seiunSky(), silkMobius(), forceCard(), forceCard()];
+    }
+    if (isAbilityLesson) {
+      race.racecourse = '中山';
+      race.surface = '芝';
+      race.distance = '中距離';
+      race.trackCondition = '良';
+      hand = [forceCard(), forceCard(), forceCard(), rousham(), goldShip(), whip(), goggles()];
+    }
+    if (isSituationLesson) {
+      race.trackCondition = '稍重';
+      hand = [forceCard(), forceCard(), goldShip(), situationCard('かんかん照り', '馬場状態を一段階良くする', KANKAN_IMG), rousham(), whip(), goggles()];
+    }
+    if (isResponseLesson) {
+      race.racecourse = '東京';
+      race.surface = '芝';
+      race.distance = '中距離';
+      race.trackCondition = '良';
+      hand = [forceCard(), forceCard(), goldShip(), whip(), whip(), goggles(), forceCard()];
+    }
     field = null;
     fieldGuard = null;
     playerGuardCard = null;
-    cpuHorseCard = null;
-    opponentHandCount = 7;
+    cpuHorseCard = isGuardLesson ? seiunSky() : null;
+    cpuRunValue = cpuHorseCard ? cpuHorseCard.run : 0;
+    opponentHandCount = isGuardLesson ? 7 - (cpuHorseCard.cost || 2) - 1 : 7;
     situation = null;
     renderRaceInfo();
     renderAll();
@@ -3002,11 +3582,65 @@
       window.scrollTo(0, 0);
     }
 
-    setNarrator('ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ まずは対戦の準備をしよう。');
+    setNarrator(isIntroLesson
+      ? 'ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ このレッスンでは、<b>各エリアの役割・レース条件・勝利条件</b>を覚えよう。'
+      : (isResponseLesson ? 'このレッスンでは<b>ガード後のアイテム追加</b>を練習するよ。相手の追加使用を見て、さらにアイテムを使ってみよう！'
+        : isSituationLesson ? 'このレッスンでは<b>状況カード</b>を使って、レースの馬場状態を変えてみよう！'
+        : isAbilityLesson ? 'このレッスンでは<b>フォース能力</b>を体験するよ。ローシャムパークを得意競馬場で出して、ファームのフォースを手札に戻してみよう！'
+        : isStyleLesson ? 'このレッスンでは<b>脚質一致と適性による走破数の変化</b>を、2ターンで体験するよ。カードに書かれた走破数と、実際に引ける枚数を比べてみよう！'
+        : isItemLesson ? 'このレッスンでは<b>アイテム</b>を使ってみよう。「獣医師」で手札を助けて、「鞭」で馬の走破を強くするよ！'
+        : isGuardLesson ? 'このレッスンでは<b>ガード</b>を練習するよ。相手が馬を出して走破しようとしているね。手札の馬で、相手が引くカードを減らしてみよう！'
+        : isRunLesson ? 'このレッスンでは<b>走破</b>を練習するよ。馬を出すところから、カードを引いてファームへ送るところまでやってみよう！'
+        : 'ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ まずは対戦の準備をしよう。'));
     setProgress(0);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
 
+    if (isResponseLesson) {
+      await runResponseLesson(myRunId);
+      return;
+    }
+
+    if (isSituationLesson) {
+      await runSituationLesson(myRunId);
+      return;
+    }
+
+    if (isAbilityLesson) {
+      await runAbilityLesson(myRunId);
+      return;
+    }
+
+    if (isStyleLesson) {
+      await runStyleLesson(myRunId);
+      return;
+    }
+
+    if (isItemLesson) {
+      await runItemLesson(myRunId);
+      return;
+    }
+
+    if (isGuardLesson) {
+      await practiceGuard();
+      if (myRunId !== tutorialRunId) return;
+      hideArrow();
+      clearZoneActive();
+      showNextButton(false);
+      hideSelectionProgress();
+      setProgress(18);
+      $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 02 · COMPLETE';
+      $('lesson-complete-title').textContent = 'ガードの流れを覚えたね！';
+      $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = '手札の馬のガード値で、相手が走破で引く枚数を減らせたね。ガードに使う馬にはフォースのコストは不要。本番では、ガードせずに見送ることもできるよ。';
+      $('lesson-complete-next').href = 'tutorial.html?lesson=items';
+      $('lesson-complete-next').textContent = '次へ：アイテムを使おう！ ›';
+      $('lesson-complete').querySelector('.lesson-complete-back').hidden = false;
+      $('lesson-complete').showModal();
+      return;
+    }
+
+    // 走破の練習は配札済みで開始し、準備の説明・演出を繰り返さない。
+    if (!isRunLesson) {
     // STEP 0: 50枚デッキからの初期カード配布
     setProgress(1);
     showNextButton(false);
@@ -3016,7 +3650,14 @@
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
+    }
 
+    if (isIntroLesson) {
+      await runIntroLesson(myRunId);
+      return;
+    }
+
+    if (!isRunLesson) {
     // STEP 1: 配布直後にファームを説明し、登場から説明までの間を空けない
     setProgress(2);
     await explainStep($('zone-farm'), 'zone-farm', 'ここが<b>ファーム</b>。最初に置かれた3枚と、使い終わったカードを置く場所だよ。');
@@ -3065,6 +3706,8 @@
     await waitNext();
     hideArrow();
     if (myRunId !== tutorialRunId) return;
+
+    }
 
     // STEP 7: 実際に走破してみよう（ポップアップは削除し、自然に進行）
     setProgress(8);
@@ -3143,6 +3786,21 @@
       renderAll();
     }
 
+    if (isRunLesson) {
+      if (myRunId !== tutorialRunId) return;
+      hideArrow();
+      clearZoneActive();
+      showNextButton(false);
+      setProgress(14);
+      $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 01 · COMPLETE';
+      $('lesson-complete-title').textContent = '走破の流れを覚えたね！';
+      $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = '馬を出す、コストを払う、走破してカードを引く。使い終わったカードをファームへ送れば、走破は完了！';
+      $('lesson-complete-next').href = 'tutorial.html?lesson=guard';
+      $('lesson-complete-next').textContent = '次へ：ガードしてみよう！ ›';
+      $('lesson-complete').showModal();
+      return;
+    }
+
     // STEP 14: 相手ターンへ交代
     setProgress(14);
     setNarrator('自分の走破が終わったので、次は<b>相手のターン</b>だよ。相手も同じ手順で馬を走らせるよ。');
@@ -3150,13 +3808,18 @@
     await waitNext();
     if (myRunId !== tutorialRunId) return;
 
+    await practiceGuard();
+    if (myRunId !== tutorialRunId) return;
+
+    // 通しチュートリアルと単独のガード編で、同じ操作・結果処理を使う。
+    async function practiceGuard() {
     // STEP 15: 相手が馬カードを出して走破を宣言
     setProgress(15);
     cpuHorseCard = seiunSky();
     // チュートリアルではこの後のガード説明もカード記載の走破値を使う。
     // 表示用の値も同時に設定し、カード上が「走破 0」になるのを防ぐ。
     cpuRunValue = cpuHorseCard.run || 0;
-    opponentHandCount = Math.max(0, opponentHandCount - ((cpuHorseCard.cost || 2) + 1));
+    if (!isGuardLesson) opponentHandCount = Math.max(0, opponentHandCount - ((cpuHorseCard.cost || 2) + 1));
     renderAll();
     focusTutorialTarget($('field-body-opp'));
     setNarrator('相手が<b>' + cpuHorseCard.name + '</b>を出して「走破」を宣言した！ 相手も馬の走破値ぶん、山札からカードを引こうとしているよ。');
@@ -3179,11 +3842,21 @@
       await waitNext();
       if (myRunId !== tutorialRunId) return;
     }
-    setNarrator('ここで初めて<b>ガード</b>を使えるよ。手札の馬カードでガードすると、相手が走破で引くカードの枚数を<b>減らすことができる</b>よ。<br><b>ガードせず、そのまま相手の走破を通す選択もできる</b>よ。本番では「ガードする／しない」を選べるけれど、今回は練習のためガードしてみよう。');
+    setNarrator('手札の馬カードで<b>ガード</b>すると、相手が走破で引く枚数を<b>ガード値ぶん減らせる</b>よ。<b>ガードする馬にはフォースのコストは不要</b>。本番では見送ることもできるけれど、今回はガードしてみよう。');
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
+    if (isGuardLesson) {
+      setProgress(3);
+      await explainStep($('race-info'), 'race-info', 'ガードに使えるのは、<b>レースの距離とコース（芝・ダート）の両方に適性がある馬</b>だよ。今回の条件は<b>' + race.surface + '・' + race.distance + '</b>。距離だけ、コースだけ合っていてもガードできないんだ。');
+      if (myRunId !== tutorialRunId) return;
+      setProgress(4);
+      await explainStep(cardElById(tutorialGuardCard.id), null, 'たとえば<b>' + tutorialGuardCard.name + '</b>は、適性コースが<b>' + (tutorialGuardCard.surface || []).join('・') + '</b>、適性距離が<b>' + tutorialGuardCard.dist + '</b>なので、今回のガードに使えるよ。<b>脚質は、今いるエリアと一致していなくてもガードできる</b>よ。');
+      if (myRunId !== tutorialRunId) return;
+      setProgress(5);
+    }
     setNarrator('<b>ガードに使う馬カードを1枚</b>タップして、カードの詳細とガード値を確認してから決めよう。');
+    setZoneActive('field-body', true);
     showNextButton(false);
     guardSelectionConfirmedId = null;
     guardItemSelectionConfirmedId = null;
@@ -3192,8 +3865,10 @@
     discardSelectionsInFlight = 0;
     pendingFinishRun = null;
     await waitSelect('select-guard', 1);
+    setZoneActive('field-body', false);
     if (myRunId !== tutorialRunId) return;
 
+    if (isGuardLesson) setProgress(6);
     var tutorialCpuRun = cpuHorseCard ? (cpuHorseCard.run || 3) : 3;
     var tutorialGuardValue = playerGuardCard ? (playerGuardCard.guard || 0) : 0;
     var tutorialCpuDraw = Math.max(0, tutorialCpuRun - tutorialGuardValue);
@@ -3241,6 +3916,8 @@
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
+
+    }
 
     // STEP 18: 繰り返しメッセージ
     setProgress(18);
@@ -4244,9 +4921,9 @@
       if (card.type === 'item' || card.type === 'jockey') {
         var supportLabel = card.type === 'jockey' ? '騎手' : 'アイテム';
         var timingText = isGogglesCard(card)
-          ? 'タイプ：馬／ガードする馬カードと一緒に使用'
+          ? 'タイプ：馬／ガード中に使用（後から追加も可能）'
           : (card.type === 'jockey' || card.itemUseType === 'horse'
-            ? 'タイプ：馬／走破する馬カードと一緒に使用'
+            ? 'タイプ：馬／走破中に使用（ガード後の追加も可能）'
             : 'タイプ：エリア／ターン開始後・走破前に操作メニューから使用');
         return '<b style="color:var(--gold-2);font-size:14px;">' + card.name + '</b>（' + supportLabel + '）<br>効果: <b>' + (card.stat || '') + '</b><br><span style="font-size:11px;color:var(--rail-dim)">' + timingText + '</span>';
       }
@@ -4288,7 +4965,7 @@
         var actBtn = document.createElement('button');
         actBtn.className = 'closeup-action-btn btn-guard';
         actBtn.style.cssText = 'margin-top:14px;padding:9px 24px;font-size:13.5px;font-weight:700;border-radius:24px;cursor:pointer;pointer-events:auto;box-shadow:0 4px 12px rgba(227,178,60,0.4);border:1.5px solid var(--gold);';
-        actBtn.innerHTML = '☀️ この状況カードを発動する';
+        actBtn.textContent = 'この状況カードを使用する';
         actBtn.addEventListener('click', function (e) {
           e.stopPropagation();
           hide();
@@ -4570,7 +5247,11 @@
   window._FieldCamera = FieldCamera;
 
   renderAll();
-  runTutorial();
+  if (new URLSearchParams(window.location.search).get('mode') === 'manual') {
+    startManualMode();
+  } else {
+    runTutorial();
+  }
   safeInitialMobileScroll();
 
 })();
