@@ -1078,7 +1078,7 @@
 
     <!-- Audio Player for Game BGM -->
     <audio id="bgmAudio" loop preload="auto">
-        <source src="Banners_in_the_Gale.mp3" type="audio/mpeg">
+        <source src="Banners_in_the_Gale_recomposed_90sec.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -1090,22 +1090,63 @@
             const btnSoundToggle = document.getElementById('btnSoundToggle');
             const soundIcon = document.getElementById('soundIcon');
             let isMuted = false;
-            soundIcon.textContent = '🔊';
+
+            // ミュート状態の復元
+            try {
+                const savedBgmEnabled = localStorage.getItem('foth_bgm_enabled');
+                if (savedBgmEnabled === '0') {
+                    isMuted = true;
+                }
+            } catch (e) { }
+            soundIcon.textContent = isMuted ? '🔇' : '🔊';
+
+            // 再生位置の保存と復元
+            function saveBgmTime() {
+                try {
+                    if (bgm && bgm.currentTime > 0) {
+                        sessionStorage.setItem('foth_bgm_time', String(bgm.currentTime));
+                    }
+                } catch (e) { }
+            }
+
+            function restoreBgmTime() {
+                try {
+                    const savedTime = sessionStorage.getItem('foth_bgm_time');
+                    if (savedTime && bgm) {
+                        const t = parseFloat(savedTime);
+                        if (isFinite(t) && t >= 0) {
+                            bgm.currentTime = t;
+                        }
+                    }
+                } catch (e) { }
+            }
+
+            restoreBgmTime();
+            if (bgm) {
+                bgm.addEventListener('loadedmetadata', restoreBgmTime);
+                bgm.addEventListener('timeupdate', saveBgmTime);
+            }
+            window.addEventListener('beforeunload', saveBgmTime);
+            window.addEventListener('pagehide', saveBgmTime);
 
             // BGM toggle
             btnSoundToggle.addEventListener('click', () => {
                 if (bgm.paused) {
+                    restoreBgmTime();
                     bgm.volume = 0.5;
                     bgm.play().then(() => {
                         isMuted = false;
                         soundIcon.textContent = '🔊';
+                        try { localStorage.setItem('foth_bgm_enabled', '1'); } catch (e) { }
                     }).catch(err => {
                         console.log('Audio autoplay prevented:', err);
                     });
                 } else {
+                    saveBgmTime();
                     bgm.pause();
                     isMuted = true;
                     soundIcon.textContent = '🔇';
+                    try { localStorage.setItem('foth_bgm_enabled', '0'); } catch (e) { }
                 }
             });
 
@@ -1114,6 +1155,7 @@
             function launchGame(message) {
                 if (isStarting) return;
                 isStarting = true;
+                saveBgmTime();
                 const loader = document.getElementById('loadingScreen');
                 const loadingText = document.getElementById('loadingText');
                 if (message) loadingText.textContent = message;
@@ -1139,7 +1181,9 @@
 
             // Auto-start BGM on page load (with user interaction fallback)
             function startBGM() {
+                if (isMuted) return;
                 if (bgm.paused) {
+                    restoreBgmTime();
                     bgm.volume = 0.5;
                     bgm.play().then(() => {
                         isMuted = false;
@@ -1150,12 +1194,12 @@
                 }
             }
 
-            // Try to start BGM immediately
-            startBGM();
+            // Try to start BGM immediately if not muted
+            if (!isMuted) startBGM();
 
             // Also start on first user interaction (for browsers that block autoplay)
             document.addEventListener('click', function initBGM() {
-                startBGM();
+                if (!isMuted) startBGM();
                 document.removeEventListener('click', initBGM);
             }, { once: true });
 

@@ -16,7 +16,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>
     </a>
     <h1>遊びかた</h1>
-    <span class="lesson-brand" aria-hidden="true">FOTH</span>
+    <button class="lesson-bgm-toggle" id="lessonBgmToggle" type="button" aria-label="BGM切り替え" title="BGMをOFFにする">🔊 BGM ON</button>
   </header>
   <main class="lesson-main">
     <section aria-labelledby="lesson-heading">
@@ -94,5 +94,94 @@
     </section>
     <footer class="lesson-footer"><span>FORCE OF THE HORSE</span><a href="index.html">タイトルへ戻る</a></footer>
   </main>
+
+  <audio id="bgmAudio" loop preload="auto">
+    <source src="audio/Banners_in_the_Gale_recomposed_90sec.mp3" type="audio/mpeg">
+    <source src="Banners_in_the_Gale_recomposed_90sec.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    (function () {
+      'use strict';
+      const bgm = document.getElementById('bgmAudio');
+      const btnToggle = document.getElementById('lessonBgmToggle');
+      let isMuted = false;
+
+      try {
+        const saved = localStorage.getItem('foth_bgm_enabled');
+        if (saved === '0') isMuted = true;
+      } catch (e) {}
+
+      function updateButton() {
+        if (!btnToggle) return;
+        btnToggle.textContent = isMuted ? '🔇 BGM OFF' : '🔊 BGM ON';
+        btnToggle.classList.toggle('is-off', isMuted);
+        btnToggle.title = isMuted ? 'BGMをONにする' : 'BGMをOFFにする';
+      }
+      updateButton();
+
+      function saveBgmTime() {
+        try {
+          if (bgm && bgm.currentTime > 0) {
+            sessionStorage.setItem('foth_bgm_time', String(bgm.currentTime));
+          }
+        } catch (e) {}
+      }
+
+      function restoreBgmTime() {
+        try {
+          const savedTime = sessionStorage.getItem('foth_bgm_time');
+          if (savedTime && bgm) {
+            const t = parseFloat(savedTime);
+            if (isFinite(t) && t >= 0) {
+              bgm.currentTime = t;
+            }
+          }
+        } catch (e) {}
+      }
+
+      restoreBgmTime();
+      if (bgm) {
+        bgm.volume = 0.45;
+        bgm.addEventListener('loadedmetadata', restoreBgmTime);
+        bgm.addEventListener('timeupdate', saveBgmTime);
+      }
+      window.addEventListener('beforeunload', saveBgmTime);
+      window.addEventListener('pagehide', saveBgmTime);
+
+      document.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', saveBgmTime);
+      });
+
+      function startBGM() {
+        if (isMuted || !bgm) return;
+        if (bgm.paused) {
+          restoreBgmTime();
+          bgm.play().catch(function () {});
+        }
+      }
+
+      if (!isMuted) startBGM();
+      document.addEventListener('click', function init() {
+        if (!isMuted) startBGM();
+        document.removeEventListener('click', init);
+      }, { once: true });
+
+      if (btnToggle) {
+        btnToggle.addEventListener('click', function (e) {
+          e.stopPropagation();
+          isMuted = !isMuted;
+          try { localStorage.setItem('foth_bgm_enabled', isMuted ? '0' : '1'); } catch (e) {}
+          updateButton();
+          if (isMuted) {
+            saveBgmTime();
+            if (bgm) bgm.pause();
+          } else {
+            startBGM();
+          }
+        });
+      }
+    })();
+  </script>
 </body>
 </html>

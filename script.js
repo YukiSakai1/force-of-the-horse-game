@@ -4056,14 +4056,33 @@
     runTutorial();
   }
 
-  /* ===================== BGM（音源ファイル再生） ===================== */
+  /* ===================== BGM（音源ファイル再生・再生位置引き継ぎ対応） ===================== */
   var BGM = (function () {
-    var SRC = 'audio/Banners_in_the_Gale.mp3';
+    var SRC = 'audio/Banners_in_the_Gale_recomposed_90sec.mp3';
     var TARGET_VOLUME = 0.45;
     var FADE_IN_MS = 1200;
     var FADE_OUT_MS = 600;
 
     var audio = null, fadeTimer = null;
+
+    function saveCurrentTime() {
+      if (audio && audio.currentTime > 0) {
+        try { sessionStorage.setItem('foth_bgm_time', String(audio.currentTime)); } catch (e) { }
+      }
+    }
+
+    function restoreCurrentTime() {
+      if (!audio) return;
+      try {
+        var savedTime = sessionStorage.getItem('foth_bgm_time');
+        if (savedTime) {
+          var t = parseFloat(savedTime);
+          if (isFinite(t) && t >= 0) {
+            audio.currentTime = t;
+          }
+        }
+      } catch (e) { }
+    }
 
     function ensureAudio() {
       if (!audio) {
@@ -4071,6 +4090,13 @@
         audio.loop = true;
         audio.preload = 'auto';
         audio.volume = 0;
+
+        restoreCurrentTime();
+
+        audio.addEventListener('loadedmetadata', restoreCurrentTime);
+        audio.addEventListener('timeupdate', saveCurrentTime);
+        window.addEventListener('beforeunload', saveCurrentTime);
+        window.addEventListener('pagehide', saveCurrentTime);
       }
       return audio;
     }
@@ -4089,13 +4115,17 @@
         audio.volume = startVol + (target - startVol) * t;
         if (t >= 1) {
           clearFade();
-          if (target === 0) audio.pause();
+          if (target === 0) {
+            saveCurrentTime();
+            audio.pause();
+          }
         }
       }, 30);
     }
 
     function start() {
       ensureAudio();
+      restoreCurrentTime();
       var playPromise = audio.play();
       if (playPromise && playPromise.catch) { playPromise.catch(function () { }); }
       fadeTo(TARGET_VOLUME, FADE_IN_MS);
@@ -4103,6 +4133,7 @@
 
     function stop() {
       if (!audio) return;
+      saveCurrentTime();
       fadeTo(0, FADE_OUT_MS);
     }
 
