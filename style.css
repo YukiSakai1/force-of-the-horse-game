@@ -1,3 +1,40 @@
+  .lesson-complete {
+    width: min(480px, calc(100vw - 32px));
+    max-height: calc(100dvh - 32px);
+    padding: 30px 24px;
+    border: 1px solid #e3b23c;
+    border-radius: 18px;
+    background: radial-gradient(ellipse at top, #15364a, #07131e 75%);
+    color: #f4f0e6;
+    text-align: center;
+    box-shadow: 0 0 40px #3ee0ff22;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+  }
+  .lesson-complete::backdrop { background: #020711cc; backdrop-filter: blur(5px); }
+  .lesson-complete-kicker { color: #ffe082; font: 500 13px 'Oswald', sans-serif; letter-spacing: .12em; }
+  .lesson-complete h2 { font-size: clamp(18px, 5vw, 24px); }
+  .lesson-complete > p:not(.lesson-complete-kicker) { font-size: 14px; line-height: 1.9; }
+  .lesson-complete-link {
+    display: block;
+    margin-top: 24px;
+    padding: 12px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #ffe082, #e3b23c);
+    color: #211704;
+    font-weight: 900;
+    text-decoration: none;
+  }
+  .lesson-complete-back { display: inline-block; margin-top: 18px; color: #b8dbe5; text-underline-offset: 4px; font-size: 13px; }
+  .lesson-complete-back[hidden] { display: none; }
+  .lesson-complete a:focus-visible { outline: 3px solid #3ee0ff; outline-offset: 4px; }
+
+  .race-info.highlighted {
+    border-color: var(--gold);
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    box-shadow: 0 0 20px rgba(227, 178, 60, .4);
+  }
+
   :root {
     --bg: #0a0d20;
     --felt: #10142c;
@@ -758,6 +795,7 @@
   .settings-group {
     margin-bottom: 16px;
   }
+
 
   .settings-panel .theme-switch,
   .settings-panel .mode-switch,
