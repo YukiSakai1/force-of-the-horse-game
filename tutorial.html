@@ -17,7 +17,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=4">
+  <link rel="stylesheet" href="style.css?v=79">
   <script type="importmap">
 {
     "imports": {
@@ -28,7 +28,7 @@
 </script>
 </head>
 
-<body class="field-3d field-cyber">
+<body class="field-3d field-cyber" data-tilt="25">
   <canvas id="three-bg"></canvas>
   <div class="app">
 
@@ -43,7 +43,7 @@
             <span class="step-prefix">STEP</span>
             <span class="step-current" id="step-current">0</span>
             <span class="step-slash">/</span>
-            <span class="step-total">16</span>
+            <span class="step-total">19</span>
           </div>
         </div>
         <div class="track">
@@ -64,52 +64,58 @@
       </div>
       <div class="race-info" id="race-info" aria-label="レース情報"></div>
       <div class="topbar-menu" id="topbar-menu">
-        <button class="bgm-toggle" id="bgm-toggle" title="BGM切替">🔊 BGM</button>
-        <div class="tilt-select" id="tilt-select">
-          <button class="tilt-opt active" data-angle="10" type="button">
-            <span class="full-label">Flat View</span><span class="short-label">Flat</span>
-          </button>
-          <button class="tilt-opt" data-angle="25" type="button">
-            <span class="full-label">Perspective View</span><span class="short-label">3D</span>
-          </button>
-        </div>
-        <button class="settings-gear" id="settings-gear" type="button" title="角度・カメラ設定">⚙<span class="full-label"> 設定</span></button>
-        <div class="theme-switch" id="theme-switch" role="group" aria-label="テーマ切り替え">
-          <button class="theme-opt active" data-theme="cyber" type="button">Default</button>
-          <button class="theme-opt" data-theme="classic" type="button">Cyber</button>
-        </div>
-        <div class="mode-switch" id="mode-switch" role="group" aria-label="プレイモード切り替え">
-          <button class="mode-opt active" data-mode="tutorial" type="button">
-            <span class="full-label">Tutorial</span><span class="short-label">Tutorial</span>
-          </button>
-          <button class="mode-opt" data-mode="manual" type="button">
-            <span class="full-label">Manual</span><span class="short-label">Manual</span>
-          </button>
-        </div>
+        <button class="bgm-toggle" id="bgm-toggle" type="button" title="BGMをOFFにする" aria-label="BGM切り替え" aria-pressed="true">🔊 BGM ON</button>
+        <button class="settings-gear" id="settings-gear" type="button" title="設定を開く" aria-label="設定を開く" aria-expanded="false">
+          <svg class="settings-gear-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.74v.5a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"></path>
+            <circle cx="12" cy="12" r="3"></circle>
+          </svg>
+        </button>
       </div>
     </header>
 
     <div class="settings-overlay" id="settings-overlay">
       <div class="settings-panel">
         <div class="settings-head">
-          <div class="settings-title">MOBILE SETTINGS</div>
-          <button class="settings-close" id="settings-close" type="button">✕</button>
+          <div class="settings-title">設定</div>
+          <button class="settings-close" id="settings-close" type="button" aria-label="設定を閉じる">✕</button>
         </div>
         <div class="settings-body">
+          <div class="settings-group">
+            <div class="settings-label">プレイモード</div>
+            <div class="mode-switch" id="mode-switch" role="group" aria-label="プレイモード切り替え">
+              <button class="mode-opt active" data-mode="tutorial" type="button">チュートリアル</button>
+              <button class="mode-opt" data-mode="manual" type="button">マニュアル</button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">画面デザイン</div>
+            <div class="theme-switch" id="theme-switch" role="group" aria-label="画面デザイン切り替え">
+              <button class="theme-opt active" data-theme="cyber" type="button">Default</button>
+              <button class="theme-opt" data-theme="classic" type="button">Cyber</button>
+            </div>
+          </div>
+          <div class="settings-group">
+            <div class="settings-label">表示角度</div>
+            <div class="tilt-select" id="tilt-select">
+              <button class="tilt-opt" data-angle="0" type="button">Flat</button>
+              <button class="tilt-opt active" data-angle="25" type="button">3D</button>
+            </div>
+          </div>
           <div class="settings-group">
             <div class="settings-label">角度プリセット</div>
             <div class="preset-grid">
               <button class="preset-btn" data-angle="0" type="button">0°(真上・平面)</button>
-              <button class="preset-btn active" data-angle="10" type="button">10°(手前重視)</button>
-              <button class="preset-btn" data-angle="25" type="button">25°(標準)</button>
+              <button class="preset-btn" data-angle="10" type="button">10°(手前重視)</button>
+              <button class="preset-btn active" data-angle="25" type="button">25°(標準)</button>
             </div>
           </div>
           <div class="settings-group">
             <div class="settings-row">
               <span>3D TILT (傾き微調整)</span>
-              <span class="settings-value" id="tilt-value">10°</span>
+              <span class="settings-value" id="tilt-value">25°</span>
             </div>
-            <input type="range" id="tilt-range" min="0" max="60" value="10" step="1">
+            <input type="range" id="tilt-range" min="0" max="60" value="25" step="1">
           </div>
           <div class="settings-group">
             <div class="settings-row">
@@ -210,10 +216,12 @@
                   <span class="btn-label">状況</span>
                 </div>
               </button>
-              <button class="cmd-menu-btn" data-cmd="item" type="button">
+              <button class="cmd-menu-btn" data-cmd="item" type="button"
+                aria-label="走破前にタイプ・エリアのアイテムを使う"
+                title="タイプ：エリアのアイテムを、ターン開始後・走破前に使います">
                 <div class="btn-text-wrap">
-                  <span class="btn-sub">コマンド</span>
-                  <span class="btn-label">アイテム</span>
+                  <span class="btn-sub">走破前</span>
+                  <span class="btn-label">エリアアイテム</span>
                 </div>
               </button>
               <button class="cmd-menu-btn" data-cmd="end" type="button">
@@ -225,7 +233,7 @@
             </div>
             <!-- デュエルリンクス風 丸型シルエット FAB -->
             <button class="cmd-fab" id="cmd-fab" type="button" aria-label="コマンドメニュー">
-              <span class="cmd-fab-badge" id="cmd-fab-badge">COMMAND</span>
+              <span class="cmd-fab-badge" id="cmd-fab-badge">操作メニュー</span>
               <span class="cmd-fab-icon-wrap">
                 <svg class="cmd-fab-arrow" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <!-- Dark shadow outline -->
@@ -248,27 +256,35 @@
         </div>
       </div>
 
-      <footer class="narrator" id="narrator">
-        <div class="narrator-portrait"><img src="images/narrator.png" alt="ナレーター"></div>
-        <div class="narrator-bubble">
-          <div class="narrator-text" id="narrator-text">読み込み中…</div>
-          <div class="narrator-actions">
-            <div class="narrator-nav">
-              <button class="narrator-back" id="narrator-back" type="button">◀ 戻る</button>
-              <button class="narrator-forward" id="narrator-forward" type="button">進む ▶</button>
-            </div>
-            <button class="narrator-next" id="narrator-next">つぎへ ▶</button>
-          </div>
-        </div>
-      </footer>
-
-      <section class="hand-zone" id="zone-hand">
-        <div class="zone-label">手札</div>
-        <div class="hand-row" id="hand-row"></div>
-        <button class="hand-nav-btn hand-prev" id="hand-prev" type="button" aria-label="手札を左へスクロール">◀</button>
-        <button class="hand-nav-btn hand-next" id="hand-next" type="button" aria-label="手札を右へスクロール">▶</button>
-      </section>
     </main>
+
+    <!-- 盤面とは別の案内領域に置き、カードとの重なりを防ぐ -->
+    <footer class="narrator" id="narrator">
+      <div class="narrator-portrait"><img src="images/narrator.png" alt="ナレーター"></div>
+      <div class="narrator-bubble">
+        <div class="narrator-text" id="narrator-text">読み込み中…</div>
+        <div class="narrator-actions">
+          <div class="selection-progress" id="selection-progress" role="status" aria-live="polite" hidden></div>
+          <div class="narrator-nav">
+            <button class="narrator-back" id="narrator-back" type="button">◀ 戻る</button>
+            <button class="narrator-forward" id="narrator-forward" type="button">進む ▶</button>
+          </div>
+          <button class="narrator-next" id="narrator-next">つぎへ ▶</button>
+        </div>
+      </div>
+    </footer>
+
+    <!-- 手札も盤面の外に置き、案内とカードが同じ場所を取り合わないようにする -->
+    <section class="hand-zone" id="zone-hand">
+      <div class="zone-label">手札</div>
+      <button class="selection-confirm-btn" id="selection-confirm" type="button" hidden>この内容で走破</button>
+      <button class="selection-cancel-btn" id="selection-cancel" type="button" hidden>キャンセル</button>
+      <div class="manual-selection-guide" id="manual-selection-guide" role="status" aria-live="polite" hidden></div>
+      <div class="selected-horse-preview" id="selected-horse-preview" hidden></div>
+      <div class="hand-row" id="hand-row"></div>
+      <button class="hand-nav-btn hand-prev" id="hand-prev" type="button" aria-label="手札を左へスクロール">◀</button>
+      <button class="hand-nav-btn hand-next" id="hand-next" type="button" aria-label="手札を右へスクロール">▶</button>
+    </section>
 
     <div class="banner-overlay" id="banner-overlay">
       <div class="banner-stage" id="banner-stage">
@@ -295,9 +311,9 @@
       <div class="guard-horse-slot" id="guard-horse-slot"></div>
       <div class="popup-box" id="guard-popup-box">
         <div class="popup-title" id="guard-title">相手が走破！</div>
-        <div class="popup-desc" id="guard-desc">相手の走破を手札の馬カードでガードしますか？</div>
+        <div class="popup-desc" id="guard-desc">相手の走破を手札の馬カードでガードしますか？<br>ガードせず、そのまま走破を通すこともできます。</div>
         <div class="popup-btns" id="guard-btns">
-          <button class="btn-guard" id="guard-yes">🛡️ ガードする</button>
+          <button class="btn-guard" id="guard-yes">ガードする</button>
           <button class="btn-skip" id="guard-no">⏭ ガードしない</button>
         </div>
       </div>
@@ -307,7 +323,7 @@
     <div id="opponent-thinking-popup">
       <div class="popup-box">
         <div class="popup-title">🤔 相手プレイヤー</div>
-        <div class="popup-desc">ガードをするか考えています...</div>
+        <div class="popup-desc"><b>ガード</b>を使うと、相手が走破で引くカードの枚数を減らすことができます。<br>相手がガードするか考えています...</div>
       </div>
     </div>
 
@@ -327,7 +343,7 @@
     <div id="situation-hint-popup">
       <div class="popup-box">
         <div class="popup-title">☀️ 状況カード</div>
-        <div class="popup-desc" id="situation-hint-desc">使用可能な状況カードが手札にあります。状況カードを使いますか？</div>
+        <div class="popup-desc" id="situation-hint-desc">状況カードを引きました。レース全体に影響するカードです。今使いますか？<br>使わずに手札へ残し、走破前に操作メニューの「状況」から使うこともできます。</div>
         <div class="popup-btns">
           <button class="btn-guard" id="situation-hint-yes">はい</button>
           <button class="btn-skip" id="situation-hint-no">いいえ</button>
@@ -343,13 +359,13 @@
         <div class="victory-title" id="victory-title">VICTORY</div>
         <div class="victory-subtitle" id="victory-subtitle"></div>
         <div class="victory-message" id="victory-message"></div>
-        <button class="victory-restart" id="victory-restart">⟲ もう一度あそぶ</button>
+        <button class="victory-restart" id="victory-restart">⌂ ホーム画面へ</button>
       </div>
     </div>
 
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=18"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
