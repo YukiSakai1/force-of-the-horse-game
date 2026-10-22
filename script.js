@@ -4536,7 +4536,7 @@
     }
     var userAdjustedZoom = false;
     var userAdjustedDepth = false;
-    var DEFAULTS = { tilt: 25, depth: 1300, zoom: computeDefaultZoom() };
+    var DEFAULTS = { tilt: 0, depth: 1300, zoom: computeDefaultZoom() };
     var baseTilt = DEFAULTS.tilt;
 
     // ---- 傾き角度に連動した自動パースペクティブ計算 ----------------------

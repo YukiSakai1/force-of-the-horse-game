@@ -561,38 +561,29 @@
         }
 
         /* ============================================================
-           TAP TO START (Smartphone Game Title Prompt)
+           START ACTIONS (Smartphone Game Title Prompts)
         ============================================================ */
-        .tap-start-container {
+        .start-actions-container {
             width: 100%;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            gap: 12px;
             margin-top: auto;
-            margin-bottom: 38px;
-            cursor: pointer;
+            margin-bottom: 22px;
             z-index: 20;
             pointer-events: auto;
         }
 
-        #tapStartTrigger:focus-visible { outline: 2px solid #00e5ff; outline-offset: 4px; border-radius: 999px; }
-
-        .cpu-coming-soon {
-            margin-bottom: 14px;
-            padding: 8px 16px;
-            border: 0;
+        #btnStartTutorial:focus-visible,
+        #btnStartCpu:focus-visible {
+            outline: 2px solid #00e5ff;
+            outline-offset: 4px;
             border-radius: 999px;
-            background: rgba(8, 14, 25, .45);
-            color: #b8c6cd;
-            font: inherit;
-            font-size: .78rem;
-            line-height: 1.5;
-            cursor: default;
-            text-shadow: 0 1px 4px #000;
         }
-        .cpu-coming-soon small { margin-left: 8px; font-size: .68rem; color: #91a2ac; }
 
+        /* Main CTA: START TUTORIAL */
         .tap-start-badge {
             position: relative;
             display: inline-flex;
@@ -607,8 +598,48 @@
         }
 
         .tap-start-badge:hover {
-            transform: scale(1.06);
+            transform: scale(1.05);
             filter: brightness(1.2);
+        }
+
+        /* Secondary Sub CTA: CPU Battle (START TUTORIAL と同様に枠線なし・透明グラデーション) */
+        .cpu-battle-btn {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 26px;
+            border-radius: 999px;
+            border: none;
+            outline: none;
+            background: radial-gradient(ellipse at center, rgba(16, 28, 48, 0.78) 0%, rgba(8, 14, 25, 0.45) 65%, transparent 100%);
+            box-shadow: none;
+            color: #f7e0a0;
+            font-family: 'Noto Sans JP', sans-serif;
+            font-size: 0.86rem;
+            font-weight: 700;
+            letter-spacing: 1.2px;
+            cursor: pointer;
+            transition: transform 0.18s ease, filter 0.18s ease, opacity 0.18s ease;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.95), 0 0 8px rgba(255, 215, 0, 0.6);
+            animation: cpuGentleBreathe 3.2s ease-in-out infinite 0.6s;
+            opacity: 0.92;
+        }
+
+        .cpu-battle-btn:hover {
+            transform: scale(1.06);
+            filter: brightness(1.25);
+            opacity: 1;
+        }
+
+        .cpu-battle-btn:active {
+            transform: scale(0.98);
+        }
+
+        .cpu-battle-btn .cpu-icon {
+            font-size: 0.92rem;
+            filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.7));
         }
 
 
@@ -647,6 +678,17 @@
             50% {
                 transform: translateY(-4px) scale(1.03);
                 opacity: 1;
+            }
+        }
+
+        @keyframes cpuGentleBreathe {
+            0%, 100% {
+                transform: translateY(0);
+                opacity: 0.88;
+            }
+            50% {
+                transform: translateY(-1.5px);
+                opacity: 0.96;
             }
         }
 
@@ -1019,17 +1061,23 @@
                 <img src="asset/forcelogo.png" alt="FORCE OF THE HORSE" class="main-title-logo">
             </div>
 
-            <!-- START TUTORIAL Area -->
-            <div class="tap-start-container" id="tapStartTrigger" role="button" tabindex="0">
-                <div class="tap-start-badge">
+            <!-- START ACTIONS Area -->
+            <div class="start-actions-container">
+                <!-- TUTORIAL Button (メインCTA) -->
+                <div class="tap-start-badge" id="btnStartTutorial" role="button" tabindex="0" title="チュートリアル・レッスン一覧を開く">
                     <span class="tap-main-text">START TUTORIAL</span>
                     <span class="tap-sub-text">タップしてレッスンの一覧へ</span>
                 </div>
+
+                <!-- CPU BATTLE Button (サブCTA：コンパクト) -->
+                <button class="cpu-battle-btn" id="btnStartCpu" type="button" title="CPUと対戦を開く">
+                    <span class="cpu-icon">⚔️</span>
+                    <span>CPUと対戦</span>
+                </button>
             </div>
 
             <!-- Bottom Catchphrase & Official Site -->
             <footer class="footer-section">
-                <button class="cpu-coming-soon" type="button" disabled>CPUと対戦する<small>準備中</small></button>
                 <p class="catchphrase">実名馬レースバトルカードゲーム</p>
                 <div class="footer-official-row">
                     <a href="https://force-of-the-horse.com/" target="_blank" rel="noopener noreferrer" class="official-site-link" title="公式サイトへ (新しいタブで開く)">
@@ -1152,7 +1200,7 @@
 
             // Navigation transition helper
             let isStarting = false;
-            function launchGame(message) {
+            function launchGame(message, targetUrl) {
                 if (isStarting) return;
                 isStarting = true;
                 saveBgmTime();
@@ -1162,7 +1210,7 @@
                 loader.classList.add('active');
 
                 setTimeout(() => {
-                    window.location.href = 'lessons.html';
+                    window.location.href = targetUrl || 'lessons.html';
                 }, 1000);
             }
 
@@ -1203,41 +1251,63 @@
                 document.removeEventListener('click', initBGM);
             }, { once: true });
 
-            // Screen tap to start handler
+            // Screen ambient tap feedback (does NOT trigger navigation)
             const gameViewport = document.querySelector('.game-viewport');
             gameViewport.addEventListener('click', (e) => {
-                if (e.target.closest('.cpu-coming-soon')) return;
-                // Ignore clicks on header action buttons, links, or inside modal dialogues
-                if (e.target.closest('.top-actions') || e.target.closest('.modal-card') || e.target.closest('a')) {
+                // Ignore clicks on buttons, links, or inside modals
+                if (e.target.closest('#btnStartTutorial') || e.target.closest('#btnStartCpu') ||
+                    e.target.closest('.top-actions') || e.target.closest('.modal-card') || e.target.closest('a')) {
                     return;
                 }
-                // Do not trigger if any modal is currently open
                 if (document.querySelector('.modal-overlay.active')) {
                     return;
                 }
-
                 createRipple(e.clientX, e.clientY);
-                launchGame('遊び方の一覧を準備中...');
             });
+
+            // Start Tutorial Button
+            const btnStartTutorial = document.getElementById('btnStartTutorial');
+            if (btnStartTutorial) {
+                btnStartTutorial.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const rect = btnStartTutorial.getBoundingClientRect();
+                    createRipple(e.clientX || (rect.left + rect.width / 2), e.clientY || (rect.top + rect.height / 2));
+                    launchGame('遊び方の一覧を準備中...', 'lessons.html');
+                });
+                btnStartTutorial.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const rect = btnStartTutorial.getBoundingClientRect();
+                        createRipple(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                        launchGame('遊び方の一覧を準備中...', 'lessons.html');
+                    }
+                });
+            }
+
+            // Start CPU Battle Button
+            const btnStartCpu = document.getElementById('btnStartCpu');
+            if (btnStartCpu) {
+                btnStartCpu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const rect = btnStartCpu.getBoundingClientRect();
+                    createRipple(e.clientX || (rect.left + rect.width / 2), e.clientY || (rect.top + rect.height / 2));
+                    launchGame('CPU対戦を準備中...', 'tutorial.html?mode=manual');
+                });
+                btnStartCpu.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        const rect = btnStartCpu.getBoundingClientRect();
+                        createRipple(rect.left + rect.width / 2, rect.top + rect.height / 2);
+                        launchGame('CPU対戦を準備中...', 'tutorial.html?mode=manual');
+                    }
+                });
+            }
 
             // Official site link click feedback
             const officialLink = document.querySelector('.official-site-link');
             if (officialLink) {
                 officialLink.addEventListener('click', (e) => {
                     e.stopPropagation();
-                });
-            }
-
-            // Enter key or space on START TUTORIAL element
-            const tapStartTrigger = document.getElementById('tapStartTrigger');
-            if (tapStartTrigger) {
-                tapStartTrigger.addEventListener('keydown', (e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        const rect = tapStartTrigger.getBoundingClientRect();
-                        createRipple(rect.left + rect.width / 2, rect.top + rect.height / 2);
-                        launchGame('遊び方の一覧を準備中...');
-                    }
                 });
             }
 
