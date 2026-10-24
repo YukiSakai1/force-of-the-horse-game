@@ -17,7 +17,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=87">
+  <link rel="stylesheet" href="style.css?v=88">
   <script type="importmap">
 {
     "imports": {
@@ -363,11 +363,11 @@
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-    // Three.js Cyber Background - Simple & Dark Digital Navy/Black (洗練されたダークサイバー回路背景)
+    // Three.js Cyber Background - Simple & Dark Digital Green Base (洗練されたダークグリーンサイバー回路背景)
     const scene = new THREE.Scene();
-    const HORIZON_DARK = 0x01050f;
+    const HORIZON_DARK = 0x05180f;
     scene.background = new THREE.Color(HORIZON_DARK);
-    // Smooth linear fog fading seamlessly into deep dark navy at the horizon
+    // Smooth linear fog fading seamlessly into deep dark green at the horizon
     scene.fog = new THREE.Fog(HORIZON_DARK, 220, 1750);
 
     const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 4000);
@@ -393,7 +393,7 @@
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
-    // Procedural Seamless Dark Digital Circuit Texture (Deep Navy & Black with Fine Neon Circuitry)
+    // Procedural Seamless Dark Digital Circuit Texture (Deep Green & Emerald with Fine Neon Circuitry)
     function createCyberTexture() {
       const size = 2048;
       const canvas = document.createElement('canvas');
@@ -401,22 +401,22 @@
       canvas.height = size;
       const ctx = canvas.getContext('2d');
 
-      // 1. Deep Midnight Navy / Black Base
-      ctx.fillStyle = '#01050f';
+      // 1. Deep Midnight Dark Green Base (#05180f)
+      ctx.fillStyle = '#05180f';
       ctx.fillRect(0, 0, size, size);
 
-      // Saturated deep dark blue ambient light pools (Subtle cyber luminescence)
+      // Saturated deep dark green ambient light pools (Subtle cyber luminescence)
       const ambientGlows = [
-        { x: size * 0.20, y: size * 0.25, r: size * 0.45, c: 'rgba(0, 30, 95, 0.30)' },
-        { x: size * 0.80, y: size * 0.30, r: size * 0.50, c: 'rgba(0, 45, 120, 0.28)' },
-        { x: size * 0.30, y: size * 0.80, r: size * 0.45, c: 'rgba(0, 35, 100, 0.26)' },
-        { x: size * 0.75, y: size * 0.75, r: size * 0.40, c: 'rgba(0, 50, 130, 0.25)' },
-        { x: size * 0.50, y: size * 0.50, r: size * 0.45, c: 'rgba(0, 25, 80, 0.22)' },
+        { x: size * 0.20, y: size * 0.25, r: size * 0.45, c: 'rgba(13, 58, 37, 0.30)' },
+        { x: size * 0.80, y: size * 0.30, r: size * 0.50, c: 'rgba(16, 185, 129, 0.22)' },
+        { x: size * 0.30, y: size * 0.80, r: size * 0.45, c: 'rgba(8, 38, 25, 0.28)' },
+        { x: size * 0.75, y: size * 0.75, r: size * 0.40, c: 'rgba(63, 237, 151, 0.20)' },
+        { x: size * 0.50, y: size * 0.50, r: size * 0.45, c: 'rgba(16, 185, 129, 0.18)' },
       ];
       ambientGlows.forEach(g => {
         const rad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
         rad.addColorStop(0, g.c);
-        rad.addColorStop(1, 'rgba(1, 5, 15, 0)');
+        rad.addColorStop(1, 'rgba(5, 24, 15, 0)');
         ctx.fillStyle = rad;
         ctx.fillRect(0, 0, size, size);
       });
@@ -479,29 +479,29 @@
 
           const styleRoll = pseudoRand();
           if (styleRoll < 0.45) {
-            // Style 1: Deep translucent slate-navy plate with subtle cyan trace
+            // Style 1: Deep translucent emerald plate with subtle green trace
             drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
-              'rgba(0, 20, 60, 0.22)',
-              'rgba(0, 150, 255, 0.40)', 1.0, { color: '#0066dd', blur: 4 });
+              'rgba(5, 24, 15, 0.22)',
+              'rgba(63, 237, 151, 0.40)', 1.0, { color: '#10b981', blur: 4 });
           } else if (styleRoll < 0.75) {
             // Style 2: Micro-grid IC chip with fine pins
             drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
-              'rgba(0, 14, 45, 0.28)', 'rgba(0, 190, 255, 0.55)', 1.2, { color: '#0088ff', blur: 5 });
+              'rgba(5, 24, 15, 0.28)', 'rgba(63, 237, 151, 0.55)', 1.2, { color: '#3eed97', blur: 5 });
             if (pw > step * 1.5 && ph > step * 1.5) {
               drawWrapRect(px + 6, py + 6, pw - 12, ph - 12,
-                'rgba(0, 30, 80, 0.18)', 'rgba(0, 140, 230, 0.35)', 0.8);
+                'rgba(8, 38, 25, 0.18)', 'rgba(16, 185, 129, 0.35)', 0.8);
             }
           } else {
             // Style 3: Accent Cyber Node Box
             drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
-              'rgba(0, 40, 110, 0.20)', 'rgba(60, 220, 255, 0.70)', 1.4, { color: '#00ccff', blur: 6 });
+              'rgba(13, 58, 37, 0.20)', 'rgba(63, 237, 151, 0.70)', 1.4, { color: '#3eed97', blur: 6 });
           }
         }
       });
 
-      // 3. Delicate Background Grid Lines (Subtle & Elegant, not blinding)
+      // 3. Delicate Background Grid Lines (Subtle & Elegant, matching specified green palette)
       // Minor fine grid lines
-      ctx.strokeStyle = 'rgba(0, 90, 190, 0.16)';
+      ctx.strokeStyle = 'rgba(63, 237, 151, 0.035)';
       ctx.lineWidth = 0.8;
       for (let i = 0; i <= gridDivs; i++) {
         const p = i * step;
@@ -516,11 +516,11 @@
         ctx.stroke();
       }
 
-      // Major grid lines (Thin electric blue accent with soft glow)
+      // Major grid lines (Thin neon green accent with soft glow)
       ctx.save();
-      ctx.strokeStyle = 'rgba(0, 150, 255, 0.32)';
+      ctx.strokeStyle = 'rgba(63, 237, 151, 0.20)';
       ctx.lineWidth = 1.2;
-      ctx.shadowColor = '#0077ee';
+      ctx.shadowColor = '#10b981';
       ctx.shadowBlur = 4;
       for (let i = 0; i <= gridDivs; i += 4) {
         const p = i * step;
@@ -547,9 +547,9 @@
         const dirY = pseudoRand() > 0.5 ? 1 : -1;
 
         const isGlowTrace = pseudoRand() > 0.45;
-        ctx.strokeStyle = isGlowTrace ? 'rgba(0, 210, 255, 0.75)' : 'rgba(0, 140, 240, 0.45)';
+        ctx.strokeStyle = isGlowTrace ? 'rgba(63, 237, 151, 0.75)' : 'rgba(16, 185, 129, 0.45)';
         ctx.lineWidth = isGlowTrace ? 1.5 : 1.0;
-        ctx.shadowColor = isGlowTrace ? '#00bbff' : '#0066dd';
+        ctx.shadowColor = isGlowTrace ? '#3eed97' : '#10b981';
         ctx.shadowBlur = isGlowTrace ? 6 : 3;
 
         for (let ox of [-size, 0, size]) {
@@ -565,21 +565,21 @@
             ctx.lineTo(midX, endY);
             ctx.stroke();
 
-            // Terminal solder pad (White core + Cyan glowing aura)
+            // Terminal solder pad (White core + Green glowing aura)
             ctx.fillStyle = '#ffffff';
             ctx.beginPath();
             ctx.arc(midX, endY, 2.2, 0, Math.PI * 2);
             ctx.fill();
 
             // Solder pad ring
-            ctx.strokeStyle = 'rgba(0, 220, 255, 0.85)';
+            ctx.strokeStyle = 'rgba(63, 237, 151, 0.85)';
             ctx.lineWidth = 1.0;
             ctx.beginPath();
             ctx.arc(midX, endY, 4.0, 0, Math.PI * 2);
             ctx.stroke();
 
             // Start node dot
-            ctx.fillStyle = 'rgba(0, 180, 255, 0.80)';
+            ctx.fillStyle = 'rgba(63, 237, 151, 0.80)';
             ctx.beginPath();
             ctx.arc(startX, startY, 1.8, 0, Math.PI * 2);
             ctx.fill();
@@ -589,7 +589,7 @@
       ctx.restore();
 
       // 5. Grid intersection node dots & Data junctions
-      ctx.fillStyle = 'rgba(80, 200, 255, 0.70)';
+      ctx.fillStyle = 'rgba(167, 243, 208, 0.70)';
       for (let i = 0; i <= gridDivs; i += 2) {
         for (let j = 0; j <= gridDivs; j += 2) {
           if (pseudoRand() > 0.60) {
@@ -635,12 +635,12 @@
     ceiling.rotation.x = Math.PI / 2;
     scene.add(ceiling);
 
-    // Atmospheric Dark Horizon Glow (Soft, deep navy fade)
+    // Atmospheric Dark Horizon Glow (Soft, deep green fade)
     const horizonGlowGeo = new THREE.PlaneGeometry(10000, 24);
     const horizonGlowMat = new THREE.MeshBasicMaterial({
-      color: 0x0033aa,
+      color: 0x10b981,
       transparent: true,
-      opacity: 0.28,
+      opacity: 0.35,
       blending: THREE.AdditiveBlending,
       side: THREE.DoubleSide
     });
@@ -658,9 +658,9 @@
 
       const rad = pCtx.createRadialGradient(pSize / 2, pSize / 2, 0, pSize / 2, pSize / 2, pSize / 2);
       rad.addColorStop(0, 'rgba(255, 255, 255, 1)');
-      rad.addColorStop(0.2, 'rgba(120, 215, 255, 0.85)');
-      rad.addColorStop(0.5, 'rgba(0, 120, 240, 0.35)');
-      rad.addColorStop(1, 'rgba(0, 30, 150, 0)');
+      rad.addColorStop(0.2, 'rgba(167, 243, 208, 0.85)');
+      rad.addColorStop(0.5, 'rgba(63, 237, 151, 0.35)');
+      rad.addColorStop(1, 'rgba(5, 24, 15, 0)');
       pCtx.fillStyle = rad;
       pCtx.fillRect(0, 0, pSize, pSize);
 
