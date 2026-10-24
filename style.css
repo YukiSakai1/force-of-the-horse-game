@@ -5307,7 +5307,7 @@
     }
   }
 
-  /* ---- デュエルリンクス風 丸型シルエット FAB (循環矢印) ---- */
+  /* ---- 丸型シルエット FAB (循環矢印) ---- */
   .cmd-fab {
     position: relative;
     display: flex;
