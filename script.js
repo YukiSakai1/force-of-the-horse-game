@@ -2888,9 +2888,9 @@
     await sleep(300);
     if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
 
-    // ① 4つの距離エリア（各10枚・計40枚）へ配る
+    // ① 4つの距離エリア（各8枚・計32枚）へ配る
     if (!isManual) {
-      setNarrator('50枚のデッキから、まずは<b>各10枚（計40枚）</b>を4つの距離エリア（山札）に配るよ。');
+      setNarrator('今回はチュートリアルなので、使うカードは50枚！まずは4つの距離エリア（山札）に<b>それぞれ8枚（計32枚）</b>配るよ。');
     }
     var laneKeys = ['nige', 'senko', 'sashi', 'oikomi'];
     for (var li = 0; li < laneKeys.length; li++) {
@@ -2900,37 +2900,40 @@
       var laneEl = document.querySelector('.lane[data-lane="' + lKey + '"]');
       var laneRect = laneEl ? laneEl.getBoundingClientRect() : $('lanes').getBoundingClientRect();
 
-      // 各レーンへテンポよくカードが飛ぶ（3回のゴーストで10枚配る演出）
-      for (var step = 0; step < 3; step++) {
+      // 各レーンへテンポよくカードが飛ぶ（2回のゴーストで8枚配る演出）
+      for (var step = 0; step < 2; step++) {
         flyDealGhost(laneRect, 180);
-        await sleep(isManual ? 50 : 80);
+        await sleep(isManual ? 40 : 70);
       }
       // モード切替で配布が中断された場合、旧処理から山札枚数を書き戻さない。
       if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
-      laneObj.count = 10;
-      updateDeckCount(currentCount - 10);
+      laneObj.count = 8;
+      updateDeckCount(currentCount - 8);
       renderDeckLanes();
       if (laneEl) {
         laneEl.classList.add('deal-flash');
         setTimeout(function (el) { if (el) el.classList.remove('deal-flash'); }, 350, laneEl);
       }
       Haptics.place();
-      await sleep(isManual ? 100 : 180);
+      await sleep(isManual ? 80 : 150);
     }
 
-    await sleep(isManual ? 180 : 350);
+    await sleep(isManual ? 150 : 300);
     if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
 
-    // ② 残り10枚のうち3枚をファームへ配る
+    // ② 残り18枚のうち手札7枚を除いた11枚をファームへ配る
     if (!isManual) {
-      setNarrator('残り10枚のうち、<b>3枚はファーム</b>に置かれるよ。');
+      setNarrator('手札の7枚を除いた、<b>残りのカード（11枚）はファーム</b>に置かれるよ。');
     }
     var farmZone = $('zone-farm');
     var farmRect = farmZone.getBoundingClientRect();
-    var starterFarm = [forceCard(), forceCard(), forceCard()];
+    var starterFarm = [
+      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(),
+      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(), forceCard()
+    ];
     for (var fi = 0; fi < starterFarm.length; fi++) {
       if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
-      await flyDealGhost(farmRect, 220);
+      await flyDealGhost(farmRect, 180);
       // 飛翔アニメーション中にモードが変わった場合も、旧カードを追加しない。
       if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
       farm.push(starterFarm[fi]);
@@ -2938,18 +2941,18 @@
       renderFarm();
       if (farmZone) {
         farmZone.classList.add('deal-flash');
-        setTimeout(function (el) { if (el) el.classList.remove('deal-flash'); }, 300, farmZone);
+        setTimeout(function (el) { if (el) el.classList.remove('deal-flash'); }, 200, farmZone);
       }
       Haptics.place();
-      await sleep(isManual ? 90 : 150);
+      await sleep(isManual ? 30 : 60);
     }
 
-    await sleep(isManual ? 180 : 350);
+    await sleep(isManual ? 150 : 300);
     if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
 
     // ③ 最後の7枚を手札へ配る
     if (!isManual) {
-      setNarrator('そして最後の<b>7枚が手札</b>に来るよ！');
+      setNarrator('そして最後の<b>7枚が手札</b>に来るよ！これでバトルの準備完了だ。');
     }
     var handArea = $('zone-hand');
     var handZone = $('hand-row');
@@ -3469,10 +3472,10 @@
       ['race-info', '今回は<b>' + race.racecourse + '・' + race.surface + '・' + race.distance + '・' + race.trackCondition + '</b>のレースだよ。この条件は<b>お互いに共通</b>。馬カードの適性や能力に関わるので、走破やガードに使う馬を選ぶときに確認しよう！'],
       ['field-body', 'ここが<b>自分の場</b>。走破する馬や、ガードに使う馬を置く場所だよ。'],
       ['field-body-opp', 'ここが<b>相手の場</b>。相手が出した馬カードが表示されるよ。自分の場と見比べながら勝負しよう。'],
-      ['zone-farm', 'ここが<b>ファーム</b>。最初に配られる3枚と、使い終わったカードを置く場所だよ。'],
+      ['zone-farm', 'ここが<b>ファーム</b>。手札と山札以外の残りのカード（11枚）や、使い終わったカードを置く場所だよ。'],
       ['zone-situation', 'ここは<b>状況カード置き場</b>。レース全体に影響する状況カードを置くよ。詳しい使い方は、状況カードのレッスンで覚えよう。'],
       ['zone-hand', '画面下に並んでいるのが<b>自分の手札</b>。<b>馬カード</b>で走破やガードを行い、馬を出すために<b>フォースカード</b>を使うよ。<b>アイテムカード</b>は馬や自分の行動を助けてくれるんだ。'],
-      ['zone-deck', 'これが<b>距離エリア（山札）</b>。「逃げ」「先行」「差し」「追込」の4つに、それぞれ10枚ずつ配られるよ。<b>逃げから順番に</b>カードを引いて進んでいこう。'],
+      ['zone-deck', 'これが<b>距離エリア（山札）</b>。「逃げ」「先行」「差し」「追込」の4つに、それぞれ8枚ずつ配られるよ。<b>逃げから順番に</b>カードを引いて進んでいこう。'],
       ['zone-deck', '<b>4つの山札を先にすべて引ききったプレイヤーの勝ち！</b> 馬を走らせてカードを引き、相手より先にゴールを目指そう。']
     ];
     for (var i = 0; i < steps.length; i++) {
@@ -3536,9 +3539,12 @@
     lessonReservedHorseId = null;
     lessonSituationSelection = null;
     var predealtLesson = isRunLesson || isGuardLesson || isItemLesson || isStyleLesson || isAbilityLesson || isSituationLesson || isResponseLesson;
-    LANES.forEach(function (l) { l.count = predealtLesson ? 10 : 0; });
-    CPU_LANES.forEach(function (l) { l.count = 10; }); // 相手は最初から自分の山札を持っている
-    farm = predealtLesson ? [forceCard(), forceCard(), forceCard()] : [];
+    LANES.forEach(function (l) { l.count = predealtLesson ? 8 : 0; });
+    CPU_LANES.forEach(function (l) { l.count = 8; }); // 相手は最初から自分の山札を持っている
+    farm = predealtLesson ? [
+      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(),
+      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(), forceCard()
+    ] : [];
     hand = predealtLesson ? makeStarterHand() : [];
     if (isItemLesson) hand = [forceCard(), forceCard(), forceCard(), goldShip(), whip(), veterinarian(), goggles()];
     if (isStyleLesson) {
@@ -3646,7 +3652,7 @@
     showNextButton(false);
     await dealInitialCards(false, myRunId);
     if (myRunId !== tutorialRunId) return;
-    setNarrator('カードの準備ができたよ。まず、盤面にある置き場所から確認しよう。');
+    setNarrator('今回はチュートリアルなので、使うカードは50枚！手札7枚・山札は各8枚・残りはファームだよ。まず盤面を確認しよう。');
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
@@ -3660,7 +3666,7 @@
     if (!isRunLesson) {
     // STEP 1: 配布直後にファームを説明し、登場から説明までの間を空けない
     setProgress(2);
-    await explainStep($('zone-farm'), 'zone-farm', 'ここが<b>ファーム</b>。最初に置かれた3枚と、使い終わったカードを置く場所だよ。');
+    await explainStep($('zone-farm'), 'zone-farm', 'ここが<b>ファーム</b>。最初に置かれた残りのカード（11枚）と、使い終わったカードを置く場所だよ。');
     if (myRunId !== tutorialRunId) return;
 
     // STEP 2: 状況カード置き場
@@ -3698,7 +3704,7 @@
 
     // STEP 6: 距離エリア(山札) / 勝利条件（メッセージを2つに分割）
     setProgress(7);
-    await explainStep($('zone-deck'), 'zone-deck', 'ここが<b>距離エリア（山札）</b>だ。山札は「逃げ」「先行」「差し」「追込」の4つのエリアに各10枚ずつ配られているよ。');
+    await explainStep($('zone-deck'), 'zone-deck', 'ここが<b>距離エリア（山札）</b>だ。山札は「逃げ」「先行」「差し」「追込」の4つのエリアにそれぞれ8枚ずつ配られているよ。');
     if (myRunId !== tutorialRunId) return;
 
     setNarrator('<b>逃げから順番に</b>引いていき、先行、差し、追込と4つの山札を<b>先にすべて引ききったプレイヤーの勝ち</b>だよ！');
@@ -3968,7 +3974,7 @@
     cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
     opponentHandCount = cpuHand.length;
     cpuHorseCard = null;
-    if (cpuTotalDeck() <= 0) CPU_LANES.forEach(function (l) { l.count = 10; });
+    if (cpuTotalDeck() <= 0) CPU_LANES.forEach(function (l) { l.count = 8; });
     renderRaceInfo();
     showNextButton(false);
     $('free-hint').hidden = true;
@@ -3997,7 +4003,7 @@
 
     // 盤面を一旦初期化（カードを空にしてから配り始める）
     LANES.forEach(function (l) { l.count = 0; });
-    CPU_LANES.forEach(function (l) { l.count = 10; });
+    CPU_LANES.forEach(function (l) { l.count = 8; });
     farm = [];
     hand = [];
     cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
