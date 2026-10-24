@@ -487,29 +487,7 @@
             50% { transform: scale(1.15); box-shadow: 0 0 10px rgba(255, 59, 48, 0.8); }
         }
 
-        /* Sound BGM Button (Subtle in top-left) */
-        .sound-toggle-btn {
-            position: relative;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            background: rgba(10, 20, 35, 0.65);
-            border: 1px solid rgba(212, 175, 55, 0.6);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            color: #ffd700;
-            font-size: 0.75rem;
-            margin-top: 4px;
-            backdrop-filter: blur(4px);
-            transition: all 0.2s ease;
-        }
-        .sound-toggle-btn:hover {
-            transform: scale(1.1);
-            background: rgba(20, 40, 70, 0.85);
-            box-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
-        }
+
 
         /* ============================================================
            GAME TITLE LOGO (Official forcelogo.png)
@@ -1039,11 +1017,6 @@
                 </div>
 
                 <div class="top-actions">
-                    <!-- BGM Toggle Button -->
-                    <button class="sound-toggle-btn" id="btnSoundToggle" title="BGM 切替">
-                        <span id="soundIcon">🔊</span>
-                    </button>
-
                     <!-- Rule Confirmation Button -->
                     <div class="circle-btn-wrapper" id="btnHelp" role="button" tabindex="0">
                         <div class="circle-btn">
@@ -1135,18 +1108,6 @@
 
             // Audio setup
             const bgm = document.getElementById('bgmAudio');
-            const btnSoundToggle = document.getElementById('btnSoundToggle');
-            const soundIcon = document.getElementById('soundIcon');
-            let isMuted = false;
-
-            // ミュート状態の復元
-            try {
-                const savedBgmEnabled = localStorage.getItem('foth_bgm_enabled');
-                if (savedBgmEnabled === '0') {
-                    isMuted = true;
-                }
-            } catch (e) { }
-            soundIcon.textContent = isMuted ? '🔇' : '🔊';
 
             // 再生位置の保存と復元
             function saveBgmTime() {
@@ -1171,32 +1132,12 @@
 
             restoreBgmTime();
             if (bgm) {
+                bgm.volume = 0.5;
                 bgm.addEventListener('loadedmetadata', restoreBgmTime);
                 bgm.addEventListener('timeupdate', saveBgmTime);
             }
             window.addEventListener('beforeunload', saveBgmTime);
             window.addEventListener('pagehide', saveBgmTime);
-
-            // BGM toggle
-            btnSoundToggle.addEventListener('click', () => {
-                if (bgm.paused) {
-                    restoreBgmTime();
-                    bgm.volume = 0.5;
-                    bgm.play().then(() => {
-                        isMuted = false;
-                        soundIcon.textContent = '🔊';
-                        try { localStorage.setItem('foth_bgm_enabled', '1'); } catch (e) { }
-                    }).catch(err => {
-                        console.log('Audio autoplay prevented:', err);
-                    });
-                } else {
-                    saveBgmTime();
-                    bgm.pause();
-                    isMuted = true;
-                    soundIcon.textContent = '🔇';
-                    try { localStorage.setItem('foth_bgm_enabled', '0'); } catch (e) { }
-                }
-            });
 
             // Navigation transition helper
             let isStarting = false;
@@ -1229,25 +1170,22 @@
 
             // Auto-start BGM on page load (with user interaction fallback)
             function startBGM() {
-                if (isMuted) return;
+                if (!bgm) return;
                 if (bgm.paused) {
                     restoreBgmTime();
                     bgm.volume = 0.5;
-                    bgm.play().then(() => {
-                        isMuted = false;
-                        soundIcon.textContent = '🔊';
-                    }).catch(err => {
+                    bgm.play().catch(err => {
                         console.log('Audio autoplay prevented:', err);
                     });
                 }
             }
 
-            // Try to start BGM immediately if not muted
-            if (!isMuted) startBGM();
+            // Try to start BGM immediately
+            startBGM();
 
             // Also start on first user interaction (for browsers that block autoplay)
             document.addEventListener('click', function initBGM() {
-                if (!isMuted) startBGM();
+                startBGM();
                 document.removeEventListener('click', initBGM);
             }, { once: true });
 

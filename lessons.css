@@ -158,32 +158,5 @@ a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 5px; }
   .lesson-card-ready { transition: none; }
 }
 
-.lesson-bgm-toggle {
-  position: absolute;
-  right: max(20px, env(safe-area-inset-right, 0px));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  font-size: 12px;
-  font-weight: 700;
-  border-radius: 20px;
-  border: 1px solid rgba(62, 224, 255, 0.4);
-  background: rgba(8, 26, 45, 0.85);
-  color: var(--cyan);
-  cursor: pointer;
-  transition: all .2s;
-  box-shadow: 0 0 10px rgba(62, 224, 255, 0.15);
-}
-.lesson-bgm-toggle.is-off {
-  color: #8899aa;
-  border-color: rgba(255, 255, 255, 0.2);
-  background: rgba(10, 16, 25, 0.7);
-}
-@media (max-width: 480px) {
-  .lesson-bgm-toggle {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-}
+
 

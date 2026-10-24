@@ -4140,35 +4140,11 @@
     return { start: start, stop: stop };
   })();
 
-  var bgmEnabled = true;
-  try {
-    var savedBgm = localStorage.getItem('foth_bgm_enabled');
-    if (savedBgm !== null) bgmEnabled = savedBgm === '1';
-  } catch (e) { }
-
-  function updateBgmButton() {
-    var btn = $('bgm-toggle');
-    if (!btn) return;
-    btn.textContent = bgmEnabled ? '🔊 BGM ON' : '🔇 BGM OFF';
-    btn.classList.toggle('is-off', !bgmEnabled);
-    btn.setAttribute('aria-pressed', String(bgmEnabled));
-    btn.title = bgmEnabled ? 'BGMをOFFにする' : 'BGMをONにする';
-  }
-  updateBgmButton();
-
-  if ($('bgm-toggle')) {
-    $('bgm-toggle').addEventListener('click', function () {
-      Haptics.tap();
-      bgmEnabled = !bgmEnabled;
-      try { localStorage.setItem('foth_bgm_enabled', bgmEnabled ? '1' : '0'); } catch (e) { }
-      updateBgmButton();
-      if (bgmEnabled) BGM.start(); else BGM.stop();
-    });
-  }
-
+  /* ===================== BGM 自動再生（ユーザー端末側で音量操作） ===================== */
+  BGM.start();
   // ブラウザの自動再生制限のため、最初のユーザー操作をきっかけに再生を開始する
   document.addEventListener('click', function initBgmOnFirstTap() {
-    if (bgmEnabled) BGM.start();
+    BGM.start();
     document.removeEventListener('click', initBgmOnFirstTap);
   }, { once: true });
 
