@@ -4798,7 +4798,7 @@
         openConfirmModal({
           icon: '',
           title: 'スタート画面へ移動',
-          desc: 'スタート画面にもどりますか？',
+          desc: 'スタート画面に戻りますか？',
           sub: '※現在の進行状況はリセットされます',
           onConfirm: function () {
             window.location.href = 'index.html';
@@ -4815,7 +4815,7 @@
         openConfirmModal({
           icon: '',
           title: '遊びかた一覧へ移動',
-          desc: '遊びかたの一覧へもどりますか？',
+          desc: '遊びかたの一覧へ戻りますか？',
           sub: '※現在の進行状況はリセットされます',
           onConfirm: function () {
             window.location.href = 'lessons.html';
