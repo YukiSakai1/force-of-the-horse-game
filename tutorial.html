@@ -17,7 +17,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=88">
+  <link rel="stylesheet" href="style.css?v=94">
   <script type="importmap">
 {
     "imports": {
@@ -80,16 +80,54 @@
           <button class="settings-close" id="settings-close" type="button" aria-label="設定を閉じる">✕</button>
         </div>
         <div class="settings-body">
-          <div class="settings-group" style="display:flex;flex-direction:column;gap:8px;">
-            <a href="index.html" style="color:var(--rail);font-weight:700;text-decoration:none">‹ スタート画面に戻る</a>
-            <a href="lessons.html" style="color:var(--rail);font-weight:700;text-decoration:none">‹ 遊びかたの一覧へ</a>
+          <div class="settings-nav-group">
+            <button class="settings-nav-btn" id="btn-nav-home" type="button" data-dest="index.html" aria-label="スタート画面に戻る">
+              <span class="nav-btn-text">スタート画面に戻る</span>
+              <span class="nav-btn-arrow">›</span>
+            </button>
+            <button class="settings-nav-btn" id="btn-nav-lessons" type="button" data-dest="lessons.html" aria-label="遊びかたの一覧へ">
+              <span class="nav-btn-text">遊びかたの一覧へ</span>
+              <span class="nav-btn-arrow">›</span>
+            </button>
           </div>
-          <div class="settings-group">
-            <div class="settings-label">プレイモード</div>
-            <div class="mode-switch" id="mode-switch" role="group" aria-label="プレイモード切り替え">
-              <button class="mode-opt active" data-mode="tutorial" type="button">チュートリアル</button>
-              <button class="mode-opt" data-mode="manual" type="button">自分で操作</button>
+          <div class="settings-mode-container">
+            <div class="settings-mode-header">
+              <span class="settings-mode-title">PLAY MODE</span>
+              <span class="settings-mode-sub">ゲームモード選択</span>
             </div>
+            <div class="mode-switch mode-cards-grid" id="mode-switch" role="group" aria-label="プレイモード切り替え">
+              <button class="mode-opt mode-card active" data-mode="tutorial" type="button">
+                <div class="mode-card-header">
+                  <span class="mode-card-icon">🔰</span>
+                  <span class="mode-card-tag">学習</span>
+                </div>
+                <div class="mode-card-title">チュートリアル</div>
+                <div class="mode-card-desc">ガイド付きで基本を学ぶ</div>
+                <div class="mode-card-footer">
+                  <span class="mode-status-dot"></span>
+                  <span class="status-active-label">プレイ中</span>
+                  <span class="status-inactive-label">選択する</span>
+                </div>
+              </button>
+
+              <button class="mode-opt mode-card" data-mode="manual" type="button">
+                <div class="mode-card-header">
+                  <span class="mode-card-icon">⚔️</span>
+                  <span class="mode-card-tag">実践</span>
+                </div>
+                <div class="mode-card-title">自分で操作</div>
+                <div class="mode-card-desc">CPUと本格フリー対戦</div>
+                <div class="mode-card-footer">
+                  <span class="mode-status-dot"></span>
+                  <span class="status-active-label">プレイ中</span>
+                  <span class="status-inactive-label">選択する</span>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-divider">
+            <span class="settings-divider-label">環境・表示設定</span>
           </div>
           <div class="settings-group">
             <div class="settings-label">画面デザイン</div>
@@ -114,12 +152,6 @@
             </div>
             <input type="range" id="zoom-range" min="60" max="200" value="100" step="5">
           </div>
-          <div class="settings-group">
-            <label class="settings-toggle-row">
-              <span>タッチ/マウス 3Dチルト [縦軸のみ]</span>
-              <input type="checkbox" id="touch-tilt-toggle" checked>
-            </label>
-          </div>
 
           <button class="settings-reset" id="settings-reset" type="button">視点をリセット</button>
         </div>
@@ -134,7 +166,11 @@
         <div class="closeup-close-hint">タップ / クリックで閉じる</div>
       </div>
       <section class="opponent-strip" id="zone-opponent">
-        <div class="opponent-avatar">👤</div>
+        <div class="opponent-avatar" aria-label="相手アバター">
+          <svg class="opponent-avatar-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </div>
         <div class="opponent-meta">
           <div class="opponent-name">あいて</div>
           <div class="opponent-sub">CPU プレイヤー</div>
@@ -342,6 +378,20 @@
       </div>
     </div>
 
+    <!-- 汎用切り替え・離脱確認ダイアログ -->
+    <div class="confirm-modal-overlay" id="manual-confirm-popup" role="dialog" aria-modal="true" aria-labelledby="manual-confirm-title" hidden>
+      <div class="confirm-modal-box">
+        <div class="confirm-modal-icon" id="manual-confirm-icon">⚔️</div>
+        <div class="confirm-modal-title" id="manual-confirm-title">対戦モードへの切り替え</div>
+        <div class="confirm-modal-desc" id="manual-confirm-desc">チュートリアルを中断して、CPUと対戦しますか？</div>
+        <div class="confirm-modal-sub" id="manual-confirm-sub">※チュートリアルは設定からいつでも再開できます</div>
+        <div class="confirm-modal-btns">
+          <button class="confirm-btn confirm-btn-no" id="manual-confirm-no" type="button">いいえ</button>
+          <button class="confirm-btn confirm-btn-yes" id="manual-confirm-yes" type="button">はい</button>
+        </div>
+      </div>
+    </div>
+
     <!-- 勝敗演出 -->
     <div class="victory-overlay" id="victory-overlay">
       <div class="victory-confetti" id="victory-confetti"></div>
@@ -356,7 +406,7 @@
 
   </div>
 
-  <script src="script.js?v=35"></script>
+  <script src="script.js?v=39"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';

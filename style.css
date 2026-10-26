@@ -798,14 +798,12 @@
 
 
   .settings-panel .theme-switch,
-  .settings-panel .mode-switch,
   .settings-panel .tilt-select {
     display: flex;
     width: 100%;
   }
 
   .settings-panel .theme-opt,
-  .settings-panel .mode-opt,
   .settings-panel .tilt-opt {
     flex: 1;
     text-align: center;
@@ -1216,7 +1214,16 @@
     border: 1px solid rgba(63, 237, 151, .45);
     box-shadow: inset 0 1px 3px rgba(255, 255, 255, .15), 0 0 8px rgba(63, 237, 151, .18);
     flex: none;
+    color: #94a3b8;
     filter: drop-shadow(0 0 4px rgba(63, 237, 151, .3));
+  }
+
+  .opponent-avatar-icon {
+    width: 20px;
+    height: 20px;
+    fill: #94a3b8; /* 灰色（グレー）の人物アイコン */
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+    transition: fill .2s ease;
   }
 
   .opponent-meta {
@@ -4668,64 +4675,355 @@
     box-shadow: 0 0 10px rgba(227, 178, 60, .65);
   }
 
-  /* ---------- Mode Switch (チュートリアル / 自分で操作) ---------- */
-  .mode-switch {
-    flex: none;
-    display: inline-flex;
+  /* ===================== 設定パネル ナビゲーションCTAボタン ===================== */
+  .settings-nav-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  .settings-nav-btn {
+    display: flex;
     align-items: center;
-    background: rgba(18, 16, 24, .75);
-    border: 1px solid rgba(227, 178, 60, .4);
-    border-radius: 999px;
-    padding: 2px;
-    gap: 2px;
-    position: relative;
-    user-select: none;
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-  }
-
-  body.field-cyber .mode-switch {
-    border-color: rgba(62, 224, 255, .4);
-    background: rgba(8, 16, 28, .75);
-  }
-
-  .mode-opt {
-    background: transparent;
-    border: none;
-    border-radius: 999px;
-    color: var(--rail-dim);
-    font-size: 11px;
+    width: 100%;
+    padding: 10px 14px;
+    background: linear-gradient(135deg, rgba(16, 32, 54, 0.8), rgba(8, 18, 32, 0.9));
+    border: 1px solid rgba(62, 224, 255, 0.22);
+    border-radius: 10px;
+    color: #e2e8f0;
+    font-size: 12.5px;
+    font-weight: 700;
     font-family: 'Zen Kaku Gothic New', sans-serif;
-    font-weight: 500;
-    padding: 5px 10px;
     cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    transition: transform 0.16s ease, border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+    text-decoration: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .settings-nav-btn:hover {
+    transform: translateX(3px);
+    border-color: rgba(62, 224, 255, 0.55);
+    background: linear-gradient(135deg, rgba(24, 46, 78, 0.9), rgba(12, 26, 46, 0.95));
+    box-shadow: 0 4px 14px rgba(0, 240, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    color: #ffffff;
+  }
+
+  .settings-nav-btn:hover .nav-btn-arrow {
+    transform: translateX(2px);
+    color: #ffffff;
+  }
+
+  .settings-nav-btn:active {
+    transform: scale(0.98);
+  }
+
+  .nav-btn-icon {
+    font-size: 15px;
+    margin-right: 10px;
+    line-height: 1;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
+    flex-shrink: 0;
+  }
+
+  .nav-btn-text {
+    flex: 1;
+    text-align: left;
+    letter-spacing: 0.02em;
     white-space: nowrap;
-    transition: background .2s ease, color .2s ease, box-shadow .2s ease;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
-  .mode-opt:hover {
-    color: var(--rail);
-  }
-
-  .mode-opt[data-mode="tutorial"].active {
-    background: var(--gold);
-    color: var(--ink);
+  .nav-btn-arrow {
+    font-size: 16px;
+    line-height: 1;
+    color: var(--cyber-cyan, #00f0ff);
     font-weight: 700;
-    box-shadow: 0 0 10px rgba(227, 178, 60, .65);
+    transition: transform 0.16s ease, color 0.16s ease;
+    flex-shrink: 0;
+    margin-left: 6px;
   }
 
-  body.field-cyber .mode-opt[data-mode="tutorial"].active {
-    background: #00f0ff;
-    color: #03202e;
-    font-weight: 700;
-    box-shadow: 0 0 10px rgba(0, 240, 255, .65);
+  /* ===================== プレイモード専用セレクター (カード型CTA) ===================== */
+  .settings-mode-container {
+    background: linear-gradient(145deg, rgba(14, 26, 44, 0.88), rgba(7, 15, 28, 0.96));
+    border: 1px solid rgba(62, 224, 255, 0.28);
+    border-radius: 14px;
+    padding: 12px;
+    margin-top: 14px;
+    margin-bottom: 14px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
   }
 
-  .mode-opt[data-mode="manual"].active {
-    background: #4ade80;
-    color: #04260f;
+  .settings-mode-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(62, 224, 255, 0.9), transparent);
+  }
+
+  .settings-mode-header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding: 0 2px;
+  }
+
+  .settings-mode-title {
+    font-family: 'Orbitron', 'Oswald', sans-serif;
+    font-size: 11px;
     font-weight: 700;
-    box-shadow: 0 0 10px rgba(74, 222, 128, .65);
+    letter-spacing: .12em;
+    color: var(--cyber-cyan, #00f0ff);
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+  }
+
+  .settings-mode-sub {
+    font-size: 10px;
+    color: var(--rail-dim, rgba(255, 255, 255, 0.55));
+    letter-spacing: .04em;
+  }
+
+  /* モードカードのグリッド配置（ピル型スイッチを完全解除） */
+  .mode-switch.mode-cards-grid,
+  .settings-panel .mode-switch.mode-cards-grid,
+  body.field-cyber .mode-switch.mode-cards-grid {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    width: 100% !important;
+    background: transparent !important;
+    border: none !important;
+    border-radius: 0 !important;
+    padding: 0 !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    box-shadow: none !important;
+  }
+
+  /* 各モードカード */
+  .settings-panel .mode-opt.mode-card,
+  body.field-cyber .mode-opt.mode-card,
+  .mode-opt.mode-card {
+    background: rgba(12, 22, 38, 0.7) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 10px !important;
+    padding: 10px 9px 8px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    text-align: left !important;
+    cursor: pointer;
+    position: relative;
+    outline: none;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35) !important;
+    transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease !important;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    color: #e2e8f0;
+  }
+
+  .settings-panel .mode-opt.mode-card:hover,
+  body.field-cyber .mode-opt.mode-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(62, 224, 255, 0.45) !important;
+    background: rgba(18, 34, 58, 0.85) !important;
+  }
+
+  .settings-panel .mode-opt.mode-card:active,
+  body.field-cyber .mode-opt.mode-card:active {
+    transform: translateY(0);
+  }
+
+  /* カードヘッダー（アイコン＋タグ） */
+  .mode-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .mode-card-icon {
+    font-size: 18px;
+    line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+  }
+
+  .mode-card-tag {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--rail-dim, rgba(255, 255, 255, 0.65));
+    letter-spacing: .05em;
+  }
+
+  /* カードタイトル */
+  .mode-card-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #e2e8f0;
+    margin-bottom: 3px;
+    white-space: nowrap;
+    letter-spacing: .02em;
+    transition: color .18s;
+  }
+
+  /* カード説明 */
+  .mode-card-desc {
+    font-size: 9.5px;
+    color: var(--rail-dim, rgba(255, 255, 255, 0.55));
+    line-height: 1.35;
+    margin-bottom: 8px;
+    min-height: 25px;
+  }
+
+  /* カードフッター（ステータス表示） */
+  .mode-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding-top: 6px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--rail-dim, rgba(255, 255, 255, 0.5));
+  }
+
+  .mode-status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.25);
+    flex-shrink: 0;
+    transition: background .18s, box-shadow .18s;
+  }
+
+  /* 非アクティブ時：選択する を表示 */
+  .mode-opt.mode-card .status-active-label {
+    display: none !important;
+  }
+  .mode-opt.mode-card .status-inactive-label {
+    display: inline !important;
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  /* アクティブ時：プレイ中 を表示 */
+  .mode-opt.mode-card.active .status-active-label {
+    display: inline !important;
+  }
+  .mode-opt.mode-card.active .status-inactive-label {
+    display: none !important;
+  }
+
+  /* チュートリアル：アクティブ（サイバーシアン発光） */
+  .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active,
+  body.field-cyber .mode-opt.mode-card[data-mode="tutorial"].active {
+    background: linear-gradient(145deg, rgba(0, 240, 255, 0.18), rgba(8, 32, 54, 0.9)) !important;
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 18px rgba(0, 240, 255, 0.4), inset 0 0 12px rgba(0, 240, 255, 0.12) !important;
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-card-title,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-card-title,
+  body.field-cyber .mode-opt.mode-card[data-mode="tutorial"].active .mode-card-title {
+    color: #00f0ff !important;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.6);
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-card-tag,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-card-tag {
+    background: rgba(0, 240, 255, 0.22);
+    color: #00f0ff;
+    border: 1px solid rgba(0, 240, 255, 0.45);
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-card-footer,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-card-footer {
+    border-top-color: rgba(0, 240, 255, 0.28);
+    color: #00f0ff;
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-status-dot,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="tutorial"].active .mode-status-dot {
+    background: #00f0ff !important;
+    box-shadow: 0 0 6px #00f0ff, 0 0 10px #00f0ff !important;
+    animation: statusPulseCyan 1.8s infinite ease-in-out;
+  }
+
+  /* 自分で操作：アクティブ（エメラルドグリーン発光） */
+  .settings-panel .mode-opt.mode-card[data-mode="manual"].active,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="manual"].active,
+  body.field-cyber .mode-opt.mode-card[data-mode="manual"].active {
+    background: linear-gradient(145deg, rgba(74, 222, 128, 0.18), rgba(6, 36, 20, 0.9)) !important;
+    border-color: #4ade80 !important;
+    box-shadow: 0 0 18px rgba(74, 222, 128, 0.4), inset 0 0 12px rgba(74, 222, 128, 0.12) !important;
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-card-title,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-card-title,
+  body.field-cyber .mode-opt.mode-card[data-mode="manual"].active .mode-card-title {
+    color: #4ade80 !important;
+    text-shadow: 0 0 8px rgba(74, 222, 128, 0.6);
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-card-tag,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-card-tag {
+    background: rgba(74, 222, 128, 0.22);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.45);
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-card-footer,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-card-footer {
+    border-top-color: rgba(74, 222, 128, 0.28);
+    color: #4ade80;
+  }
+  .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-status-dot,
+  body.field-cyber .settings-panel .mode-opt.mode-card[data-mode="manual"].active .mode-status-dot {
+    background: #4ade80 !important;
+    box-shadow: 0 0 6px #4ade80, 0 0 10px #4ade80 !important;
+    animation: statusPulseGreen 1.8s infinite ease-in-out;
+  }
+
+  @keyframes statusPulseCyan {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  @keyframes statusPulseGreen {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+
+  /* ===================== セクション区切り（環境・表示設定ディバイダー） ===================== */
+  .settings-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 18px 0 14px;
+    color: var(--rail-dim, rgba(255, 255, 255, 0.45));
+    font-size: 10px;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    letter-spacing: .08em;
+  }
+
+  .settings-divider::before,
+  .settings-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(62, 224, 255, 0.25), transparent);
+  }
+
+  .settings-divider-label {
+    white-space: nowrap;
+    text-transform: uppercase;
+    font-weight: 600;
   }
 
   /* 自分で操作モード（ナレーターなし） */
@@ -6301,4 +6599,142 @@
       z-index: 120;
       transform: none;
     }
+  }
+
+  /* ===================== 自分で操作切り替え確認モーダル ===================== */
+  .confirm-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1500;
+    background: rgba(3, 8, 16, 0.78);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 1;
+    transition: opacity 0.2s ease;
+  }
+
+  .confirm-modal-overlay[hidden] {
+    display: none !important;
+  }
+
+  .confirm-modal-box {
+    background: linear-gradient(150deg, rgba(14, 28, 48, 0.98), rgba(6, 14, 26, 0.98));
+    border: 1px solid rgba(62, 224, 255, 0.4);
+    border-radius: 18px;
+    padding: 26px 24px 22px;
+    max-width: 400px;
+    width: 92%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.85), 0 0 30px rgba(0, 240, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    position: relative;
+    animation: confirmPopIn 0.24s cubic-bezier(0.18, 0.89, 0.32, 1.25);
+  }
+
+  .confirm-modal-box::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 15%;
+    right: 15%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #00f0ff, transparent);
+    box-shadow: 0 0 8px #00f0ff;
+  }
+
+  @keyframes confirmPopIn {
+    0% {
+      opacity: 0;
+      transform: scale(0.92) translateY(10px);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  .confirm-modal-icon {
+    font-size: 34px;
+    line-height: 1;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+  }
+
+  .confirm-modal-title {
+    font-family: 'Orbitron', 'Zen Kaku Gothic New', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    color: var(--cyber-cyan, #00f0ff);
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+    margin-bottom: 12px;
+  }
+
+  .confirm-modal-desc {
+    font-size: 15px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.55;
+    margin-bottom: 8px;
+    letter-spacing: .02em;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+  }
+
+  .confirm-modal-sub {
+    font-size: 11.5px;
+    color: var(--rail-dim, rgba(255, 255, 255, 0.55));
+    margin-bottom: 22px;
+  }
+
+  .confirm-modal-btns {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .confirm-btn {
+    flex: 1;
+    max-width: 140px;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13.5px;
+    font-weight: 700;
+    font-family: 'Zen Kaku Gothic New', sans-serif;
+    cursor: pointer;
+    outline: none;
+    transition: transform 0.15s ease, background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .confirm-btn:active {
+    transform: scale(0.96);
+  }
+
+  .confirm-btn-no {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #e2e8f0;
+  }
+
+  .confirm-btn-no:hover {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
+  .confirm-btn-yes {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    border: 1px solid #4ade80;
+    color: #ffffff;
+    box-shadow: 0 0 16px rgba(74, 222, 128, 0.45);
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  }
+
+  .confirm-btn-yes:hover {
+    background: linear-gradient(135deg, #34d399 0%, #059669 100%);
+    box-shadow: 0 0 22px rgba(74, 222, 128, 0.65);
+    border-color: #86efac;
   }

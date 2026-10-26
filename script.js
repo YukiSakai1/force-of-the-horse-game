@@ -4507,7 +4507,6 @@
     var depthValue = $('depth-value');
     var zoomRange = $('zoom-range');
     var zoomValue = $('zoom-value');
-    var touchToggle = $('touch-tilt-toggle');
 
     var resetBtn = $('settings-reset');
     var presetBtns = overlay.querySelectorAll('.preset-btn[data-angle]');
@@ -4692,8 +4691,6 @@
         setDepth(DEFAULTS.depth);
         setTilt(DEFAULTS.tilt);
         setZoom(DEFAULTS.zoom);
-        if (touchToggle) touchToggle.checked = true;
-        pointerTiltEnabled = true;
       });
     }
 
@@ -4723,12 +4720,111 @@
     });
   })();
 
-  /* ===================== mode switch (スライドスイッチ: チュートリアル / 自分で操作) ===================== */
-  (function setupModeSwitch() {
+  /* ===================== 設定パネル・モード切替＆確認モーダル ===================== */
+  (function setupSettingsAndConfirmModals() {
     var switchWrap = $('mode-switch');
-    if (!switchWrap) return;
-    var opts = switchWrap.querySelectorAll('.mode-opt');
+    var opts = switchWrap ? switchWrap.querySelectorAll('.mode-opt') : [];
+    var confirmPopup = $('manual-confirm-popup');
+    var confirmIcon = $('manual-confirm-icon');
+    var confirmTitle = $('manual-confirm-title');
+    var confirmDesc = $('manual-confirm-desc');
+    var confirmSub = $('manual-confirm-sub');
+    var confirmYes = $('manual-confirm-yes');
+    var confirmNo = $('manual-confirm-no');
 
+    var pendingConfirmAction = null;
+
+    function closeConfirmPopup() {
+      if (confirmPopup) confirmPopup.hidden = true;
+      pendingConfirmAction = null;
+    }
+
+    function openConfirmModal(config) {
+      if (!confirmPopup) return;
+      if (confirmIcon) {
+        if (config.icon) {
+          confirmIcon.textContent = config.icon;
+          confirmIcon.style.display = '';
+        } else {
+          confirmIcon.textContent = '';
+          confirmIcon.style.display = 'none';
+        }
+      }
+      if (confirmTitle && config.title) confirmTitle.textContent = config.title;
+      if (confirmDesc && config.desc) confirmDesc.textContent = config.desc;
+      if (confirmSub) confirmSub.textContent = config.sub || '';
+      pendingConfirmAction = config.onConfirm || null;
+      confirmPopup.hidden = false;
+    }
+
+    if (confirmYes) {
+      confirmYes.addEventListener('click', function () {
+        Haptics.tap();
+        var action = pendingConfirmAction;
+        closeConfirmPopup();
+        if (typeof action === 'function') {
+          action();
+        }
+      });
+    }
+
+    if (confirmNo) {
+      confirmNo.addEventListener('click', function () {
+        Haptics.tap();
+        closeConfirmPopup();
+      });
+    }
+
+    if (confirmPopup) {
+      confirmPopup.addEventListener('click', function (e) {
+        if (e.target === confirmPopup) {
+          closeConfirmPopup();
+        }
+      });
+    }
+
+    // ESCキーで確認ダイアログを閉じる
+    window.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && confirmPopup && !confirmPopup.hidden) {
+        closeConfirmPopup();
+      }
+    });
+
+    // 1. スタート画面に戻る CTA
+    var btnHome = $('btn-nav-home');
+    if (btnHome) {
+      btnHome.addEventListener('click', function () {
+        Haptics.tap();
+        openConfirmModal({
+          icon: '',
+          title: 'スタート画面へ移動',
+          desc: 'スタート画面にもどりますか？',
+          sub: '※現在の進行状況はリセットされます',
+          onConfirm: function () {
+            window.location.href = 'index.html';
+          }
+        });
+      });
+    }
+
+    // 2. 遊びかたの一覧へ CTA
+    var btnLessons = $('btn-nav-lessons');
+    if (btnLessons) {
+      btnLessons.addEventListener('click', function () {
+        Haptics.tap();
+        openConfirmModal({
+          icon: '',
+          title: '遊びかた一覧へ移動',
+          desc: '遊びかたの一覧へもどりますか？',
+          sub: '※現在の進行状況はリセットされます',
+          onConfirm: function () {
+            window.location.href = 'lessons.html';
+          }
+        });
+      });
+    }
+
+    // 3. プレイモード切り替え
     function applyMode(mode) {
       document.body.classList.toggle('manual-mode', mode === 'manual');
       opts.forEach(function (opt) {
@@ -4744,7 +4840,37 @@
     opts.forEach(function (opt) {
       opt.addEventListener('click', function () {
         Haptics.tap();
-        applyMode(opt.dataset.mode);
+        var targetMode = opt.dataset.mode;
+        var currentIsManual = document.body.classList.contains('manual-mode');
+
+        if (targetMode === 'manual') {
+          if (currentIsManual) {
+            // 既に自分で操作モードの場合は設定パネルを閉じるのみ
+            var settingsOverlay = $('settings-overlay');
+            var settingsGear = $('settings-gear');
+            if (settingsOverlay) settingsOverlay.classList.remove('show');
+            if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
+            return;
+          }
+          // チュートリアル中から自分で操作へ切り替える場合は確認ダイアログを表示
+          openConfirmModal({
+            icon: '⚔️',
+            title: '対戦モードへの切り替え',
+            desc: 'チュートリアルを中断して、CPUと対戦しますか？',
+            sub: '※チュートリアルは設定からいつでも再開できます',
+            onConfirm: function () {
+              applyMode('manual');
+              var settingsOverlay = $('settings-overlay');
+              var settingsGear = $('settings-gear');
+              if (settingsOverlay) settingsOverlay.classList.remove('show');
+              if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
+            }
+          });
+          return;
+        }
+
+        // チュートリアルへの切り替え
+        applyMode('tutorial');
         var settingsOverlay = $('settings-overlay');
         var settingsGear = $('settings-gear');
         if (settingsOverlay) settingsOverlay.classList.remove('show');
