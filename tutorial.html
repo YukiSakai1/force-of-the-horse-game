@@ -17,7 +17,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=94">
+  <link rel="stylesheet" href="style.css?v=95">
   <script type="importmap">
 {
     "imports": {
@@ -72,91 +72,6 @@
         </button>
       </div>
     </header>
-
-    <div class="settings-overlay" id="settings-overlay">
-      <div class="settings-panel">
-        <div class="settings-head">
-          <div class="settings-title">設定</div>
-          <button class="settings-close" id="settings-close" type="button" aria-label="設定を閉じる">✕</button>
-        </div>
-        <div class="settings-body">
-          <div class="settings-nav-group">
-            <button class="settings-nav-btn" id="btn-nav-home" type="button" data-dest="index.html" aria-label="スタート画面に戻る">
-              <span class="nav-btn-text">スタート画面に戻る</span>
-              <span class="nav-btn-arrow">›</span>
-            </button>
-            <button class="settings-nav-btn" id="btn-nav-lessons" type="button" data-dest="lessons.html" aria-label="遊びかたの一覧へ">
-              <span class="nav-btn-text">遊びかたの一覧へ</span>
-              <span class="nav-btn-arrow">›</span>
-            </button>
-          </div>
-          <div class="settings-mode-container">
-            <div class="settings-mode-header">
-              <span class="settings-mode-title">PLAY MODE</span>
-              <span class="settings-mode-sub">ゲームモード選択</span>
-            </div>
-            <div class="mode-switch mode-cards-grid" id="mode-switch" role="group" aria-label="プレイモード切り替え">
-              <button class="mode-opt mode-card active" data-mode="tutorial" type="button">
-                <div class="mode-card-header">
-                  <span class="mode-card-icon">🔰</span>
-                  <span class="mode-card-tag">学習</span>
-                </div>
-                <div class="mode-card-title">チュートリアル</div>
-                <div class="mode-card-desc">ガイド付きで基本を学ぶ</div>
-                <div class="mode-card-footer">
-                  <span class="mode-status-dot"></span>
-                  <span class="status-active-label">プレイ中</span>
-                  <span class="status-inactive-label">選択する</span>
-                </div>
-              </button>
-
-              <button class="mode-opt mode-card" data-mode="manual" type="button">
-                <div class="mode-card-header">
-                  <span class="mode-card-icon">⚔️</span>
-                  <span class="mode-card-tag">実践</span>
-                </div>
-                <div class="mode-card-title">自分で操作</div>
-                <div class="mode-card-desc">CPUと本格フリー対戦</div>
-                <div class="mode-card-footer">
-                  <span class="mode-status-dot"></span>
-                  <span class="status-active-label">プレイ中</span>
-                  <span class="status-inactive-label">選択する</span>
-                </div>
-              </button>
-            </div>
-          </div>
-
-          <div class="settings-divider">
-            <span class="settings-divider-label">環境・表示設定</span>
-          </div>
-          <div class="settings-group">
-            <div class="settings-label">画面デザイン</div>
-            <div class="theme-switch" id="theme-switch" role="group" aria-label="画面デザイン切り替え">
-              <button class="theme-opt active" data-theme="cyber" type="button">Default</button>
-              <button class="theme-opt" data-theme="classic" type="button">Cyber</button>
-            </div>
-          </div>
-          <div class="settings-group">
-            <div class="settings-label">フィールド角度</div>
-            <div class="preset-grid">
-              <button class="preset-btn active" data-angle="0" type="button">0°</button>
-              <button class="preset-btn" data-angle="10" type="button">10°</button>
-              <button class="preset-btn" data-angle="25" type="button">25°</button>
-            </div>
-          </div>
-
-          <div class="settings-group">
-            <div class="settings-row">
-              <span>CAMERA ZOOM (倍率)</span>
-              <span class="settings-value" id="zoom-value">100%</span>
-            </div>
-            <input type="range" id="zoom-range" min="60" max="200" value="100" step="5">
-          </div>
-
-          <button class="settings-reset" id="settings-reset" type="button">視点をリセット</button>
-        </div>
-      </div>
-    </div>
 
     <main class="board" id="board">
       <div id="closeup-layer">
@@ -378,20 +293,6 @@
       </div>
     </div>
 
-    <!-- 汎用切り替え・離脱確認ダイアログ -->
-    <div class="confirm-modal-overlay" id="manual-confirm-popup" role="dialog" aria-modal="true" aria-labelledby="manual-confirm-title" hidden>
-      <div class="confirm-modal-box">
-        <div class="confirm-modal-icon" id="manual-confirm-icon">⚔️</div>
-        <div class="confirm-modal-title" id="manual-confirm-title">対戦モードへの切り替え</div>
-        <div class="confirm-modal-desc" id="manual-confirm-desc">チュートリアルを中断して、CPUと対戦しますか？</div>
-        <div class="confirm-modal-sub" id="manual-confirm-sub">※チュートリアルは設定からいつでも再開できます</div>
-        <div class="confirm-modal-btns">
-          <button class="confirm-btn confirm-btn-no" id="manual-confirm-no" type="button">いいえ</button>
-          <button class="confirm-btn confirm-btn-yes" id="manual-confirm-yes" type="button">はい</button>
-        </div>
-      </div>
-    </div>
-
     <!-- 勝敗演出 -->
     <div class="victory-overlay" id="victory-overlay">
       <div class="victory-confetti" id="victory-confetti"></div>
@@ -406,7 +307,107 @@
 
   </div>
 
-  <script src="script.js?v=40"></script>
+  <!-- 設定パネルオーバーレイ (body直下・z-index: 10000 でデッキ配布より前面) -->
+  <div class="settings-overlay" id="settings-overlay">
+    <div class="settings-panel">
+      <div class="settings-head">
+        <div class="settings-title">設定</div>
+        <button class="settings-close" id="settings-close" type="button" aria-label="設定を閉じる">✕</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-nav-group">
+          <button class="settings-nav-btn" id="btn-nav-home" type="button" data-dest="index.html" aria-label="スタート画面に戻る">
+            <span class="nav-btn-text">スタート画面に戻る</span>
+            <span class="nav-btn-arrow">›</span>
+          </button>
+          <button class="settings-nav-btn" id="btn-nav-lessons" type="button" data-dest="lessons.html" aria-label="遊びかたの一覧へ">
+            <span class="nav-btn-text">遊びかたの一覧へ</span>
+            <span class="nav-btn-arrow">›</span>
+          </button>
+        </div>
+        <div class="settings-mode-container">
+          <div class="settings-mode-header">
+            <span class="settings-mode-title">PLAY MODE</span>
+            <span class="settings-mode-sub">ゲームモード選択</span>
+          </div>
+          <div class="mode-switch mode-cards-grid" id="mode-switch" role="group" aria-label="プレイモード切り替え">
+            <button class="mode-opt mode-card active" data-mode="tutorial" type="button">
+              <div class="mode-card-header">
+                <span class="mode-card-icon">🔰</span>
+                <span class="mode-card-tag">学習</span>
+              </div>
+              <div class="mode-card-title">チュートリアル</div>
+              <div class="mode-card-desc">ガイド付きで基本を学ぶ</div>
+              <div class="mode-card-footer">
+                <span class="mode-status-dot"></span>
+                <span class="status-active-label">プレイ中</span>
+                <span class="status-inactive-label">選択する</span>
+              </div>
+            </button>
+
+            <button class="mode-opt mode-card" data-mode="manual" type="button">
+              <div class="mode-card-header">
+                <span class="mode-card-icon">⚔️</span>
+                <span class="mode-card-tag">実践</span>
+              </div>
+              <div class="mode-card-title">自分で操作</div>
+              <div class="mode-card-desc">CPUと本格フリー対戦</div>
+              <div class="mode-card-footer">
+                <span class="mode-status-dot"></span>
+                <span class="status-active-label">プレイ中</span>
+                <span class="status-inactive-label">選択する</span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <div class="settings-divider">
+          <span class="settings-divider-label">環境・表示設定</span>
+        </div>
+        <div class="settings-group">
+          <div class="settings-label">画面デザイン</div>
+          <div class="theme-switch" id="theme-switch" role="group" aria-label="画面デザイン切り替え">
+            <button class="theme-opt active" data-theme="cyber" type="button">Default</button>
+            <button class="theme-opt" data-theme="classic" type="button">Cyber</button>
+          </div>
+        </div>
+        <div class="settings-group">
+          <div class="settings-label">フィールド角度</div>
+          <div class="preset-grid">
+            <button class="preset-btn active" data-angle="0" type="button">0°</button>
+            <button class="preset-btn" data-angle="10" type="button">10°</button>
+            <button class="preset-btn" data-angle="25" type="button">25°</button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="settings-row">
+            <span>CAMERA ZOOM (倍率)</span>
+            <span class="settings-value" id="zoom-value">100%</span>
+          </div>
+          <input type="range" id="zoom-range" min="60" max="200" value="100" step="5">
+        </div>
+
+        <button class="settings-reset" id="settings-reset" type="button">視点をリセット</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 汎用切り替え・離脱確認ダイアログ (body直下・z-index: 20000 でデッキ配布や設定よりも最前面) -->
+  <div class="confirm-modal-overlay" id="manual-confirm-popup" role="dialog" aria-modal="true" aria-labelledby="manual-confirm-title" hidden>
+    <div class="confirm-modal-box">
+      <div class="confirm-modal-icon" id="manual-confirm-icon">⚔️</div>
+      <div class="confirm-modal-title" id="manual-confirm-title">対戦モードへの切り替え</div>
+      <div class="confirm-modal-desc" id="manual-confirm-desc">チュートリアルを中断して、CPUと対戦しますか？</div>
+      <div class="confirm-modal-sub" id="manual-confirm-sub">※チュートリアルは設定からいつでも再開できます</div>
+      <div class="confirm-modal-btns">
+        <button class="confirm-btn confirm-btn-no" id="manual-confirm-no" type="button">いいえ</button>
+        <button class="confirm-btn confirm-btn-yes" id="manual-confirm-yes" type="button">はい</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js?v=41"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';

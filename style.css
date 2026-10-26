@@ -733,7 +733,7 @@
     background: rgba(0, 0, 0, .65);
     backdrop-filter: blur(4px);
     -webkit-backdrop-filter: blur(4px);
-    z-index: 1000;
+    z-index: 10000;
     display: flex;
     justify-content: flex-end;
     opacity: 0;
@@ -6605,7 +6605,7 @@
   .confirm-modal-overlay {
     position: fixed;
     inset: 0;
-    z-index: 1500;
+    z-index: 20000 !important;
     background: rgba(3, 8, 16, 0.78);
     backdrop-filter: blur(6px);
     -webkit-backdrop-filter: blur(6px);
