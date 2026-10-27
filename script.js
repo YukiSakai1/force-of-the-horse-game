@@ -2888,9 +2888,42 @@
     await sleep(300);
     if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
 
-    // ① 4つの距離エリア（各8枚・計32枚）へ配る
+    // ① 最初の7枚を手札へ配る
     if (!isManual) {
-      setNarrator('今回はチュートリアルなので、使うカードは50枚！まずは4つの距離エリア（山札）に<b>それぞれ8枚（計32枚）</b>配るよ。');
+      setNarrator('今回はチュートリアルなので、使うカードは50枚！まずは<b>最初の7枚を手札</b>に配るよ。');
+    }
+    var handArea = $('zone-hand');
+    var handZone = $('hand-row');
+    // カードが0枚の間はチュートリアル用CSSで手札エリアが非表示になるため、
+    // 先に最終表示位置を確定させてから配札アニメーションを始める。
+    // さらに各カードの直前に位置を取り直し、1枚目の追加によるレイアウト変化にも追従する。
+    if (handArea) handArea.classList.add('has-cards');
+    var starterHand = makeStarterHand();
+
+    for (var hi = 0; hi < starterHand.length; hi++) {
+      if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
+      var handRect = handZone.getBoundingClientRect();
+      await flyDealGhost(handRect, 220, starterHand[hi]);
+      // 飛翔アニメーション中にモードが変わった場合も、旧カードを追加しない。
+      if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
+      hand.push(starterHand[hi]);
+      updateDeckCount(currentCount - 1);
+      renderHand();
+      Haptics.place();
+      await sleep(isManual ? 80 : 120);
+    }
+
+    if (handZone) {
+      handZone.classList.add('deal-flash');
+      setTimeout(function (el) { if (el) el.classList.remove('deal-flash'); }, 400, handZone);
+    }
+
+    await sleep(isManual ? 150 : 300);
+    if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
+
+    // ② 4つの距離エリア（山札：各8枚・計32枚）へ配る
+    if (!isManual) {
+      setNarrator('次に、4つの距離エリア（山札）へ<b>それぞれ8枚（計32枚）</b>配置するよ。');
     }
     var laneKeys = ['nige', 'senko', 'sashi', 'oikomi'];
     for (var li = 0; li < laneKeys.length; li++) {
@@ -2921,9 +2954,9 @@
     await sleep(isManual ? 150 : 300);
     if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
 
-    // ② 残り18枚のうち手札7枚を除いた11枚をファームへ配る
+    // ③ 残りのカードをファームへ配る
     if (!isManual) {
-      setNarrator('手札の7枚を除いた、<b>残りのカード（11枚）はファーム</b>に置かれるよ。');
+      setNarrator('そして<b>残りのカードはファーム</b>に置かれるよ！これでバトルの準備完了だ。');
     }
     var farmZone = $('zone-farm');
     var farmRect = farmZone.getBoundingClientRect();
@@ -2945,39 +2978,6 @@
       }
       Haptics.place();
       await sleep(isManual ? 30 : 60);
-    }
-
-    await sleep(isManual ? 150 : 300);
-    if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
-
-    // ③ 最後の7枚を手札へ配る
-    if (!isManual) {
-      setNarrator('そして最後の<b>7枚が手札</b>に来るよ！これでバトルの準備完了だ。');
-    }
-    var handArea = $('zone-hand');
-    var handZone = $('hand-row');
-    // カードが0枚の間はチュートリアル用CSSで手札エリアが非表示になるため、
-    // 先に最終表示位置を確定させてから配札アニメーションを始める。
-    // さらに各カードの直前に位置を取り直し、1枚目の追加によるレイアウト変化にも追従する。
-    if (handArea) handArea.classList.add('has-cards');
-    var starterHand = makeStarterHand();
-
-    for (var hi = 0; hi < starterHand.length; hi++) {
-      if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
-      var handRect = handZone.getBoundingClientRect();
-      await flyDealGhost(handRect, 220, starterHand[hi]);
-      // 飛翔アニメーション中にモードが変わった場合も、旧カードを追加しない。
-      if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
-      hand.push(starterHand[hi]);
-      updateDeckCount(currentCount - 1);
-      renderHand();
-      Haptics.place();
-      await sleep(isManual ? 80 : 120);
-    }
-
-    if (handZone) {
-      handZone.classList.add('deal-flash');
-      setTimeout(function (el) { if (el) el.classList.remove('deal-flash'); }, 400, handZone);
     }
 
     centerEl.classList.add('hide');
@@ -4038,7 +4038,7 @@
     renderRaceInfo();
     renderAll();
 
-    // 50枚デッキ配布演出を実行（テンポよく山札・ファーム・手札へ配布）
+    // 50枚デッキ配布演出を実行（テンポよく手札・山札・ファームへ配布）
     await dealInitialCards(true, myRunId);
     if (myRunId !== tutorialRunId) return;
 
