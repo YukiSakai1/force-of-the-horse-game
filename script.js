@@ -4129,7 +4129,16 @@
       }, 30);
     }
 
+    function isBgmEnabled() {
+      try {
+        return localStorage.getItem('foth_bgm_enabled') !== 'false';
+      } catch (e) {
+        return true;
+      }
+    }
+
     function start() {
+      if (!isBgmEnabled()) return;
       ensureAudio();
       restoreCurrentTime();
       var playPromise = audio.play();
@@ -4143,14 +4152,16 @@
       fadeTo(0, FADE_OUT_MS);
     }
 
-    return { start: start, stop: stop };
+    return { start: start, stop: stop, isBgmEnabled: isBgmEnabled };
   })();
 
   /* ===================== BGM 自動再生（ユーザー端末側で音量操作） ===================== */
   BGM.start();
   // ブラウザの自動再生制限のため、最初のユーザー操作をきっかけに再生を開始する
   document.addEventListener('click', function initBgmOnFirstTap() {
-    BGM.start();
+    if (BGM.isBgmEnabled()) {
+      BGM.start();
+    }
     document.removeEventListener('click', initBgmOnFirstTap);
   }, { once: true });
 

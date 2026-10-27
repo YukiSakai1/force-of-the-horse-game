@@ -137,8 +137,20 @@
         link.addEventListener('click', saveBgmTime);
       });
 
+      function isBgmEnabled() {
+        try {
+          return localStorage.getItem('foth_bgm_enabled') !== 'false';
+        } catch (e) {
+          return true;
+        }
+      }
+
       function startBGM() {
         if (!bgm) return;
+        if (!isBgmEnabled()) {
+          if (!bgm.paused) bgm.pause();
+          return;
+        }
         if (bgm.paused) {
           restoreBgmTime();
           bgm.play().catch(function () {});
@@ -147,7 +159,9 @@
 
       startBGM();
       document.addEventListener('click', function init() {
-        startBGM();
+        if (isBgmEnabled()) {
+          startBGM();
+        }
         document.removeEventListener('click', init);
       }, { once: true });
     })();
