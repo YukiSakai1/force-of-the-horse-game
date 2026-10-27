@@ -3398,7 +3398,7 @@
 
     setProgress(3);
     var forcesAfter = hand.filter(function (card) { return card.type === 'force'; }).length;
-    setNarrator('<b>フォースが' + forcesBefore + '枚 → ' + forcesAfter + '枚に増えたね！</b> 獣医師はファームへ移り、効果でフォースが手札に戻ったよ。本番では<b>操作メニューの「エリアアイテム」</b>から使えるんだ。');
+    setNarrator('<b>フォースが' + forcesBefore + '枚 → ' + forcesAfter + '枚に増えたね！</b> 獣医師はファームへ移り、効果でフォースが手札に戻ったよ。本番では<b>操作メニューの「アイテム」</b>から使えるんだ。');
     await waitNext();
     if (runId !== tutorialRunId) return;
 
@@ -3697,7 +3697,7 @@
     if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     await explainStep(itemEl, null, '<b>アイテムカードには2種類</b>あり、使えるタイミングが違うよ。まず、このカードのような「<b>タイプ：馬</b>」は、走破する馬カードと一緒に使うカードだよ。');
     if (myRunId !== tutorialRunId) return;
-    setNarrator('もう1つの「<b>タイプ：エリア</b>」は、<b>自分のターン開始後から走破する前まで</b>に使えるよ。自由操作では、右側の操作メニューにある「<b>エリアアイテム</b>」から選ぼう。');
+    setNarrator('もう1つの「<b>タイプ：エリア</b>」は、<b>自分のターン開始後から走破する前まで</b>に使えるよ。自由操作では、右側の操作メニューにある「<b>アイテム</b>」から選ぼう。');
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
