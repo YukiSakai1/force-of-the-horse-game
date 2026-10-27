@@ -4900,11 +4900,29 @@
         }
 
         // チュートリアルへの切り替え
-        applyMode('tutorial');
-        var settingsOverlay = $('settings-overlay');
-        var settingsGear = $('settings-gear');
-        if (settingsOverlay) settingsOverlay.classList.remove('show');
-        if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
+        if (!currentIsManual) {
+          // 既にチュートリアルモードの場合は設定パネルを閉じるのみ（誤リセット防止）
+          var settingsOverlay = $('settings-overlay');
+          var settingsGear = $('settings-gear');
+          if (settingsOverlay) settingsOverlay.classList.remove('show');
+          if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
+          return;
+        }
+
+        // 自分で操作（対戦中）からチュートリアルへ戻る場合は確認ダイアログを表示
+        openConfirmModal({
+          icon: '📖',
+          title: 'チュートリアルへの切り替え',
+          desc: '対戦を中断して、チュートリアルに戻りますか？',
+          sub: '※現在の対戦状況はリセットされます',
+          onConfirm: function () {
+            applyMode('tutorial');
+            var settingsOverlay = $('settings-overlay');
+            var settingsGear = $('settings-gear');
+            if (settingsOverlay) settingsOverlay.classList.remove('show');
+            if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
+          }
+        });
       });
     });
   })();
