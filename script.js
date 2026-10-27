@@ -4701,21 +4701,40 @@
     var switchWrap = $('theme-switch');
     if (!switchWrap) return;
     var opts = switchWrap.querySelectorAll('.theme-opt');
+    var STORAGE_KEY = 'foth_field_theme';
 
-    function applyTheme(theme) {
+    function getSavedTheme() {
+      try {
+        var saved = localStorage.getItem(STORAGE_KEY);
+        if (saved === 'cyber' || saved === 'classic') return saved;
+      } catch (e) {}
+      return 'cyber'; // 未設定時の初期値
+    }
+
+    function applyTheme(theme, save) {
       var isCyber = (theme === 'cyber');
       document.body.classList.toggle('field-cyber', isCyber);
       opts.forEach(function (opt) {
         opt.classList.toggle('active', opt.dataset.theme === theme);
       });
+      if (save !== false) {
+        try {
+          localStorage.setItem(STORAGE_KEY, theme);
+        } catch (e) {}
+      }
     }
 
-    applyTheme('cyber'); // デフォルトはサイバー
+    // 初期化：保存されたテーマ設定を復元して適用
+    var currentTheme = getSavedTheme();
+    applyTheme(currentTheme, false);
+
+    window._applyTheme = applyTheme;
+    window._getCurrentTheme = getSavedTheme;
 
     opts.forEach(function (opt) {
       opt.addEventListener('click', function () {
         Haptics.tap();
-        applyTheme(opt.dataset.theme);
+        applyTheme(opt.dataset.theme, true);
       });
     });
   })();
