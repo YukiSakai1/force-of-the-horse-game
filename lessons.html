@@ -35,7 +35,7 @@
         <li>
           <a class="lesson-card lesson-card-ready" href="tutorial.html?lesson=run">
             <span class="lesson-number" aria-hidden="true">01</span>
-            <span class="lesson-copy"><span class="lesson-title">走破してみよう！</span><span class="lesson-detail">馬を出す・コストを払う・カードを引く</span></span>
+            <span class="lesson-copy"><span class="lesson-title">走破してみよう！</span><span class="lesson-detail">馬を出す・フォースを払う・カードを引く</span></span>
             <span class="lesson-arrow" aria-hidden="true">›</span>
           </a>
         </li>
@@ -95,8 +95,8 @@
   </main>
 
   <audio id="bgmAudio" loop preload="auto">
-    <source src="audio/Banners_in_the_Gale_recomposed_90sec.mp3" type="audio/mpeg">
-    <source src="Banners_in_the_Gale_recomposed_90sec.mp3" type="audio/mpeg">
+    <source src="audio/Banners_in_the_Gale.mp3" type="audio/mpeg">
+    <source src="Banners_in_the_Gale.mp3" type="audio/mpeg">
   </audio>
 
   <script>
@@ -107,14 +107,14 @@
       function saveBgmTime() {
         try {
           if (bgm && bgm.currentTime > 0) {
-            sessionStorage.setItem('foth_bgm_time', String(bgm.currentTime));
+            sessionStorage.setItem('foth_bgm_time_original', String(bgm.currentTime));
           }
         } catch (e) {}
       }
 
       function restoreBgmTime() {
         try {
-          const savedTime = sessionStorage.getItem('foth_bgm_time');
+          const savedTime = sessionStorage.getItem('foth_bgm_time_original');
           if (savedTime && bgm) {
             const t = parseFloat(savedTime);
             if (isFinite(t) && t >= 0) {

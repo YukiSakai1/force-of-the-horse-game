@@ -60,7 +60,7 @@
   }
 
   function silkMobius() {
-    var c = horseCard('シルクメビウス', 'SILK MOBIUS', 3, 2, '先行・差し', 'マイル・中', '京都・良/不良', 2, ['ダート']);
+    var c = horseCard('シルクメビウス', 'SILK MOBIUS', 3, 2, '先行・差し', 'マイル・中', '京都・良/不良', 3, ['ダート']);
     c.img = 'images/horse-silkmobius.jpg';
     return c;
   }
@@ -3068,6 +3068,10 @@
     await waitLessonItem(whips[0], runId);
     if (runId !== tutorialRunId) return;
 
+    setNarrator('<b>自分は「鞭」を追加したよ。</b>次は相手に、さらにアイテムを追加するか確認を渡そう。「つぎへ」を押してね。');
+    await waitNext();
+    if (runId !== tutorialRunId) return;
+
     setProgress(6);
     showNextButton(false);
     await showBanner('相手がアイテムを追加！', 2400, cpuSupport, 'ゴーグル：ガード値 +1');
@@ -3637,7 +3641,7 @@
       setProgress(18);
       $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 02 · COMPLETE';
       $('lesson-complete-title').textContent = 'ガードの流れを覚えたね！';
-      $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = '手札の馬のガード値で、相手が走破で引く枚数を減らせたね。ガードに使う馬にはフォースのコストは不要。本番では、ガードせずに見送ることもできるよ。';
+      $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = '手札の馬のガード値で、相手が走破で引く枚数を減らせたね。ガードにフォースは不要。本番では、ガードせずに見送ることもできるよ。';
       $('lesson-complete-next').href = 'tutorial.html?lesson=items';
       $('lesson-complete-next').textContent = '次へ：アイテムを使おう！ ›';
       $('lesson-complete').querySelector('.lesson-complete-back').hidden = false;
@@ -3800,7 +3804,7 @@
       setProgress(14);
       $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 01 · COMPLETE';
       $('lesson-complete-title').textContent = '走破の流れを覚えたね！';
-      $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = '馬を出す、コストを払う、走破してカードを引く。使い終わったカードをファームへ送れば、走破は完了！';
+      $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = '馬を出す、フォースを払う、走破してカードを引く。使い終わったカードをファームへ送れば、走破は完了！';
       $('lesson-complete-next').href = 'tutorial.html?lesson=guard';
       $('lesson-complete-next').textContent = '次へ：ガードしてみよう！ ›';
       $('lesson-complete').showModal();
@@ -3848,7 +3852,7 @@
       await waitNext();
       if (myRunId !== tutorialRunId) return;
     }
-    setNarrator('手札の馬カードで<b>ガード</b>すると、相手が走破で引く枚数を<b>ガード値ぶん減らせる</b>よ。<b>ガードする馬にはフォースのコストは不要</b>。本番では見送ることもできるけれど、今回はガードしてみよう。');
+    setNarrator('手札の馬カードで<b>ガード</b>すると、相手が走破で引く枚数を<b>ガード値ぶん減らせる</b>よ。<b>ガードにフォースは不要</b>。本番では見送ることもできるけれど、今回はガードしてみよう。');
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
@@ -4064,7 +4068,7 @@
 
   /* ===================== BGM（音源ファイル再生・再生位置引き継ぎ対応） ===================== */
   var BGM = (function () {
-    var SRC = 'audio/Banners_in_the_Gale_recomposed_90sec.mp3';
+    var SRC = 'audio/Banners_in_the_Gale.mp3';
     var TARGET_VOLUME = 0.45;
     var FADE_IN_MS = 1200;
     var FADE_OUT_MS = 600;
@@ -4073,14 +4077,14 @@
 
     function saveCurrentTime() {
       if (audio && audio.currentTime > 0) {
-        try { sessionStorage.setItem('foth_bgm_time', String(audio.currentTime)); } catch (e) { }
+        try { sessionStorage.setItem('foth_bgm_time_original', String(audio.currentTime)); } catch (e) { }
       }
     }
 
     function restoreCurrentTime() {
       if (!audio) return;
       try {
-        var savedTime = sessionStorage.getItem('foth_bgm_time');
+        var savedTime = sessionStorage.getItem('foth_bgm_time_original');
         if (savedTime) {
           var t = parseFloat(savedTime);
           if (isFinite(t) && t >= 0) {
@@ -4154,6 +4158,29 @@
 
     return { start: start, stop: stop, isBgmEnabled: isBgmEnabled };
   })();
+
+  var bgmEnabled = BGM.isBgmEnabled();
+
+  function updateBgmButton() {
+    var btn = $('bgm-toggle');
+    if (!btn) return;
+    btn.textContent = bgmEnabled ? '🔊 BGM ON' : '🔇 BGM OFF';
+    btn.classList.toggle('is-off', !bgmEnabled);
+    btn.setAttribute('aria-pressed', String(bgmEnabled));
+    btn.title = bgmEnabled ? 'BGMをOFFにする' : 'BGMをONにする';
+  }
+
+  updateBgmButton();
+
+  if ($('bgm-toggle')) {
+    $('bgm-toggle').addEventListener('click', function () {
+      Haptics.tap();
+      bgmEnabled = !bgmEnabled;
+      try { localStorage.setItem('foth_bgm_enabled', bgmEnabled ? 'true' : 'false'); } catch (e) { }
+      updateBgmButton();
+      if (bgmEnabled) BGM.start(); else BGM.stop();
+    });
+  }
 
   /* ===================== BGM 自動再生（ユーザー端末側で音量操作） ===================== */
   BGM.start();
@@ -4752,8 +4779,6 @@
 
   /* ===================== 設定パネル・モード切替＆確認モーダル ===================== */
   (function setupSettingsAndConfirmModals() {
-    var switchWrap = $('mode-switch');
-    var opts = switchWrap ? switchWrap.querySelectorAll('.mode-opt') : [];
     var confirmPopup = $('manual-confirm-popup');
     var confirmIcon = $('manual-confirm-icon');
     var confirmTitle = $('manual-confirm-title');
@@ -4823,12 +4848,18 @@
     // 1. スタート画面に戻る CTA
     var btnHome = $('btn-nav-home');
     if (btnHome) {
+      var manualEntry = new URLSearchParams(window.location.search).get('mode') === 'manual';
+      var btnHomeText = btnHome.querySelector('.nav-btn-text');
+      if (manualEntry && btnHomeText) {
+        btnHomeText.textContent = 'CPU対戦を終了してトップへ';
+        btnHome.setAttribute('aria-label', 'CPU対戦を終了してトップへ戻る');
+      }
       btnHome.addEventListener('click', function () {
         Haptics.tap();
         openConfirmModal({
           icon: '',
-          title: 'スタート画面へ移動',
-          desc: 'スタート画面に戻りますか？',
+          title: manualEntry ? 'CPU対戦を終了' : 'チュートリアルを終了',
+          desc: manualEntry ? 'CPU対戦を終了してトップへ戻りますか？' : 'チュートリアルを終了してトップへ戻りますか？',
           sub: '※現在の進行状況はリセットされます',
           onConfirm: function () {
             window.location.href = 'index.html';
@@ -4854,77 +4885,6 @@
       });
     }
 
-    // 3. プレイモード切り替え
-    function applyMode(mode) {
-      document.body.classList.toggle('manual-mode', mode === 'manual');
-      opts.forEach(function (opt) {
-        opt.classList.toggle('active', opt.dataset.mode === mode);
-      });
-      if (mode === 'manual') {
-        startManualMode();
-      } else {
-        startTutorialMode();
-      }
-    }
-
-    opts.forEach(function (opt) {
-      opt.addEventListener('click', function () {
-        Haptics.tap();
-        var targetMode = opt.dataset.mode;
-        var currentIsManual = document.body.classList.contains('manual-mode');
-
-        if (targetMode === 'manual') {
-          if (currentIsManual) {
-            // 既に自分で操作モードの場合は設定パネルを閉じるのみ
-            var settingsOverlay = $('settings-overlay');
-            var settingsGear = $('settings-gear');
-            if (settingsOverlay) settingsOverlay.classList.remove('show');
-            if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
-            return;
-          }
-          // チュートリアル中から自分で操作へ切り替える場合は確認ダイアログを表示
-          openConfirmModal({
-            icon: '⚔️',
-            title: '対戦モードへの切り替え',
-            desc: 'チュートリアルを中断して、CPUと対戦しますか？',
-            sub: '※チュートリアルは設定からいつでも再開できます',
-            onConfirm: function () {
-              applyMode('manual');
-              var settingsOverlay = $('settings-overlay');
-              var settingsGear = $('settings-gear');
-              if (settingsOverlay) settingsOverlay.classList.remove('show');
-              if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
-            }
-          });
-          return;
-        }
-
-        // チュートリアルへの切り替え
-        if (!currentIsManual) {
-          // 既にチュートリアルモードの場合は設定パネルを閉じるのみ（誤リセット防止）
-          var settingsOverlay = $('settings-overlay');
-          var settingsGear = $('settings-gear');
-          if (settingsOverlay) settingsOverlay.classList.remove('show');
-          if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
-          return;
-        }
-
-        // 自分で操作（対戦中）からチュートリアルへ戻る場合は確認ダイアログを表示
-        openConfirmModal({
-          icon: '📖',
-          title: 'チュートリアルへの切り替え',
-          desc: '対戦を中断して、チュートリアルに戻りますか？',
-          sub: '※現在の対戦状況はリセットされます',
-          onConfirm: function () {
-            applyMode('tutorial');
-            var settingsOverlay = $('settings-overlay');
-            var settingsGear = $('settings-gear');
-            if (settingsOverlay) settingsOverlay.classList.remove('show');
-            if (settingsGear) settingsGear.setAttribute('aria-expanded', 'false');
-          }
-        });
-      });
-    });
   })();
 
   /* ===================== pinch-to-zoom (field mat) ===================== */

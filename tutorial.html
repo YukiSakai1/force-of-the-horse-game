@@ -20,7 +20,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=96">
+  <link rel="stylesheet" href="style.css?v=100">
   <script type="importmap">
 {
     "imports": {
@@ -79,6 +79,7 @@
       </div>
       <div class="race-info" id="race-info" aria-label="レース情報"></div>
       <div class="topbar-menu" id="topbar-menu">
+        <button class="bgm-toggle" id="bgm-toggle" type="button" aria-pressed="true" title="BGMをOFFにする">🔊 BGM ON</button>
         <button class="settings-gear" id="settings-gear" type="button" title="設定を開く" aria-label="設定を開く" aria-expanded="false">
           <svg class="settings-gear-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.74v.5a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"></path>
@@ -331,49 +332,14 @@
       </div>
       <div class="settings-body">
         <div class="settings-nav-group">
-          <button class="settings-nav-btn" id="btn-nav-home" type="button" data-dest="index.html" aria-label="スタート画面に戻る">
-            <span class="nav-btn-text">スタート画面に戻る</span>
-            <span class="nav-btn-arrow">›</span>
-          </button>
           <button class="settings-nav-btn" id="btn-nav-lessons" type="button" data-dest="lessons.html" aria-label="遊びかたの一覧へ">
             <span class="nav-btn-text">遊びかたの一覧へ</span>
             <span class="nav-btn-arrow">›</span>
           </button>
-        </div>
-        <div class="settings-mode-container">
-          <div class="settings-mode-header">
-            <span class="settings-mode-title">PLAY MODE</span>
-            <span class="settings-mode-sub">ゲームモード選択</span>
-          </div>
-          <div class="mode-switch mode-cards-grid" id="mode-switch" role="group" aria-label="プレイモード切り替え">
-            <button class="mode-opt mode-card active" data-mode="tutorial" type="button">
-              <div class="mode-card-header">
-                <span class="mode-card-icon">🔰</span>
-                <span class="mode-card-tag">学習</span>
-              </div>
-              <div class="mode-card-title">チュートリアル</div>
-              <div class="mode-card-desc">ガイド付きで基本を学ぶ</div>
-              <div class="mode-card-footer">
-                <span class="mode-status-dot"></span>
-                <span class="status-active-label">プレイ中</span>
-                <span class="status-inactive-label">選択する</span>
-              </div>
-            </button>
-
-            <button class="mode-opt mode-card" data-mode="manual" type="button">
-              <div class="mode-card-header">
-                <span class="mode-card-icon">⚔️</span>
-                <span class="mode-card-tag">実践</span>
-              </div>
-              <div class="mode-card-title">自分で操作</div>
-              <div class="mode-card-desc">CPUと本格フリー対戦</div>
-              <div class="mode-card-footer">
-                <span class="mode-status-dot"></span>
-                <span class="status-active-label">プレイ中</span>
-                <span class="status-inactive-label">選択する</span>
-              </div>
-            </button>
-          </div>
+          <button class="settings-nav-btn" id="btn-nav-home" type="button" data-dest="index.html" aria-label="チュートリアルを終了してトップへ戻る">
+            <span class="nav-btn-text">チュートリアルを終了してトップへ</span>
+            <span class="nav-btn-arrow">›</span>
+          </button>
         </div>
 
         <div class="settings-divider">
@@ -422,7 +388,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=48"></script>
+  <script src="script.js?v=50"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
