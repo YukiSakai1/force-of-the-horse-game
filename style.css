@@ -2016,9 +2016,9 @@
       padding-top: 1.5vw;
     }
 
-    /* 3Dモード時のfield-tiltの引き上げ量をモバイルで強化 */
+    /* 3Dデッキの厚み・影が相手情報欄へ入り込まないよう、SPでは盤面を少し下げる。 */
     body.field-3d .field-tilt {
-      margin-top: -12px;
+      margin-top: 4px;
     }
 
     .hand-zone {
@@ -4225,7 +4225,6 @@
     pointer-events: none;
   }
 
-  #opponent-thinking-popup,
   #run-support-popup,
   #situation-hint-popup {
     position: fixed;
@@ -4238,7 +4237,6 @@
     backdrop-filter: blur(3px);
   }
 
-  #opponent-thinking-popup .popup-box,
   #run-support-popup .popup-box,
   #situation-hint-popup .popup-box {
     background: linear-gradient(180deg, #1a2f22, #0c1710);
@@ -4251,7 +4249,6 @@
     text-align: center;
   }
 
-  #opponent-thinking-popup .popup-title,
   #run-support-popup .popup-title,
   #situation-hint-popup .popup-title {
     font-size: 18px;
@@ -4260,7 +4257,6 @@
     margin-bottom: 8px;
   }
 
-  #opponent-thinking-popup .popup-desc,
   #run-support-popup .popup-desc,
   #situation-hint-popup .popup-desc {
     font-size: 13px;
@@ -5972,6 +5968,10 @@
 
     .lane .lane-badge {
       bottom: -3px;
+    }
+
+    .lane .lane-badge,
+    .opp-lane .lane-badge {
       min-width: 22px;
       padding: 3px 4px;
       font-size: 14px;
@@ -6050,10 +6050,21 @@
       position: fixed;
       top: 62px;
       right: 16px;
-      width: calc(var(--pc-side-width) - 32px);
+      /* 名前と手札枚数を1列で読めるよう、中央盤面との隙間まで横幅を使う。 */
+      width: calc(var(--pc-side-width) - 12px);
       margin: 0;
-      padding: 10px 12px;
+      padding: 8px 10px;
       z-index: 115;
+    }
+
+    .opponent-strip .opponent-hand-area {
+      gap: 3px;
+      padding: 3px 7px;
+      font-size: 10px;
+    }
+
+    .opponent-strip .opponent-hand-area .count {
+      font-size: 11px;
     }
 
     /* PCではレース条件を左サイドへ移し、ヘッダーと盤面の縦幅を確保する。 */
@@ -6194,6 +6205,10 @@
     /* 中央下のラベルに対し、枚数は右斜め上に配置する。 */
     .lane .lane-badge {
       bottom: 11px;
+    }
+
+    .lane .lane-badge,
+    .opp-lane .lane-badge {
       min-width: 22px;
       padding: 3px 4px;
       font-size: 14px;
@@ -6737,4 +6752,149 @@
     background: linear-gradient(135deg, #34d399 0%, #059669 100%);
     box-shadow: 0 0 22px rgba(74, 222, 128, 0.65);
     border-color: #86efac;
+  }
+
+  /* ========== Short-phone compact layout (iPhone SE 2nd gen, etc.) ==========
+     375px前後の横幅だけではiPhone 16系と判別できないため、画面高も条件にする。
+     盤面カードの大きさは維持し、固定表示の手札・案内と縦方向の余白を詰める。 */
+  @media (max-width: 480px) and (max-height: 700px) {
+    .topbar {
+      gap: 2px 6px;
+      padding: 3px 6px calc(3px + env(safe-area-inset-top, 0px));
+      padding-top: calc(3px + env(safe-area-inset-top, 0px));
+    }
+
+    .track-wrap {
+      gap: 2px;
+    }
+
+    .race-info {
+      gap: 2px;
+      padding: 3px 4px;
+    }
+
+    .race-condition {
+      padding: 1px 2px;
+    }
+
+    .settings-gear {
+      width: 30px;
+      height: 30px;
+    }
+
+    .board {
+      gap: 2px;
+      padding: 3px 5px calc(3px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .opponent-strip {
+      gap: 6px;
+      margin-bottom: 3px;
+      padding: 2px 7px;
+    }
+
+    .opponent-avatar {
+      width: 30px;
+      height: 30px;
+    }
+
+    .opponent-avatar-icon {
+      width: 17px;
+      height: 17px;
+    }
+
+    .opponent-name {
+      font-size: 12px;
+      line-height: 1.15;
+    }
+
+    .opponent-sub {
+      font-size: 8.5px;
+      line-height: 1.15;
+    }
+
+    .opponent-hand-area {
+      gap: 3px;
+      padding: 2px 7px;
+      font-size: 10px;
+    }
+
+    .opponent-hand-area .count {
+      font-size: 11px;
+    }
+
+    .field-image-wrap {
+      gap: clamp(38px, 11vw, 46px) clamp(3px, 1.5vw, 8px);
+      padding: 1vw 2vw 2vw;
+    }
+
+    body.field-3d .field-tilt {
+      /* デッキの立体的な厚み・影まで相手情報欄から離す。 */
+      margin-top: 4px;
+      margin-bottom: 6px;
+    }
+
+    .hand-zone,
+    body.manual-mode .hand-zone,
+    body:not(.manual-mode) .hand-zone.has-cards {
+      bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+      height: 128px;
+      min-height: 128px;
+    }
+
+    .hand-row,
+    body.manual-mode .hand-row {
+      bottom: 8px;
+      height: 108px;
+    }
+
+    .hand-zone .card,
+    body.manual-mode .card {
+      width: 74px;
+      height: 104px;
+    }
+
+    body:not(.manual-mode):has(.hand-zone.has-cards) .narrator {
+      left: 5px;
+      right: 5px;
+      bottom: calc(142px + env(safe-area-inset-bottom, 0px));
+      gap: 5px;
+    }
+
+    body:not(.manual-mode) .narrator-portrait {
+      width: 52px;
+      height: 52px;
+    }
+
+    body:not(.manual-mode) .narrator-bubble {
+      min-height: 48px;
+      gap: 4px;
+      padding: 7px 10px 6px;
+    }
+
+    body:not(.manual-mode) .narrator-text {
+      font-size: 11px;
+      line-height: 1.4;
+    }
+
+    body:not(.manual-mode) .narrator-actions {
+      gap: 5px;
+      margin-top: 0;
+    }
+
+    body:not(.manual-mode) .selection-progress {
+      padding: 4px 7px;
+      font-size: 9px;
+    }
+
+    body:not(.manual-mode) .narrator-next {
+      padding: 6px 9px;
+      font-size: 10px;
+    }
+
+    body:not(.manual-mode) .narrator-back,
+    body:not(.manual-mode) .narrator-forward {
+      padding: 3px 6px;
+      font-size: 8px;
+    }
   }

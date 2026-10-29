@@ -711,6 +711,18 @@
             filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.7));
         }
 
+        .cpu-beta-tag {
+            padding: 2px 6px;
+            border: 1px solid rgba(247, 224, 160, 0.8);
+            border-radius: 999px;
+            font-family: 'Cinzel', sans-serif;
+            font-size: 0.58rem;
+            line-height: 1;
+            letter-spacing: 0.8px;
+            color: #fff2bf;
+            background: rgba(212, 175, 55, 0.14);
+        }
+
 
         .tap-main-text {
             font-family: 'Cinzel', 'Noto Sans JP', sans-serif;
@@ -981,6 +993,7 @@
             border-top: 1px solid rgba(212, 175, 55, 0.3);
             display: flex;
             justify-content: flex-end;
+            gap: 10px;
             background: rgba(10, 15, 22, 0.8);
         }
 
@@ -999,6 +1012,22 @@
         .modal-btn:hover {
             filter: brightness(1.15);
             box-shadow: 0 0 10px rgba(27, 111, 213, 0.6);
+        }
+
+        .modal-btn.secondary {
+            color: #c9d5df;
+            border-color: rgba(201, 213, 223, 0.45);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .beta-notice {
+            margin: 0 0 12px;
+            padding: 9px 12px;
+            border: 1px solid rgba(212, 175, 55, 0.55);
+            border-radius: 10px;
+            color: #ffe59b;
+            background: rgba(212, 175, 55, 0.08);
+            font-weight: 700;
         }
 
         /* ============================================================
@@ -1150,6 +1179,7 @@
                 <button class="cpu-battle-btn" id="btnStartCpu" type="button" title="CPUと対戦を開く">
                     <span class="cpu-icon">⚔️</span>
                     <span>CPUと対戦</span>
+                    <span class="cpu-beta-tag">BETA</span>
                 </button>
             </div>
 
@@ -1175,6 +1205,25 @@
 
     </div>
 
+    <!-- CPU Battle Beta Notice -->
+    <div class="modal-overlay" id="modalCpuBeta">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="cpuBetaTitle">
+            <div class="modal-header">
+                <span class="modal-title" id="cpuBetaTitle">⚔️ CPU対戦モード（BETA）</span>
+                <button class="modal-close-btn" data-close="modalCpuBeta" aria-label="閉じる">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p class="beta-notice">このモードは現在開発中の試作版です。</p>
+                <p>基本的な走破・ガードなどを試遊できますが、一部のカード効果・フォース能力・状況カード・対戦処理などは、未実装または簡略化されています。</p>
+                <p>実際のゲーム全体を再現したものではなく、内容・仕様は今後変更される予定です。</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" data-close="modalCpuBeta">戻る</button>
+                <button class="modal-btn" id="btnConfirmCpu" type="button">BETA版をプレイ</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Rule Confirmation Modal -->
     <div class="modal-overlay" id="modalHelp">
         <div class="modal-card">
@@ -1184,16 +1233,17 @@
             </div>
             <div class="modal-body">
                 <h4>ゲーム概要</h4>
-                <p>「Force of the horse」は、実在・伝説の名馬カードと戦略的なフォースを駆使してゴールを目指す、本格競馬カードシミュレーションバトルです。</p>
+                <p><strong>FORCE OF THE HORSEとは、</strong><br>
+                忠実に再現されたレースの駆け引きを楽しめる、実名馬レースバトルカードゲームです。<br>
+                カードになったレジェンドホースを乗りこなして、対戦相手より早くゴールへ駆け抜けましょう。</p>
                 
                 <h4>基本ルール</h4>
-                <p>1. <strong>競走馬カード</strong>：走破数、ガード値、得意距離・脚質などのステータスを持ちます。</p>
-                <p>2. <strong>フォース・アイテム</strong>：天候・馬場変化や鞭、ヘルメットなどのアイテムでレース局面に介入します。</p>
-                <p>3. <strong>チュートリアル</strong>：「START TUTORIAL」から遊び方の一覧へ進み、レッスンを選べます。</p>
+                <p>1. 馬カードを出し、必要な枚数の<strong>フォースを払って走破</strong>を宣言します。</p>
+                <p>2. 相手は馬カードで<strong>ガード</strong>し、走破で引けるカードの枚数を減らせます。</p>
+                <p>3. アイテム・フォース能力・状況カードを活用し、レース条件に合わせて対戦を有利に進めます。</p>
                 
                 <h4>勝利条件</h4>
-                <p>・馬カードで走破を繰り返し、相手より先に山札を無くした（引ききった）プレイヤーの勝利となります！<br>
-                ・アイテムやフォースを戦略的に使って走破を進め、効率よく山札を減らしましょう。</p>
+                <p>走破を成功させると、自分の山札からカードを引けます。走破を重ね、相手より先に自分の山札を引ききったプレイヤーの勝利です。</p>
             </div>
             <div class="modal-footer">
                 <button class="modal-btn" data-close="modalHelp">閉じる</button>
@@ -1203,7 +1253,7 @@
 
     <!-- Audio Player for Game BGM -->
     <audio id="bgmAudio" loop preload="auto">
-        <source src="Banners_in_the_Gale_recomposed_90sec.mp3" type="audio/mpeg">
+        <source src="Banners_in_the_Gale.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -1217,14 +1267,14 @@
             function saveBgmTime() {
                 try {
                     if (bgm && bgm.currentTime > 0) {
-                        sessionStorage.setItem('foth_bgm_time', String(bgm.currentTime));
+                        sessionStorage.setItem('foth_bgm_time_original', String(bgm.currentTime));
                     }
                 } catch (e) { }
             }
 
             function restoreBgmTime() {
                 try {
-                    const savedTime = sessionStorage.getItem('foth_bgm_time');
+                    const savedTime = sessionStorage.getItem('foth_bgm_time_original');
                     if (savedTime && bgm) {
                         const t = parseFloat(savedTime);
                         if (isFinite(t) && t >= 0) {
@@ -1395,20 +1445,30 @@
 
             // Start CPU Battle Button
             const btnStartCpu = document.getElementById('btnStartCpu');
+            const modalCpuBeta = document.getElementById('modalCpuBeta');
+            const btnConfirmCpu = document.getElementById('btnConfirmCpu');
             if (btnStartCpu) {
                 btnStartCpu.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const rect = btnStartCpu.getBoundingClientRect();
                     createRipple(e.clientX || (rect.left + rect.width / 2), e.clientY || (rect.top + rect.height / 2));
-                    launchGame('CPU対戦を準備中...', 'tutorial.html?mode=manual');
+                    if (modalCpuBeta) modalCpuBeta.classList.add('active');
                 });
                 btnStartCpu.addEventListener('keydown', (e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                         e.preventDefault();
                         const rect = btnStartCpu.getBoundingClientRect();
                         createRipple(rect.left + rect.width / 2, rect.top + rect.height / 2);
-                        launchGame('CPU対戦を準備中...', 'tutorial.html?mode=manual');
+                        if (modalCpuBeta) modalCpuBeta.classList.add('active');
                     }
+                });
+            }
+
+            if (btnConfirmCpu) {
+                btnConfirmCpu.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    if (modalCpuBeta) modalCpuBeta.classList.remove('active');
+                    launchGame('CPU対戦（BETA）を準備中...', 'tutorial.html?mode=manual');
                 });
             }
 
