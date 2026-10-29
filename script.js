@@ -1556,8 +1556,8 @@
     setNarrator('🧠 <b>CPUのターンです。</b>');
     renderAll();
     showBanner('CPUのターンです', 1200).then(function () {
-      setNarrator('🧠 CPU思考中…');
-      showOpponentBubble('思考中…');
+      setNarrator('CPUが考え中…');
+      showOpponentBubble('考え中…');
       sleep(1200).then(function () {
         cpuTurn();
       });
@@ -1985,11 +1985,8 @@
     /* STEP 3: 相手が考える → STEP 4: 走破成功/失敗の結果表示 */
     function afterField() {
       if (interactionMode === 'freeplay' && !isCpuTurn) {
-        var thinkingPopup = $('opponent-thinking-popup');
-        thinkingPopup.style.display = 'flex';
-        setNarrator('🤔 相手プレイヤーはガードをするか考えています。');
-        return sleep(1400).then(function () {
-          thinkingPopup.style.display = 'none';
+        setNarrator('相手プレイヤーはガードをするか考えています。');
+        return showOpponentBubble('考え中…').then(function () {
           if (Math.random() < 0.5) {
             if (totalRun <= 0) {
               return showBanner('走破失敗').then(function () {

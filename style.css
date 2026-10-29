@@ -4225,7 +4225,6 @@
     pointer-events: none;
   }
 
-  #opponent-thinking-popup,
   #run-support-popup,
   #situation-hint-popup {
     position: fixed;
@@ -4238,7 +4237,6 @@
     backdrop-filter: blur(3px);
   }
 
-  #opponent-thinking-popup .popup-box,
   #run-support-popup .popup-box,
   #situation-hint-popup .popup-box {
     background: linear-gradient(180deg, #1a2f22, #0c1710);
@@ -4251,7 +4249,6 @@
     text-align: center;
   }
 
-  #opponent-thinking-popup .popup-title,
   #run-support-popup .popup-title,
   #situation-hint-popup .popup-title {
     font-size: 18px;
@@ -4260,7 +4257,6 @@
     margin-bottom: 8px;
   }
 
-  #opponent-thinking-popup .popup-desc,
   #run-support-popup .popup-desc,
   #situation-hint-popup .popup-desc {
     font-size: 13px;
