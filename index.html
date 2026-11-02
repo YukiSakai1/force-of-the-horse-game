@@ -11,7 +11,7 @@
     <meta name="Slurp" content="noindex, nofollow">
     <meta name="DuckDuckBot" content="noindex, nofollow">
     <title>Force of the horse — CARD & STRATEGY SIMULATION</title>
-    <!-- Version Sync: v1.0.1 - 最新チュートリアル・CPU対戦（50枚デッキ／新UI）同期 -->
+    <!-- Version Sync: v1.0.1 - 最新チュートリアル・CPU対戦UI同期 -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel+Decorative:wght@700;900&family=Cinzel:wght@600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&family=Noto+Serif+JP:wght@500;600;700;900&display=swap" rel="stylesheet">
@@ -645,8 +645,7 @@
             pointer-events: auto;
         }
 
-        #btnStartTutorial:focus-visible,
-        #btnStartCpu:focus-visible {
+        #btnStartTutorial:focus-visible {
             outline: 2px solid #00e5ff;
             outline-offset: 4px;
             border-radius: 999px;
@@ -704,6 +703,20 @@
 
         .cpu-battle-btn:active {
             transform: scale(0.98);
+        }
+
+        .cpu-battle-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.58;
+            filter: saturate(0.55);
+            animation: none;
+        }
+
+        .cpu-battle-btn:disabled:hover,
+        .cpu-battle-btn:disabled:active {
+            transform: none;
+            filter: saturate(0.55);
+            opacity: 0.58;
         }
 
         .cpu-battle-btn .cpu-icon {
@@ -1176,10 +1189,10 @@
                 </div>
 
                 <!-- CPU BATTLE Button (サブCTA：コンパクト) -->
-                <button class="cpu-battle-btn" id="btnStartCpu" type="button" title="CPUと対戦を開く">
+                <button class="cpu-battle-btn" id="btnStartCpu" type="button" title="CPU対戦は開発中です" disabled>
                     <span class="cpu-icon">⚔️</span>
                     <span>CPUと対戦</span>
-                    <span class="cpu-beta-tag">BETA</span>
+                    <span class="cpu-beta-tag">開発中</span>
                 </button>
             </div>
 
@@ -1447,7 +1460,7 @@
             const btnStartCpu = document.getElementById('btnStartCpu');
             const modalCpuBeta = document.getElementById('modalCpuBeta');
             const btnConfirmCpu = document.getElementById('btnConfirmCpu');
-            if (btnStartCpu) {
+            if (btnStartCpu && !btnStartCpu.disabled) {
                 btnStartCpu.addEventListener('click', (e) => {
                     e.stopPropagation();
                     const rect = btnStartCpu.getBoundingClientRect();

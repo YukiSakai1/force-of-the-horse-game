@@ -10,6 +10,15 @@
     box-shadow: 0 0 40px #3ee0ff22;
     font-family: 'Zen Kaku Gothic New', sans-serif;
   }
+
+  /* 00の距離エリア説明中だけ、下段の自分の山札を隠さないよう
+     ナレーションを上側（相手側）へ逃がす。説明終了後は通常位置へ戻る。 */
+  @media (max-width: 859px) {
+    body:not(.manual-mode):has(.hand-zone.has-cards) .narrator.narrator-deck-explanation {
+      top: calc(122px + env(safe-area-inset-top, 0px));
+      bottom: auto;
+    }
+  }
   .lesson-complete::backdrop { background: #020711cc; backdrop-filter: blur(5px); }
   .lesson-complete-kicker { color: #ffe082; font: 500 13px 'Oswald', sans-serif; letter-spacing: .12em; }
   .lesson-complete h2 { font-size: clamp(18px, 5vw, 24px); }
@@ -946,6 +955,10 @@
     background: transparent;
   }
 
+  .se-scroll-spacer {
+    display: none;
+  }
+
   @media (min-width:640px) {
     .board {
       max-width: 720px;
@@ -1108,6 +1121,16 @@
   /* 自分の馬カード置き場（.field-body）は .overlay ではないので、専用にハイライトを定義する。
      ov-field 全体（相手の置き場も含む対角配置ぶん）ではなく、自分の枠だけをハイライトする */
   #field-body.zone-active {
+    outline: 2px solid var(--gold);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(227, 178, 60, .22), 0 0 18px rgba(227, 178, 60, .5);
+    animation: zonePulse 1.4s ease-in-out infinite;
+    transition: box-shadow .25s, outline-color .25s;
+  }
+
+  /* 00の相手の場と自分の手札も、同じ金色のフォーカスで示す。 */
+  #field-body-opp.zone-active,
+  #zone-hand.zone-active {
     outline: 2px solid var(--gold);
     outline-offset: 2px;
     box-shadow: 0 0 0 4px rgba(227, 178, 60, .22), 0 0 18px rgba(227, 178, 60, .5);
@@ -1342,6 +1365,93 @@
       inset 0 0 18px rgba(255, 224, 112, .34),
       0 0 0 3px rgba(255, 224, 112, .26),
       0 0 24px rgba(255, 216, 92, .82);
+  }
+
+  /* 適性説明では、現在の距離エリアであることに加えて
+     「いま確認する対象」と分かる強い金色フォーカスを重ねる。 */
+  .lane.tutorial-focus {
+    outline: 2px solid var(--gold);
+    outline-offset: 3px;
+    animation: tutorialFocusPulse .8s ease-in-out infinite;
+  }
+
+  .lane.tutorial-focus .lane-label {
+    color: #211704;
+    background: #fff0a8;
+    border-color: #fff7cf;
+    text-shadow: none;
+  }
+
+  .card.highlighted.tutorial-flash-focus {
+    outline: 3px solid #fff1a8;
+    outline-offset: 3px;
+    animation: tutorialCardFocusPulse .8s ease-in-out infinite;
+  }
+
+  /* 手札内のカードを単体フォーカスするときは、通常の横スクロール用クリップを外す。 */
+  .hand-row:has(.card.tutorial-flash-focus) {
+    overflow: visible !important;
+  }
+
+  .hand-zone:has(.card.tutorial-flash-focus) {
+    overflow: visible !important;
+  }
+
+  .overlay.zone-active.tutorial-flash-focus,
+  #field-body.zone-active.tutorial-flash-focus,
+  #field-body-opp.zone-active.tutorial-flash-focus,
+  #zone-hand.zone-active.tutorial-flash-focus,
+  .race-info.highlighted.tutorial-flash-focus {
+    outline: 3px solid #fff1a8;
+    outline-offset: 4px;
+    animation: tutorialFocusPulse .8s ease-in-out infinite;
+  }
+
+  .tutorial-spotlight-mask {
+    position: fixed;
+    z-index: 115;
+    pointer-events: none;
+    border-radius: 12px;
+    box-shadow: 0 0 0 9999px rgba(2, 7, 12, .48);
+    opacity: 1;
+    transition: opacity .22s ease;
+    animation: tutorialSpotlightIn .22s ease-out;
+  }
+
+  .tutorial-spotlight-mask.is-closing {
+    opacity: 0;
+  }
+
+  @keyframes tutorialSpotlightIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  body:has(.tutorial-spotlight-mask) .narrator {
+    z-index: 10000 !important;
+    isolation: isolate;
+  }
+
+  @keyframes tutorialFocusPulse {
+    0%, 100% {
+      filter: brightness(1);
+      box-shadow: inset 0 0 16px rgba(255, 224, 112, .32), 0 0 0 3px rgba(255, 210, 55, .3), 0 0 18px rgba(255, 210, 55, .62);
+    }
+    50% {
+      filter: brightness(1.16);
+      box-shadow: inset 0 0 22px rgba(255, 244, 180, .5), 0 0 0 5px rgba(255, 222, 80, .48), 0 0 30px rgba(255, 225, 90, .82);
+    }
+  }
+
+  @keyframes tutorialCardFocusPulse {
+    0%, 100% {
+      filter: brightness(1);
+      box-shadow: 0 6px 14px rgba(0, 0, 0, .5), 0 0 0 3px rgba(255, 210, 55, .42), 0 0 18px rgba(255, 210, 55, .68);
+    }
+    50% {
+      filter: brightness(1.16);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, .58), 0 0 0 5px rgba(255, 235, 125, .58), 0 0 30px rgba(255, 225, 90, .85);
+    }
   }
 
   .lane.empty {
@@ -3145,19 +3255,22 @@
     bottom: auto !important;
     transform: none !important;
     animation: none !important;
-    width: min(300px, 76vw) !important;
+    /* 高さ上限で横長に潰して cover するとカード上下が切れるため、
+       縦幅からも横幅を算出して常に実カード比率を維持する。 */
+    width: min(300px, 76vw, 36.62vh) !important;
     height: auto !important;
     aspect-ratio: 5 / 7.1 !important;
-    max-height: 52vh !important;
+    max-height: none !important;
     border-radius: 14px;
     box-shadow:
       0 20px 60px rgba(0, 0, 0, .95),
       0 0 35px rgba(0, 240, 255, .5),
       0 0 0 1px rgba(255, 255, 255, .2) inset;
     border: 2.5px solid #00f0ff;
-    background-size: cover;
+    background-size: contain;
     background-position: center;
     background-repeat: no-repeat;
+    background-color: #071018;
     pointer-events: none;
     overflow: hidden;
     margin: 0 auto;
@@ -3275,18 +3388,19 @@
     bottom: auto !important;
     transform: none !important;
     animation: none !important;
-    width: min(280px, 74vw) !important;
+    width: min(280px, 74vw, 33.8vh) !important;
     height: auto !important;
     aspect-ratio: 5 / 7.1 !important;
-    max-height: 48vh !important;
+    max-height: none !important;
     border-radius: 12px !important;
     box-shadow:
       0 18px 50px rgba(0, 0, 0, 0.95),
       0 0 28px rgba(0, 240, 255, 0.45) !important;
     border: 2px solid #00f0ff !important;
-    background-size: cover !important;
+    background-size: contain !important;
     background-position: center !important;
     background-repeat: no-repeat !important;
+    background-color: #071018 !important;
     pointer-events: none !important;
     overflow: hidden !important;
     margin: 0 auto !important;
@@ -3493,6 +3607,17 @@
     gap: 16px;
     user-select: none;
     box-sizing: border-box;
+    transition: opacity .18s ease, transform .18s ease, visibility 0s linear 0s;
+  }
+
+  /* 山札やカードの演出中は盤面を隠さない。表示領域は維持し、
+     次の説明が始まる際にレイアウトが跳ねないようにする。 */
+  .narrator.presentation-hidden {
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity .18s ease, transform .18s ease, visibility 0s linear .18s;
   }
 
   .narrator-bubble,
@@ -3774,9 +3899,19 @@
       margin-bottom: 4px;
     }
 
-    body:not(.manual-mode) .board {
+    .board {
       padding-bottom: 8px;
-      scroll-padding-bottom: 18px;
+      scroll-padding-bottom: calc(320px + env(safe-area-inset-bottom, 0px));
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* SPでは固定ナレーション＋手札のぶんだけ、盤面末尾に実スクロール領域を作る。 */
+    body:not(.manual-mode):has(.hand-zone.has-cards) .se-scroll-spacer {
+      display: block;
+      flex: 0 0 calc(330px + env(safe-area-inset-bottom, 0px));
+      width: 1px;
+      pointer-events: none;
     }
 
     body:not(.manual-mode) .hand-zone {
@@ -3807,6 +3942,12 @@
       width: auto;
       margin: 0;
       z-index: 120;
+      pointer-events: none;
+    }
+
+    body:not(.manual-mode):has(.hand-zone.has-cards) .narrator button,
+    body:not(.manual-mode):has(.hand-zone.has-cards) .narrator a {
+      pointer-events: auto;
     }
   }
 
@@ -4509,6 +4650,17 @@
     opacity: 1;
   }
 
+  /* チュートリアルの自動詳細は、Safariの表示領域内にラベルから説明まで収める。 */
+  #closeup-layer.tutorial-detail-closeup {
+    height: 100dvh;
+    max-height: 100dvh;
+  }
+
+  #closeup-layer.tutorial-detail-closeup .closeup-card {
+    width: min(68vw, 270px, calc(100dvh - 390px));
+    flex: 0 1 auto;
+  }
+
   #closeup-layer .closeup-card .card {
     /* 手札では absolute 配置だが、拡大表示ではカード自身を通常フローに戻す。
        これをしないと親の高さが 0 になり、カードだけが画面上端へずれる。 */
@@ -4587,6 +4739,10 @@
 
   #closeup-layer.show .closeup-close-hint {
     opacity: 0.85;
+  }
+
+  #closeup-layer:has(.closeup-action-btn) .closeup-close-hint {
+    display: none;
   }
 
   body.field-cyber #closeup-layer .closeup-toast {
@@ -5367,7 +5523,7 @@
     background: var(--cyber-cyan);
   }
 
-  /* ===================== 初期50枚カード配布（ディール演出）スタイル ===================== */
+  /* ===================== 練習用カード配布（ディール演出）スタイル ===================== */
   .deal-center-deck {
     position: fixed;
     left: 50%;
@@ -5956,7 +6112,7 @@
     .lane-label {
       position: absolute;
       left: 50%;
-      bottom: -12px;
+      bottom: -4px;
       z-index: 5;
       transform: translateX(-50%);
       padding: 2px 5px;
@@ -5967,7 +6123,7 @@
     }
 
     .lane .lane-badge {
-      bottom: -3px;
+      bottom: 2px;
     }
 
     .lane .lane-badge,
@@ -6204,7 +6360,7 @@
 
     /* 中央下のラベルに対し、枚数は右斜め上に配置する。 */
     .lane .lane-badge {
-      bottom: 11px;
+      bottom: 13px;
     }
 
     .lane .lane-badge,
@@ -6754,14 +6910,160 @@
     border-color: #86efac;
   }
 
+  /* ========== Regular-phone single-screen layout (iPhone 16 / 17 etc.) ==========
+     縦に余裕のあるスマホは盤面そのものを圧縮し、固定ナレーションと手札の上に
+     3段すべてが収まるようにする。SEは後続の短画面向けルールで上書きする。 */
+  /* Safariはブラウザ操作部を除いたdvhが700px未満になるため、通常iPhoneは
+     幅380px以上でも判定する。SE（375px幅）は後続の短画面ルールへ回す。 */
+  @media (min-width: 380px) and (max-width: 480px),
+         (max-width: 480px) and (min-height: 701px) {
+    .board {
+      gap: 3px;
+      padding: 4px 5px calc(3px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .opponent-strip {
+      margin: 2px 3px 4px;
+      padding: 4px 8px;
+    }
+
+    .field-tilt {
+      width: 96%;
+      align-self: center;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .field-image-wrap {
+      /* CPU対戦・チュートリアルとも、画面の縦幅を盤面へ使って空白を残さない。 */
+      gap: var(--phone-field-gap, 30px) clamp(3px, 1.2vw, 6px);
+      padding: 1vw 1.5vw 1.5vw;
+    }
+
+    /* 中段の自分／相手の場を少し対角方向へ離して、所属を見分けやすくする。 */
+    #field-body {
+      transform: translateY(50%) translateX(-55%) translateY(var(--field-extra-shift, 0px));
+    }
+
+    #field-body-opp {
+      transform: translateY(-50%) translateX(10%) translateY(var(--field-opp-extra-shift, 0px));
+    }
+
+    #zone-field .slot-frame {
+      transform: translateY(50%) translateX(-55%) translateY(var(--field-extra-shift, 0px));
+    }
+
+    #zone-field .slot-frame-opp {
+      transform: translateY(-50%) translateX(10%) translateY(var(--field-opp-extra-shift, 0px));
+    }
+
+    body.manual-mode .hand-zone,
+    body:not(.manual-mode) .hand-zone.has-cards {
+      bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+      height: 150px;
+      min-height: 150px;
+    }
+
+    body:not(.manual-mode) .hand-row {
+      bottom: 12px;
+      height: 126px;
+    }
+
+    body:not(.manual-mode) .hand-zone .card {
+      width: 82px;
+      height: 115px;
+    }
+
+    body:not(.manual-mode):has(.hand-zone.has-cards) .narrator {
+      bottom: calc(162px + env(safe-area-inset-bottom, 0px));
+      left: 6px;
+      right: 6px;
+      gap: 6px;
+    }
+
+    body:not(.manual-mode) .narrator-portrait {
+      width: 54px;
+      height: 54px;
+    }
+
+    body:not(.manual-mode) .narrator-bubble {
+      min-height: 50px;
+      padding: 8px 11px 7px;
+    }
+
+    body:not(.manual-mode) .narrator-text {
+      font-size: 11.5px;
+      line-height: 1.42;
+    }
+
+    body:not(.manual-mode):has(.hand-zone.has-cards) .se-scroll-spacer {
+      display: none;
+    }
+  }
+
+  /* Pro Maxなど縦長・幅広の端末でも、余った高さを段間の空白へ配分しない。
+     iPhone 16と同じ密度を維持し、盤面全体を上側へ詰めて1画面に収める。 */
+  @media (min-width: 430px) and (max-width: 480px) {
+    .field-image-wrap {
+      gap: var(--phone-field-gap, 30px) clamp(3px, 1.2vw, 6px);
+      padding: 1vw 1.5vw 1.5vw;
+    }
+
+    .opponent-strip {
+      margin-bottom: 4px;
+    }
+  }
+
+  /* 表示できる高さが短いスマホでは、上部と盤面外側の余白を少し詰める。
+     空いた高さは既存の段間計算に渡し、中央の場とデッキの距離に使う。 */
+  @media (min-width: 380px) and (max-width: 429px) and (max-height: 720px) and (orientation: portrait) {
+    .board {
+      gap: 1px;
+      padding-top: 2px;
+    }
+
+    .opponent-strip {
+      margin-top: 1px;
+      margin-bottom: 2px;
+      padding-top: 2px;
+      padding-bottom: 2px;
+    }
+
+    .field-tilt {
+      width: 92%;
+    }
+
+    .field-image-wrap {
+      padding-top: .5vw;
+      padding-bottom: 1vw;
+    }
+  }
+
   /* ========== Short-phone compact layout (iPhone SE 2nd gen, etc.) ==========
      375px前後の横幅だけではiPhone 16系と判別できないため、画面高も条件にする。
      盤面カードの大きさは維持し、固定表示の手札・案内と縦方向の余白を詰める。 */
-  @media (max-width: 480px) and (max-height: 700px) {
+  @media (max-width: 379px) and (max-height: 700px) {
+    #closeup-layer {
+      padding: 10px;
+    }
+
+    #closeup-layer .closeup-card {
+      width: min(64vw, 240px);
+    }
+
+    #closeup-layer .closeup-label {
+      margin-bottom: 8px;
+    }
+
+    #closeup-layer .closeup-toast {
+      margin-top: 9px;
+      padding: 8px 14px;
+    }
+
     .topbar {
-      gap: 2px 6px;
-      padding: 3px 6px calc(3px + env(safe-area-inset-top, 0px));
-      padding-top: calc(3px + env(safe-area-inset-top, 0px));
+      gap: 4px 6px;
+      padding: 4px 6px calc(5px + env(safe-area-inset-top, 0px));
+      padding-top: calc(4px + env(safe-area-inset-top, 0px));
     }
 
     .track-wrap {
@@ -6770,7 +7072,8 @@
 
     .race-info {
       gap: 2px;
-      padding: 3px 4px;
+      padding: 4px;
+      margin-top: 2px;
     }
 
     .race-condition {
@@ -6783,14 +7086,31 @@
     }
 
     .board {
-      gap: 2px;
-      padding: 3px 5px calc(3px + env(safe-area-inset-bottom, 0px));
+      gap: 6px;
+      padding: 6px 5px calc(5px + env(safe-area-inset-bottom, 0px));
+    }
+
+    /* SEのチュートリアルだけ、固定された案内＋手札の高さを盤面末尾に確保する。 */
+    body:not(.manual-mode):has(.hand-zone.has-cards) .board {
+      padding-bottom: calc(5px + env(safe-area-inset-bottom, 0px));
+      scroll-padding-bottom: calc(278px + env(safe-area-inset-bottom, 0px));
+      touch-action: pan-y;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    /* paddingではなく盤面内の実要素として高さを確保し、iOS Safariでも
+       必ずscrollHeightが増えるようにする。 */
+    body:not(.manual-mode):has(.hand-zone.has-cards) .se-scroll-spacer {
+      display: block;
+      flex: 0 0 calc(286px + env(safe-area-inset-bottom, 0px));
+      width: 1px;
+      pointer-events: none;
     }
 
     .opponent-strip {
       gap: 6px;
-      margin-bottom: 3px;
-      padding: 2px 7px;
+      margin: 2px 3px 8px;
+      padding: 3px 7px;
     }
 
     .opponent-avatar {
@@ -6824,14 +7144,24 @@
     }
 
     .field-image-wrap {
-      gap: clamp(38px, 11vw, 46px) clamp(3px, 1.5vw, 8px);
+      gap: var(--phone-field-gap, 30px) clamp(3px, 1.5vw, 8px);
       padding: 1vw 2vw 2vw;
+    }
+
+    #field-body,
+    #zone-field .slot-frame {
+      transform: translateY(50%) translateX(-55%) translateY(var(--field-extra-shift, 0px));
+    }
+
+    #field-body-opp,
+    #zone-field .slot-frame-opp {
+      transform: translateY(-50%) translateX(10%) translateY(var(--field-opp-extra-shift, 0px));
     }
 
     body.field-3d .field-tilt {
       /* デッキの立体的な厚み・影まで相手情報欄から離す。 */
-      margin-top: 4px;
-      margin-bottom: 6px;
+      margin-top: 8px;
+      margin-bottom: 10px;
     }
 
     .hand-zone,
@@ -6857,8 +7187,15 @@
     body:not(.manual-mode):has(.hand-zone.has-cards) .narrator {
       left: 5px;
       right: 5px;
-      bottom: calc(142px + env(safe-area-inset-bottom, 0px));
+      bottom: calc(146px + env(safe-area-inset-bottom, 0px));
       gap: 5px;
+      /* 固定ナレーション上からの縦スワイプも背面の盤面へ通す。 */
+      pointer-events: none;
+    }
+
+    body:not(.manual-mode):has(.hand-zone.has-cards) .narrator button,
+    body:not(.manual-mode):has(.hand-zone.has-cards) .narrator a {
+      pointer-events: auto;
     }
 
     body:not(.manual-mode) .narrator-portrait {
@@ -6896,5 +7233,9 @@
     body:not(.manual-mode) .narrator-forward {
       padding: 3px 6px;
       font-size: 8px;
+    }
+
+    .banner-stage.has-card {
+      gap: 10px;
     }
   }

@@ -20,7 +20,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=101">
+  <link rel="stylesheet" href="style.css?v=147">
   <script type="importmap">
 {
     "imports": {
@@ -90,12 +90,6 @@
     </header>
 
     <main class="board" id="board">
-      <div id="closeup-layer">
-        <div class="closeup-label" id="closeup-label"></div>
-        <div class="closeup-card" id="closeup-card"></div>
-        <div class="closeup-toast" id="closeup-toast"></div>
-        <div class="closeup-close-hint">タップ / クリックで閉じる</div>
-      </div>
       <section class="opponent-strip" id="zone-opponent">
         <div class="opponent-avatar" aria-label="相手アバター">
           <svg class="opponent-avatar-icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -206,6 +200,8 @@
         </div>
       </div>
 
+      <div class="se-scroll-spacer" aria-hidden="true"></div>
+
     </main>
 
     <!-- 盤面とは別の案内領域に置き、カードとの重なりを防ぐ -->
@@ -235,6 +231,14 @@
       <button class="hand-nav-btn hand-prev" id="hand-prev" type="button" aria-label="手札を左へスクロール">◀</button>
       <button class="hand-nav-btn hand-next" id="hand-next" type="button" aria-label="手札を右へスクロール">▶</button>
     </section>
+
+    <!-- 盤面スクロールの影響を受けない全画面カード詳細 -->
+    <div id="closeup-layer">
+      <div class="closeup-label" id="closeup-label"></div>
+      <div class="closeup-card" id="closeup-card"></div>
+      <div class="closeup-toast" id="closeup-toast"></div>
+      <div class="closeup-close-hint">タップ / クリックで閉じる</div>
+    </div>
 
     <div class="banner-overlay" id="banner-overlay">
       <div class="banner-stage" id="banner-stage">
@@ -380,7 +384,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=52"></script>
+  <script src="script.js?v=96"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';

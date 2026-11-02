@@ -193,6 +193,14 @@
     if (value === '中距離') return '中';
     return '長';
   }
+  function canGuardWithRace(card) {
+    return !!(
+      card &&
+      card.type === 'horse' &&
+      (card.dist || '').indexOf(raceDistanceKey(race.distance)) >= 0 &&
+      (card.surface || []).indexOf(race.surface) >= 0
+    );
+  }
   function styleMatchesCurrentArea(card, lane) {
     lane = lane || currentLane();
     return !!(lane && (card.style || '').indexOf(lane.label) >= 0);
@@ -692,11 +700,13 @@
   }
 
   function deckSourceRect() {
-    var el = document.querySelector('.lane.active .lane-stack');
+    // 山札全体（厚み・影を含む枠）ではなく、実際に一番上に見えているカードを
+    // 始点にする。レスポンシブ調整で山札の厚みが変わってもドロー位置をずらさない。
+    var el = document.querySelector('.lane.active .lane-back-0');
     return el ? el.getBoundingClientRect() : $('lanes').getBoundingClientRect();
   }
   function cpuDeckSourceRect() {
-    var el = document.querySelector('.opp-lane.active .lane-stack');
+    var el = document.querySelector('.opp-lane.active .lane-back-0');
     return el ? el.getBoundingClientRect() : $('opp-lanes').getBoundingClientRect();
   }
 
@@ -739,6 +749,44 @@
   function adjustFieldDiagonalLayout() {
     var zoneFieldEl = $('zone-field');
 
+    // 縦向きの通常サイズのスマホでは、場を個別に動かさず、盤面の段間で
+    // 手札までの余白を調整する。カードの大きさは変更しない。
+    var regularPhone = window.matchMedia('(min-width: 380px) and (max-width: 480px) and (orientation: portrait)').matches;
+    var shortPhone = window.matchMedia('(max-width: 379px) and (max-height: 700px) and (orientation: portrait)').matches;
+    var fieldWrap = $('field-image-wrap');
+    if ((regularPhone || shortPhone) && zoneFieldEl && fieldWrap) {
+      zoneFieldEl.style.setProperty('--field-opp-extra-shift', '0px');
+      zoneFieldEl.style.setProperty('--field-extra-shift', '0px');
+      fieldWrap.style.setProperty('--phone-field-gap', '30px');
+      var phoneHand = $('zone-hand');
+      var phoneDeck = $('zone-deck');
+      if (phoneHand && phoneDeck) {
+        // 配布前は手札が非表示なので、表示後と同じ位置を一時的に測定する。
+        // 同一処理内で元に戻すため、空の手札を画面に表示しない。
+        var handWasVisible = phoneHand.classList.contains('has-cards');
+        if (!handWasVisible) phoneHand.classList.add('has-cards');
+        var available = phoneHand.getBoundingClientRect().top - phoneDeck.getBoundingClientRect().bottom;
+        if (!handWasVisible) phoneHand.classList.remove('has-cards');
+        var gap = shortPhone
+          ? Math.max(8, Math.min(45, 30 + (available - 12) / 2))
+          : Math.max(20, Math.min(90, 30 + (available - 10) / 2));
+        fieldWrap.style.setProperty('--phone-field-gap', gap.toFixed(1) + 'px');
+      }
+      // 対角をできるだけ広く保ち、上下のデッキに近すぎる場合だけ両側を対称に補正する。
+      var phoneOppDeck = $('zone-opp-deck');
+      var phoneOppField = $('field-body-opp');
+      var phoneOwnField = $('field-body');
+      if (phoneDeck && phoneOppDeck && phoneOppField && phoneOwnField) {
+        var topOverlap = phoneOppDeck.getBoundingClientRect().bottom - phoneOppField.getBoundingClientRect().top;
+        var bottomOverlap = phoneOwnField.getBoundingClientRect().bottom - phoneDeck.getBoundingClientRect().top;
+        var adjustment = Math.max(0, topOverlap + 4, bottomOverlap + 4);
+        zoneFieldEl.style.setProperty('--field-opp-extra-shift', adjustment + 'px');
+        zoneFieldEl.style.setProperty('--field-extra-shift', -adjustment + 'px');
+      }
+      return;
+    }
+    if (fieldWrap) fieldWrap.style.removeProperty('--phone-field-gap');
+
     // デスクトップ（860px以上）では 3D パース変換後に getBoundingClientRect() が
     // 実レイアウト位置と乖離するため、重なり補正を行うと逆に大きなスペースが生まれる。
     // デスクトップは grid の row-gap で十分なスペースを確保しているのでスキップする。
@@ -767,14 +815,13 @@
     var fieldRect = fieldEl.getBoundingClientRect();
     if (oppDeckRect.width === 0 || fieldOppRect.width === 0 || deckRect.width === 0 || fieldRect.width === 0) return;
 
-    // 相手の馬カード置き場が、相手の山札列と重なっていれば下にずらす
-    // （#zone-field に設定することで、枠自体とブラケット装飾の両方に伝わる）
+    // 双方を同じ量だけ内側に寄せる。片側だけ補正すると端末ごとに
+    // 自分と相手の場の対角関係が変わってしまう。
     var overlapTop = oppDeckRect.bottom - fieldOppRect.top;
-    zoneFieldEl.style.setProperty('--field-opp-extra-shift', (overlapTop > 0 ? (overlapTop + 8) : 0) + 'px');
-
-    // 自分の馬カード置き場が、自分の山札列と重なっていれば上にずらす
     var overlapBottom = fieldRect.bottom - deckRect.top;
-    zoneFieldEl.style.setProperty('--field-extra-shift', (overlapBottom > 0 ? -(overlapBottom + 8) : 0) + 'px');
+    var sharedShift = Math.max(0, overlapTop + 8, overlapBottom + 8);
+    zoneFieldEl.style.setProperty('--field-opp-extra-shift', sharedShift + 'px');
+    zoneFieldEl.style.setProperty('--field-extra-shift', -sharedShift + 'px');
   }
 
   function updateOpponentHandDisplay() {
@@ -828,6 +875,7 @@
   /* ===================== narrator / progress ===================== */
   var narratorHistory = [];
   var narratorHistoryIndex = -1;
+  var presentationMotionDepth = 0;
 
   function renderNarratorAt(idx) {
     narratorHistoryIndex = idx;
@@ -851,33 +899,34 @@
     renderNarratorAt(narratorHistory.length - 1);
   }
 
+  function setNarratorPresentationHidden(hidden) {
+    var narratorEl = $('narrator');
+    if (!narratorEl) return;
+    if (hidden && document.body.classList.contains('manual-mode')) return;
+    narratorEl.classList.toggle('presentation-hidden', !!hidden);
+    narratorEl.style.opacity = hidden ? '0' : '';
+    narratorEl.style.visibility = hidden ? 'hidden' : '';
+    narratorEl.style.pointerEvents = hidden ? 'none' : '';
+    narratorEl.setAttribute('aria-hidden', hidden ? 'true' : 'false');
+  }
+
+  function beginPresentationMotion() {
+    if (document.body.classList.contains('manual-mode')) return false;
+    presentationMotionDepth++;
+    setNarratorPresentationHidden(true);
+    return true;
+  }
+
+  function endPresentationMotion(active) {
+    if (!active) return;
+    presentationMotionDepth = Math.max(0, presentationMotionDepth - 1);
+    if (presentationMotionDepth === 0) setNarratorPresentationHidden(false);
+  }
+
   function focusTutorialTarget(targetEl) {
-    var board = $('board');
-    var narrator = $('narrator');
-    if (!board || !targetEl) return;
-
-    // 手札は盤面とは別の表示領域にあるため、手札選択時は盤面を動かさない。
-    var hand = $('zone-hand');
-    if (hand && (targetEl === hand || hand.contains(targetEl))) return;
-
-    requestAnimationFrame(function () {
-      var boardRect = board.getBoundingClientRect();
-      var targetRect = targetEl.getBoundingClientRect();
-      var narratorRect = narrator ? narrator.getBoundingClientRect() : { top: boardRect.bottom };
-      var safeTop = boardRect.top + 18;
-      var safeBottom = Math.min(boardRect.bottom - 18, narratorRect.top - 16);
-
-      // 説明対象がナレーターに隠れず、見えている領域の中央に来るようにする。
-      if (safeBottom <= safeTop) safeBottom = boardRect.bottom - 18;
-      var targetCenter = targetRect.top + (targetRect.height / 2);
-      var safeCenter = safeTop + ((safeBottom - safeTop) / 2);
-      var nextTop = board.scrollTop + targetCenter - safeCenter;
-      var maxTop = Math.max(0, board.scrollHeight - board.clientHeight);
-      board.scrollTo({
-        top: Math.max(0, Math.min(maxTop, nextTop)),
-        behavior: 'smooth'
-      });
-    });
+    // フォーカス演出は金色の強調だけで伝え、表示位置は動かさない。
+    // 自動スクロール後に余白が残る問題を避けるため、全端末で無効化している。
+    return targetEl;
   }
 
   function selectionLabel(mode) {
@@ -929,6 +978,14 @@
   document.addEventListener('click', function (e) {
     var nextBtn = $('narrator-next');
     if (!nextBtn || nextBtn.style.display === 'none') return;
+    var narratorEl = $('narrator');
+    // フォーカス説明中は盤面が操作対象ではないため、暗転部分を含む画面タップで進める。
+    // ボタン自身のクリックはここで再発火させると循環するので、そのまま通常処理に任せる。
+    if (narratorEl && narratorEl.classList.contains('narrator-spotlight-portal')) {
+      if (e.target.closest('button')) return;
+      nextBtn.click();
+      return;
+    }
     if (e.target.closest('button, .card, .popup-box, #settings-overlay, #banner-overlay, .drag-handle, .lane, .opp-lane, .field-body, .field-body-opp, .farm-pile, #situation-body')) return;
     nextBtn.click();
   });
@@ -1081,7 +1138,10 @@
         ghost.style.transform = 'translate(' + dx + 'px,' + dy + 'px) scale(' + scale + ')';
         ghost.style.opacity = '0.7';
       });
-      setTimeout(function () { ghost.remove(); resolve(); }, 480);
+      setTimeout(function () {
+        ghost.remove();
+        resolve();
+      }, 480);
     });
   }
 
@@ -1166,6 +1226,175 @@
       if (targetEl && targetEl.classList) targetEl.classList.remove('highlighted');
       if (zoneId) setZoneActive(zoneId, false);
     });
+  }
+
+  async function flashTutorialTarget(targetEl, focusClass, detailCard) {
+    if (!targetEl) return;
+    showNextButton(false);
+    var narratorMotion = beginPresentationMotion();
+    targetEl.classList.add(focusClass);
+    targetEl.classList.add('tutorial-flash-focus');
+    var spotlight = showTutorialSpotlight(targetEl);
+    if (detailCard) {
+      // 先に盤面上のカードだけを見せ、その後で詳細表示へ切り替える。
+      await sleep(1400);
+      targetEl.classList.remove(focusClass);
+      targetEl.classList.remove('tutorial-flash-focus');
+      await hideTutorialSpotlight(spotlight);
+      raiseCloseupAboveSpotlight();
+      $('closeup-layer').classList.add('tutorial-detail-closeup');
+      await new Promise(function (resolve) {
+        CardCloseup.show(detailCard, {
+          label: '脚質・適性を確認',
+          onHide: resolve
+        });
+      });
+      $('closeup-layer').classList.remove('tutorial-detail-closeup');
+      restoreCloseupAfterSpotlight();
+      endPresentationMotion(narratorMotion);
+      return;
+    }
+    await sleep(1600);
+    targetEl.classList.remove(focusClass);
+    targetEl.classList.remove('tutorial-flash-focus');
+    await hideTutorialSpotlight(spotlight);
+    endPresentationMotion(narratorMotion);
+  }
+
+  var spotlightNarratorPlaceholder = null;
+  var spotlightCloseupPlaceholder = null;
+
+  function raiseNarratorAboveSpotlight() {
+    var narrator = $('narrator');
+    if (!narrator || spotlightNarratorPlaceholder) return;
+    spotlightNarratorPlaceholder = document.createComment('narrator-spotlight-placeholder');
+    narrator.parentNode.insertBefore(spotlightNarratorPlaceholder, narrator);
+    document.body.appendChild(narrator);
+    narrator.classList.add('narrator-spotlight-portal');
+  }
+
+  function restoreNarratorAfterSpotlight() {
+    var narrator = $('narrator');
+    if (!spotlightNarratorPlaceholder) return;
+    if (narrator && spotlightNarratorPlaceholder.parentNode) {
+      narrator.classList.remove('narrator-spotlight-portal');
+      spotlightNarratorPlaceholder.parentNode.insertBefore(narrator, spotlightNarratorPlaceholder);
+    }
+    spotlightNarratorPlaceholder.remove();
+    spotlightNarratorPlaceholder = null;
+  }
+
+  function raiseCloseupAboveSpotlight() {
+    var closeup = $('closeup-layer');
+    if (!closeup || spotlightCloseupPlaceholder) return;
+    spotlightCloseupPlaceholder = document.createComment('closeup-spotlight-placeholder');
+    closeup.parentNode.insertBefore(spotlightCloseupPlaceholder, closeup);
+    document.body.appendChild(closeup);
+  }
+
+  function restoreCloseupAfterSpotlight() {
+    var closeup = $('closeup-layer');
+    if (!spotlightCloseupPlaceholder) return;
+    if (closeup && spotlightCloseupPlaceholder.parentNode) {
+      spotlightCloseupPlaceholder.parentNode.insertBefore(closeup, spotlightCloseupPlaceholder);
+    }
+    spotlightCloseupPlaceholder.remove();
+    spotlightCloseupPlaceholder = null;
+  }
+
+  function showTutorialSpotlight(targetEl) {
+    if (!targetEl) return null;
+    var pad = 6;
+    var mask = document.createElement('div');
+    mask.className = 'tutorial-spotlight-mask';
+    function updateSpotlightPosition() {
+    var rect = targetEl.getBoundingClientRect();
+    mask.style.left = Math.max(0, rect.left - pad) + 'px';
+    mask.style.top = Math.max(0, rect.top - pad) + 'px';
+    mask.style.width = Math.min(window.innerWidth, rect.width + pad * 2) + 'px';
+    mask.style.height = Math.min(window.innerHeight, rect.height + pad * 2) + 'px';
+    if (targetEl.classList.contains('card') && targetEl.closest('.hand-row')) {
+      // 扇状の手札は回転しているため、外接する四角形ではなくカードに合わせて窓を回転させる。
+      var matrix = new DOMMatrixReadOnly(getComputedStyle(targetEl).transform);
+      var cardWidth = targetEl.offsetWidth * Math.hypot(matrix.m11, matrix.m12);
+      var cardHeight = targetEl.offsetHeight * Math.hypot(matrix.m21, matrix.m22);
+      var angle = Math.atan2(matrix.m12, matrix.m11) * 180 / Math.PI;
+      mask.style.width = (cardWidth + pad * 2) + 'px';
+      mask.style.height = (cardHeight + pad * 2) + 'px';
+      mask.style.left = (rect.left + rect.width / 2 - cardWidth / 2 - pad) + 'px';
+      mask.style.top = (rect.top + rect.height / 2 - cardHeight / 2 - pad) + 'px';
+      mask.style.transform = 'rotate(' + angle + 'deg)';
+    }
+    }
+    updateSpotlightPosition();
+    // 盤面や手札のスクロールは子要素で発生するため、キャプチャ段階で検知する。
+    document.addEventListener('scroll', updateSpotlightPosition, true);
+    window.addEventListener('resize', updateSpotlightPosition);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('scroll', updateSpotlightPosition);
+      window.visualViewport.addEventListener('resize', updateSpotlightPosition);
+    }
+    mask.cleanupPositionTracking = function () {
+      document.removeEventListener('scroll', updateSpotlightPosition, true);
+      window.removeEventListener('resize', updateSpotlightPosition);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('scroll', updateSpotlightPosition);
+        window.visualViewport.removeEventListener('resize', updateSpotlightPosition);
+      }
+    };
+    raiseNarratorAboveSpotlight();
+    document.body.appendChild(mask);
+    return mask;
+  }
+
+  async function hideTutorialSpotlight(mask) {
+    if (mask) {
+      if (mask.cleanupPositionTracking) mask.cleanupPositionTracking();
+      mask.classList.add('is-closing');
+      await sleep(220);
+      mask.remove();
+    }
+    restoreNarratorAfterSpotlight();
+  }
+
+  async function explainWithPersistentFocus(targetEl, focusClass, texts, progressStart) {
+    var messages = Array.isArray(texts) ? texts : [texts];
+    if (!targetEl) {
+      for (var mi = 0; mi < messages.length; mi++) {
+        if (typeof progressStart === 'number') setProgress(progressStart + mi);
+        setNarrator(messages[mi]);
+        await waitNext();
+      }
+      return;
+    }
+    if (typeof progressStart === 'number') setProgress(progressStart);
+    showNextButton(false);
+    var narratorEl = $('narrator');
+    var moveNarratorForDeck = targetEl.id === 'zone-deck';
+    if (moveNarratorForDeck && narratorEl) narratorEl.classList.add('narrator-deck-explanation');
+    var narratorMotion = beginPresentationMotion();
+    targetEl.classList.add(focusClass);
+    targetEl.classList.add('tutorial-flash-focus');
+    var spotlight = showTutorialSpotlight(targetEl);
+    await sleep(1000);
+    // 新しい説明へ差し替えてから表示を戻すことで、直前の文章を一瞬見せない。
+    setNarrator(messages[0]);
+    endPresentationMotion(narratorMotion);
+    for (var i = 0; i < messages.length; i++) {
+      await waitNext();
+      if (i + 1 < messages.length) {
+        if (typeof progressStart === 'number') setProgress(progressStart + i + 1);
+        setNarrator(messages[i + 1]);
+      }
+    }
+    showNextButton(false);
+    // ナレーションを先にフェードアウトし、その後に強調と暗転を滑らかに解除する。
+    setNarratorPresentationHidden(true);
+    await sleep(180);
+    targetEl.classList.remove(focusClass);
+    targetEl.classList.remove('tutorial-flash-focus');
+    await hideTutorialSpotlight(spotlight);
+    if (moveNarratorForDeck && narratorEl) narratorEl.classList.remove('narrator-deck-explanation');
   }
 
   /* ===================== interactive waits ===================== */
@@ -1714,7 +1943,7 @@
       titleEl.innerHTML = horseCard ? ('相手が「<b>' + horseCard.name + '</b>」で走破！') : '相手が走破してきました！';
     }
 
-    var canGuard = hand.some(function (c) { return c.type === 'horse'; });
+    var canGuard = hand.some(canGuardWithRace);
     var descEl = $('guard-desc');
     var btnsEl = $('guard-btns');
     popup.style.display = 'flex';
@@ -1769,8 +1998,8 @@
   function selectGuard(card, skipSupportOffer) {
     if (phase !== 'guard_select') return;
     if (card.type !== 'horse') { shakeCard(card.id); return; }
-    if ((card.dist || '').indexOf(raceDistanceKey(race.distance)) < 0) {
-      setNarrator('この馬は今回の<b>' + race.distance + '</b>をガードできません。距離適性を確認してください。');
+    if (!canGuardWithRace(card)) {
+      setNarrator('この馬は今回の<b>' + race.surface + '・' + race.distance + '</b>をガードできません。適性距離と得意馬場の両方を確認してください。');
       shakeCard(card.id);
       return;
     }
@@ -2815,25 +3044,25 @@
     };
   })();
 
-  /* ===================== 初期50枚カード配布演出 ===================== */
+  /* ===================== 練習用カードの初期配布演出 ===================== */
   function makeStarterHand() {
     return [forceCard(), forceCard(), forceCard(), goldShip(), rousham(), whip(), goggles()];
   }
 
   async function dealInitialCards(isManual, runId) {
-    // 画面中央に50枚デッキスタックを生成
+    // 画面中央に練習用デッキスタックを生成
     var centerEl = document.createElement('div');
     centerEl.className = 'deal-center-deck';
     centerEl.innerHTML =
       '<div class="deal-deck-stack">' +
       '<div class="deal-deck-back"></div>' +
-      '<div class="deal-deck-badge" id="deal-deck-count">50</div>' +
-      '<div class="deal-deck-label">DECK (50枚)</div>' +
+      '<div class="deal-deck-badge" id="deal-deck-count">60</div>' +
+      '<div class="deal-deck-label">PRACTICE DECK</div>' +
       '</div>';
     document.body.appendChild(centerEl);
 
     var countBadge = centerEl.querySelector('#deal-deck-count');
-    var currentCount = 50;
+    var currentCount = 60;
 
     function updateDeckCount(val) {
       currentCount = val;
@@ -2887,7 +3116,7 @@
 
     // ① 最初の7枚を手札へ配る
     if (!isManual) {
-      setNarrator('今回はチュートリアルなので、使うカードは50枚！まずは<b>最初の7枚を手札</b>に配るよ。');
+      setNarrator('今回は<b>練習用のカード</b>を使うよ。まずは<b>最初の7枚を手札</b>に配ろう。');
     }
     var handArea = $('zone-hand');
     var handZone = $('hand-row');
@@ -2918,9 +3147,9 @@
     await sleep(isManual ? 150 : 300);
     if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
 
-    // ② 4つの距離エリア（山札：各8枚・計32枚）へ配る
+    // ② 4つの距離エリア（山札：各10枚・計40枚）へ配る
     if (!isManual) {
-      setNarrator('次に、4つの距離エリア（山札）へ<b>それぞれ8枚（計32枚）</b>配置するよ。');
+      setNarrator('次に、4つの距離エリア（山札）へ<b>それぞれ10枚（計40枚）</b>配置するよ。');
     }
     var laneKeys = ['nige', 'senko', 'sashi', 'oikomi'];
     for (var li = 0; li < laneKeys.length; li++) {
@@ -2930,15 +3159,15 @@
       var laneEl = document.querySelector('.lane[data-lane="' + lKey + '"]');
       var laneRect = laneEl ? laneEl.getBoundingClientRect() : $('lanes').getBoundingClientRect();
 
-      // 各レーンへテンポよくカードが飛ぶ（2回のゴーストで8枚配る演出）
+      // 各レーンへテンポよくカードが飛ぶ（2回のゴーストで10枚配る演出）
       for (var step = 0; step < 2; step++) {
         flyDealGhost(laneRect, 180);
         await sleep(isManual ? 40 : 70);
       }
       // モード切替で配布が中断された場合、旧処理から山札枚数を書き戻さない。
       if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
-      laneObj.count = 8;
-      updateDeckCount(currentCount - 8);
+      laneObj.count = 10;
+      updateDeckCount(currentCount - 10);
       renderDeckLanes();
       if (laneEl) {
         laneEl.classList.add('deal-flash');
@@ -2959,7 +3188,8 @@
     var farmRect = farmZone.getBoundingClientRect();
     var starterFarm = [
       forceCard(), forceCard(), forceCard(), forceCard(), forceCard(),
-      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(), forceCard()
+      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(),
+      forceCard(), forceCard(), forceCard()
     ];
     for (var fi = 0; fi < starterFarm.length; fi++) {
       if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
@@ -2980,11 +3210,19 @@
     centerEl.classList.add('hide');
     setTimeout(function () { centerEl.remove(); }, 350);
     await sleep(350);
+    // 00では配布中に手札と山札が個別に描画されるため、配布完了後に
+    // 手札の位置を基準とする盤面レイアウトを改めて計算する。
+    if (!runId || runId === tutorialRunId) adjustFieldDiagonalLayout();
   }
 
-  function rewardDraw(n) {
+  function rewardDraw(n, opts) {
+    opts = opts || {};
     var pool = FREEPLAY_POOL;
-    var chain = Promise.resolve();
+    var narratorMotion = opts.hideNarrator === false ? false : beginPresentationMotion();
+    setZoneActive('zone-deck', true);
+    focusTutorialTarget($('zone-deck'));
+    // 先に山札へ視線を移す短い間を作ってからカードを飛ばす。
+    var chain = sleep(240);
     for (var i = 0; i < n; i++) {
       (function (i) {
         chain = chain.then(function () {
@@ -3002,7 +3240,10 @@
         });
       })(i);
     }
-    return chain;
+    return chain.finally(function () {
+      setZoneActive('zone-deck', false);
+      endPresentationMotion(narratorMotion);
+    });
   }
 
 
@@ -3286,10 +3527,29 @@
       var horse = horses[turn];
       var step = 2 + turn * 7;
       setProgress(step);
-      var explanation = turn === 0
-        ? '今いるエリアは<b>逃げ</b>。<b>セイウンスカイの脚質にも「逃げ」</b>があるので、脚質一致で<b>走破数が+1</b>になるよ。芝と長距離の適性も合っているね。'
-        : '2ターン目は<b>シルクメビウス</b>で走破しよう。この馬は<b>ダート・マイル／中距離</b>が適性。今回の<b>芝・長距離</b>とは両方違うので、<b>距離で−1、コースで−1</b>になるよ。脚質も今の「逃げ」と一致していないね。';
-      await explainStep(cardElById(horse.id), null, explanation);
+      var laneEl = document.querySelector('.lane[data-lane="nige"]');
+      var horseEl = cardElById(horse.id);
+
+      setNarrator(turn === 0
+        ? '今いるデッキエリアは<b>「逃げ」</b>だよ。まずは盤面の逃げエリアを確認しよう。'
+        : '2ターン目も、今いるデッキエリアは<b>「逃げ」</b>だよ。もう一度エリアを確認しよう。');
+      await waitNext();
+      if (runId !== tutorialRunId) return;
+      await flashTutorialTarget(laneEl, 'tutorial-focus');
+      if (runId !== tutorialRunId) return;
+
+      setNarrator(turn === 0
+        ? '<b>セイウンスカイ</b>の脚質は<b>「逃げ・先行」</b>。カードにも「逃げ」があるね。'
+        : '<b>シルクメビウス</b>の脚質は<b>「先行・差し」</b>。「逃げ」は持っていないね。');
+      await waitNext();
+      if (runId !== tutorialRunId) return;
+      await flashTutorialTarget(horseEl, 'highlighted', horse);
+      if (runId !== tutorialRunId) return;
+
+      setNarrator(turn === 0
+        ? 'デッキエリアの<b>「逃げ」</b>と脚質が一致したので、走破数が<b>+1</b>されるよ。芝と長距離の適性も合っているね。'
+        : '今回はデッキエリアの<b>「逃げ」</b>と脚質が一致しないので、+1はなし。さらに<b>ダート・マイル／中距離</b>が適性なので、今回の芝・長距離では<b>距離−1、コース−1</b>になるよ。');
+      await waitNext();
       if (runId !== tutorialRunId) return;
 
       setProgress(step + 1);
@@ -3348,7 +3608,7 @@
         showNextButton(false);
         await showOpponentBubble('今回は走破せずに見送ります');
         if (runId !== tutorialRunId) return;
-        await rewardDraw(1);
+        await rewardDraw(1, { hideNarrator: false });
         if (runId !== tutorialRunId) return;
         setNarrator('相手は練習のため走破せずにターンを終えたよ。<b>自分の2ターン目</b>が始まり、最初の<b>1枚を引いた</b>よ。同じレース条件で、次は適性が合わない馬を使ってみよう。');
         await waitNext();
@@ -3423,7 +3683,7 @@
 
     setProgress(7);
     var runAfter = effectiveRun(field, runBonus, currentLane());
-    setNarrator('<b>走破値が' + runBefore + ' → ' + runAfter + 'になった！</b> 馬カードの右下の数字も増えているね。本番では、馬とコストを選んだ後のアイテム選択で使うよ。今回は相手は見送るので、<b>' + runAfter + '枚引ける</b>よ。');
+    setNarrator('<b>走破値が' + runBefore + ' → ' + runAfter + 'になった！</b> 馬カードの右下の数字も増えているね。本番では、馬とフォースを選んだ後のアイテム選択で使うよ。今回は相手は見送るので、<b>' + runAfter + '枚引ける</b>よ。');
     focusTutorialTarget($('field-body'));
     await waitNext();
     if (runId !== tutorialRunId) return;
@@ -3468,22 +3728,31 @@
 
   // 00は盤面の案内だけで完結し、走破・ガードの操作へ進まない。
   async function runIntroLesson(runId) {
-    var steps = [
-      ['race-info', 'ここに表示されているのが<b>レース条件</b>。<b>競馬場</b>は開催場所、<b>コース</b>は芝かダート、<b>距離</b>はレースの長さ、<b>馬場</b>は「良」「稍重」「重」「不良」といった馬場状態を表しているよ。'],
-      ['race-info', '今回は<b>' + race.racecourse + '・' + race.surface + '・' + race.distance + '・' + race.trackCondition + '</b>のレースだよ。この条件は<b>お互いに共通</b>。馬カードの適性や能力に関わるので、走破やガードに使う馬を選ぶときに確認しよう！'],
-      ['field-body', 'ここが<b>自分の場</b>。走破する馬や、ガードに使う馬を置く場所だよ。'],
-      ['field-body-opp', 'ここが<b>相手の場</b>。相手が出した馬カードが表示されるよ。自分の場と見比べながら勝負しよう。'],
-      ['zone-farm', 'ここが<b>ファーム</b>。手札と山札以外の残りのカード（11枚）や、使い終わったカードを置く場所だよ。'],
-      ['zone-situation', 'ここは<b>状況カード置き場</b>。レース全体に影響する状況カードを置くよ。詳しい使い方は、状況カードのレッスンで覚えよう。'],
-      ['zone-hand', '画面下に並んでいるのが<b>自分の手札</b>。<b>馬カード</b>で走破やガードを行い、馬を出すために<b>フォースカード</b>を使うよ。<b>アイテムカード</b>は馬や自分の行動を助けてくれるんだ。'],
-      ['zone-deck', 'これが<b>距離エリア（山札）</b>。「逃げ」「先行」「差し」「追込」の4つに、それぞれ8枚ずつ配られるよ。<b>逃げから順番に</b>カードを引いて進んでいこう。'],
-      ['zone-deck', '<b>4つの山札を先にすべて引ききったプレイヤーの勝ち！</b> 馬を走らせてカードを引き、相手より先にゴールを目指そう。']
+    var groups = [
+      ['race-info', 'highlighted', 2, [
+        'ここに表示されているのが<b>レース条件</b>。<b>競馬場</b>は開催場所、<b>コース</b>は芝かダート、<b>距離</b>はレースの長さ、<b>馬場</b>は「良」「稍重」「重」「不良」といった馬場状態を表しているよ。',
+        '今回は<b>' + race.racecourse + '・' + race.surface + '・' + race.distance + '・' + race.trackCondition + '</b>のレースだよ。この条件は<b>お互いに共通</b>。馬カードの適性や能力に関わるので、走破やガードに使う馬を選ぶときに確認しよう！'
+      ]],
+      ['field-body', 'zone-active', 4, ['ここが<b>自分の場</b>。走破する馬や、ガードに使う馬を置く場所だよ。']],
+      ['field-body-opp', 'zone-active', 5, ['ここが<b>相手の場</b>。相手が出した馬カードが表示されるよ。自分の場と見比べながら勝負しよう。']],
+      ['zone-farm', 'zone-active', 6, ['ここが<b>ファーム</b>。手札と山札以外の残りのカード（13枚）や、使い終わったカードを置く場所だよ。']],
+      ['zone-situation', 'zone-active', 7, ['ここは<b>状況カード置き場</b>。レース全体に影響する状況カードを置くよ。詳しい使い方は、状況カードのレッスンで覚えよう。']],
+      ['zone-hand', 'zone-active', 8, ['画面下に並んでいるのが<b>自分の手札</b>。<b>馬カード</b>で走破やガードを行い、馬を出すために<b>フォースカード</b>を使うよ。<b>アイテムカード</b>は馬や自分の行動を助けてくれるんだ。']],
+      ['zone-deck', 'zone-active', 9, [
+        'これが<b>距離エリア（山札）</b>。「逃げ」「先行」「差し」「追込」の4つに、それぞれ10枚ずつ配られるよ。<b>逃げから順番に</b>カードを引いて進んでいこう。'
+      ]]
     ];
-    for (var i = 0; i < steps.length; i++) {
+    for (var i = 0; i < groups.length; i++) {
       if (runId !== tutorialRunId) return;
-      setProgress(i + 2);
-      await explainStep($(steps[i][0]), steps[i][0], steps[i][1]);
+      await explainWithPersistentFocus($(groups[i][0]), groups[i][1], groups[i][3], groups[i][2]);
+      // 次の場所を強調する前に、盤面全体が見える短い間を設ける。
+      if (i + 1 < groups.length) await sleep(350);
     }
+    if (runId !== tutorialRunId) return;
+    setNarratorPresentationHidden(false);
+    setProgress(10);
+    setNarrator('<b>4つの山札を先にすべて引ききったプレイヤーの勝ち！</b> 馬を走らせてカードを引き、相手より先にゴールを目指そう。');
+    await waitNext();
     if (runId !== tutorialRunId) return;
     hideArrow();
     clearZoneActive();
@@ -3495,6 +3764,8 @@
   async function runTutorial() {
     var myRunId = ++tutorialRunId;
     document.body.classList.remove('manual-mode');
+    presentationMotionDepth = 0;
+    setNarratorPresentationHidden(false);
     var modeOpts = document.querySelectorAll('#mode-switch .mode-opt');
     modeOpts.forEach(function (opt) {
       opt.classList.toggle('active', opt.dataset.mode === 'tutorial');
@@ -3540,13 +3811,15 @@
     lessonReservedHorseId = null;
     lessonSituationSelection = null;
     var predealtLesson = isRunLesson || isGuardLesson || isItemLesson || isStyleLesson || isAbilityLesson || isSituationLesson || isResponseLesson;
-    LANES.forEach(function (l) { l.count = predealtLesson ? 8 : 0; });
-    CPU_LANES.forEach(function (l) { l.count = 8; }); // 相手は最初から自分の山札を持っている
+    LANES.forEach(function (l) { l.count = predealtLesson ? 10 : 0; });
+    CPU_LANES.forEach(function (l) { l.count = 10; }); // 相手は最初から自分の山札を持っている
     farm = predealtLesson ? [
       forceCard(), forceCard(), forceCard(), forceCard(), forceCard(),
-      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(), forceCard()
+      forceCard(), forceCard(), forceCard(), forceCard(), forceCard(),
+      forceCard(), forceCard(), forceCard()
     ] : [];
     hand = predealtLesson ? makeStarterHand() : [];
+    if (isIntroLesson) race.distance = '中距離';
     if (isItemLesson) hand = [forceCard(), forceCard(), forceCard(), goldShip(), whip(), veterinarian(), goggles()];
     if (isStyleLesson) {
       race.surface = '芝';
@@ -3574,19 +3847,17 @@
     field = null;
     fieldGuard = null;
     playerGuardCard = null;
-    cpuHorseCard = isGuardLesson ? seiunSky() : null;
-    cpuRunValue = cpuHorseCard ? cpuHorseCard.run : 0;
-    opponentHandCount = isGuardLesson ? 7 - (cpuHorseCard.cost || 2) - 1 : 7;
+    cpuHorseCard = null;
+    cpuRunValue = 0;
+    opponentHandCount = 7;
     situation = null;
     renderRaceInfo();
     renderAll();
 
     if (window.innerWidth <= 859) {
-      // SPでは前のモードで動かした盤面・ページ位置を引き継がない。
+      // SPでは前のモードで動かした視点倍率だけを初期化する。
+      // 盤面・ページ位置は自動で動かさない。
       if (FieldCamera) FieldCamera.reset(false);
-      var tutorialBoard = $('board');
-      if (tutorialBoard) tutorialBoard.scrollTop = 0;
-      window.scrollTo(0, 0);
     }
 
     setNarrator(isIntroLesson
@@ -3596,7 +3867,7 @@
         : isAbilityLesson ? 'このレッスンでは<b>フォース能力</b>を体験するよ。ローシャムパークを得意競馬場で出して、ファームのフォースを手札に戻してみよう！'
         : isStyleLesson ? 'このレッスンでは<b>脚質一致と適性による走破数の変化</b>を、2ターンで体験するよ。カードに書かれた走破数と、実際に引ける枚数を比べてみよう！'
         : isItemLesson ? 'このレッスンでは<b>アイテム</b>を使ってみよう。「獣医師」で手札を助けて、「鞭」で馬の走破を強くするよ！'
-        : isGuardLesson ? 'このレッスンでは<b>ガード</b>を練習するよ。相手が馬を出して走破しようとしているね。手札の馬で、相手が引くカードを減らしてみよう！'
+        : isGuardLesson ? 'このレッスンでは<b>ガード</b>を練習するよ。相手が走破を宣言した後、手札の馬で相手が引くカードを減らす流れを覚えよう！'
         : isRunLesson ? 'このレッスンでは<b>走破</b>を練習するよ。馬を出すところから、カードを引いてファームへ送るところまでやってみよう！'
         : 'ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ まずは対戦の準備をしよう。'));
     setProgress(0);
@@ -3648,12 +3919,12 @@
 
     // 走破の練習は配札済みで開始し、準備の説明・演出を繰り返さない。
     if (!isRunLesson) {
-    // STEP 0: 50枚デッキからの初期カード配布
+    // STEP 0: 練習用カードの初期配布
     setProgress(1);
     showNextButton(false);
     await dealInitialCards(false, myRunId);
     if (myRunId !== tutorialRunId) return;
-    setNarrator('今回はチュートリアルなので、使うカードは50枚！手札7枚・山札は各8枚・残りはファームだよ。まず盤面を確認しよう。');
+    setNarrator('今回は<b>60枚のカード</b>を使うよ。手札7枚・山札は各10枚・残りはファーム。まず盤面を確認しよう。');
     showNextButton(true);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
@@ -3667,7 +3938,7 @@
     if (!isRunLesson) {
     // STEP 1: 配布直後にファームを説明し、登場から説明までの間を空けない
     setProgress(2);
-    await explainStep($('zone-farm'), 'zone-farm', 'ここが<b>ファーム</b>。最初に置かれた残りのカード（11枚）と、使い終わったカードを置く場所だよ。');
+    await explainStep($('zone-farm'), 'zone-farm', 'ここが<b>ファーム</b>。最初に置かれた残りのカード（13枚）と、使い終わったカードを置く場所だよ。');
     if (myRunId !== tutorialRunId) return;
 
     // STEP 2: 状況カード置き場
@@ -3679,7 +3950,6 @@
     setProgress(4);
     var targetForce = findHandCardClosestToCenter('force');
     var forceEl = targetForce ? cardElById(targetForce.id) : null;
-    if (forceEl) forceEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     await explainStep(forceEl, null, 'これが<b>フォースカード</b>。馬カードを場に出すために必要なカードだよ。');
     if (myRunId !== tutorialRunId) return;
 
@@ -3687,7 +3957,6 @@
     setProgress(5);
     var targetHorse = findHandCardClosestToCenter('horse');
     var horseEl = targetHorse ? cardElById(targetHorse.id) : null;
-    if (horseEl) horseEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     await explainStep(horseEl, null, 'このカードが<b>馬カード</b>だ！ このカードを使って相手と勝負するよ。');
     if (myRunId !== tutorialRunId) return;
 
@@ -3695,7 +3964,6 @@
     setProgress(6);
     var targetItem = findHandCardClosestToCenter(function (c) { return c.type === 'item' || c.type === 'jockey'; });
     var itemEl = targetItem ? cardElById(targetItem.id) : null;
-    if (itemEl) itemEl.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
     await explainStep(itemEl, null, '<b>アイテムカードには2種類</b>あり、使えるタイミングが違うよ。まず、このカードのような「<b>タイプ：馬</b>」は、走破する馬カードと一緒に使うカードだよ。');
     if (myRunId !== tutorialRunId) return;
     setNarrator('もう1つの「<b>タイプ：エリア</b>」は、<b>自分のターン開始後から走破する前まで</b>に使えるよ。自由操作では、右側の操作メニューにある「<b>アイテム</b>」から選ぼう。');
@@ -3705,7 +3973,10 @@
 
     // STEP 6: 距離エリア(山札) / 勝利条件（メッセージを2つに分割）
     setProgress(7);
-    await explainStep($('zone-deck'), 'zone-deck', 'ここが<b>距離エリア（山札）</b>だ。山札は「逃げ」「先行」「差し」「追込」の4つのエリアにそれぞれ8枚ずつ配られているよ。');
+    setNarrator('ここが<b>距離エリア（山札）</b>だ。山札は「逃げ」「先行」「差し」「追込」の4つのエリアにそれぞれ10枚ずつ配られているよ。');
+    await waitNext();
+    if (myRunId !== tutorialRunId) return;
+    await flashTutorialTarget($('zone-deck'), 'zone-active');
     if (myRunId !== tutorialRunId) return;
 
     setNarrator('<b>逃げから順番に</b>引いていき、先行、差し、追込と4つの山札を<b>先にすべて引ききったプレイヤーの勝ち</b>だよ！');
@@ -3826,7 +4097,7 @@
     // チュートリアルではこの後のガード説明もカード記載の走破値を使う。
     // 表示用の値も同時に設定し、カード上が「走破 0」になるのを防ぐ。
     cpuRunValue = cpuHorseCard.run || 0;
-    if (!isGuardLesson) opponentHandCount = Math.max(0, opponentHandCount - ((cpuHorseCard.cost || 2) + 1));
+    opponentHandCount = Math.max(0, opponentHandCount - ((cpuHorseCard.cost || 2) + 1));
     renderAll();
     focusTutorialTarget($('field-body-opp'));
     setNarrator('相手が<b>' + cpuHorseCard.name + '</b>を出して「走破」を宣言した！ 相手も馬の走破値ぶん、山札からカードを引こうとしているよ。');
@@ -3975,7 +4246,7 @@
     cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
     opponentHandCount = cpuHand.length;
     cpuHorseCard = null;
-    if (cpuTotalDeck() <= 0) CPU_LANES.forEach(function (l) { l.count = 8; });
+    if (cpuTotalDeck() <= 0) CPU_LANES.forEach(function (l) { l.count = 10; });
     renderRaceInfo();
     showNextButton(false);
     $('free-hint').hidden = true;
@@ -4004,7 +4275,7 @@
 
     // 盤面を一旦初期化（カードを空にしてから配り始める）
     LANES.forEach(function (l) { l.count = 0; });
-    CPU_LANES.forEach(function (l) { l.count = 8; });
+    CPU_LANES.forEach(function (l) { l.count = 10; });
     farm = [];
     hand = [];
     cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
@@ -4039,7 +4310,7 @@
     renderRaceInfo();
     renderAll();
 
-    // 50枚デッキ配布演出を実行（テンポよく手札・山札・ファームへ配布）
+    // 練習用カードの配布演出を実行（テンポよく手札・山札・ファームへ配布）
     await dealInitialCards(true, myRunId);
     if (myRunId !== tutorialRunId) return;
 
@@ -4202,7 +4473,52 @@
       if (suppressNextHandClick) { suppressNextHandClick = false; return; }
       onHandCardClick(el.dataset.id);
     });
+
   }
+
+  // SEのチュートリアルではナレーションと手札が盤面外に固定される。
+  // そのため画面内のどこから始めた縦スワイプでも、盤面のスクロールへ渡す。
+  // 横方向の手札操作やボタン・オーバーレイ操作は従来どおり優先する。
+  var seBoardSwipe = null;
+  document.addEventListener('touchstart', function (e) {
+    var handZone = $('zone-hand');
+    var blocked = e.target.closest && e.target.closest('button, a, #settings-overlay, #banner-overlay, #closeup-layer, .popup-overlay');
+    if (blocked || document.body.classList.contains('manual-mode') ||
+      !handZone || !handZone.classList.contains('has-cards') ||
+      !window.matchMedia('(max-width: 859px)').matches ||
+      e.touches.length !== 1) {
+      seBoardSwipe = null;
+      return;
+    }
+    var boardEl = $('board');
+    if (!boardEl) return;
+    seBoardSwipe = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY,
+      scrollTop: boardEl.scrollTop,
+      vertical: false
+    };
+  }, { passive: true, capture: true });
+
+  document.addEventListener('touchmove', function (e) {
+    if (!seBoardSwipe || e.touches.length !== 1) return;
+    var dx = e.touches[0].clientX - seBoardSwipe.x;
+    var dy = e.touches[0].clientY - seBoardSwipe.y;
+    if (!seBoardSwipe.vertical && Math.abs(dy) > 6 && Math.abs(dy) > Math.abs(dx)) {
+      seBoardSwipe.vertical = true;
+    }
+    if (!seBoardSwipe.vertical) return;
+    var boardEl = $('board');
+    if (!boardEl) return;
+    e.preventDefault();
+    boardEl.scrollTop = seBoardSwipe.scrollTop - dy;
+  }, { passive: false, capture: true });
+
+  function endSeBoardSwipe() {
+    seBoardSwipe = null;
+  }
+  document.addEventListener('touchend', endSeBoardSwipe, { passive: true, capture: true });
+  document.addEventListener('touchcancel', endSeBoardSwipe, { passive: true, capture: true });
 
   var opponentFieldCardEl = $('field-body-opp');
   if (opponentFieldCardEl) {
@@ -5048,6 +5364,7 @@
     var labelEl = $('closeup-label');
     var toastEl = $('closeup-toast');
     var hideTimer = null;
+    var onHideCallback = null;
 
     function formatCardDetail(card) {
       if (!card) return '';
@@ -5080,6 +5397,7 @@
     function show(card, opts) {
       if (!card) return;
       opts = opts || {};
+      onHideCallback = typeof opts.onHide === 'function' ? opts.onHide : null;
       slot.innerHTML = '';
       slot.appendChild(buildCardEl(card));
       labelEl.textContent = opts.label || 'カード詳細';
@@ -5131,6 +5449,9 @@
       if (oldBtn) oldBtn.remove();
       suppressNextHandClick = false;
       if (hideTimer) { clearTimeout(hideTimer); hideTimer = null; }
+      var callback = onHideCallback;
+      onHideCallback = null;
+      if (callback) callback();
     }
 
     layer.addEventListener('click', function (e) {
@@ -5351,28 +5672,6 @@
   })();
 
   /* ===================== boot ===================== */
-  // スマホ表示時の安全な初期スクロール（初回1回のみ、手札とナレーターが見える位置へ自動スクロール）
-  var initialMobileScrolled = false;
-  function safeInitialMobileScroll() {
-    if (initialMobileScrolled) return;
-    if (window.innerWidth > 859) return; // モバイル（859px以下）のみ対象。PC・大画面時はスクロールなし
-    var board = $('board');
-    if (!board) return;
-    initialMobileScrolled = true;
-
-    function doScroll() {
-      if (board.scrollHeight > board.clientHeight) {
-        var maxScroll = board.scrollHeight - board.clientHeight;
-        // 一番下までスクロールせず、ナレーターと手札の間のスペースを詰めるため少し上（50px手前）で止める
-        board.scrollTop = Math.max(0, maxScroll - 50);
-      }
-    }
-
-    requestAnimationFrame(doScroll);
-    setTimeout(doScroll, 60);
-    setTimeout(doScroll, 250);
-  }
-
   window._showBanner = showBanner;
   window._goldShip = goldShip;
   window._showToast = showToast;
@@ -5396,6 +5695,4 @@
   } else {
     runTutorial();
   }
-  safeInitialMobileScroll();
-
 })();
