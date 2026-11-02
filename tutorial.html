@@ -391,14 +391,12 @@
     import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
     import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
-    // Three.js Cyber Background - Simple & Dark Digital Green Base (洗練されたダークグリーンサイバー回路背景)
+    // Three.js Scene Setup: Cyber 新フィールド（水色の空 ＆ 濃い緑一色PCB基板 ＆ 白色立体レーン ＆ 薄茶ダート）
     const scene = new THREE.Scene();
-    const HORIZON_DARK = 0x05180f;
-    scene.background = new THREE.Color(HORIZON_DARK);
-    // Smooth linear fog fading seamlessly into deep dark green at the horizon
-    scene.fog = new THREE.Fog(HORIZON_DARK, 220, 1750);
+    scene.background = new THREE.Color(0x38bdf8); // 澄んだ爽やかな水色の空
+    scene.fog = new THREE.Fog(0x5ec6f5, 1200, 3800); // 左右の薄茶ダートを遮らない奥への大気フォグ
 
-    const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 4000);
+    const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.1, 4500);
     const defaultDeg = 10;
     camera.rotation.set(THREE.MathUtils.degToRad(-defaultDeg * 0.40), 0, 0);
     camera.position.set(0, (defaultDeg / 10) * 18, 300);
@@ -410,18 +408,22 @@
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.0;
 
-    // Post-processing Bloom Pass (Subtle, refined neon glow without washing out deep dark tones)
+    // Post-processing Bloom Pass (水色の空やダートが白飛びせず、ネオンや端子だけが上品に光る最適値)
     const renderScene = new RenderPass(scene, camera);
     const bloomPass = new UnrealBloomPass(
       new THREE.Vector2(window.innerWidth, window.innerHeight),
-      0.42, 0.35, 0.50
+      0.22, // strength
+      0.38, // radius
+      0.80  // threshold
     );
 
     const composer = new EffectComposer(renderer);
     composer.addPass(renderScene);
     composer.addPass(bloomPass);
 
-    // Procedural Seamless Dark Digital Circuit Texture (Deep Green & Emerald with Fine Neon Circuitry)
+    // ─────────────────────────────────────────────
+    // 1. 濃い緑色一色のクラシック電脳空間（PCB電子回路基板）テクスチャ
+    // ─────────────────────────────────────────────
     function createCyberTexture() {
       const size = 2048;
       const canvas = document.createElement('canvas');
@@ -429,30 +431,29 @@
       canvas.height = size;
       const ctx = canvas.getContext('2d');
 
-      // 1. Deep Midnight Dark Green Base (#05180f)
-      ctx.fillStyle = '#05180f';
+      // 濃い緑色一色の電子回路基板ベース (#062615)
+      ctx.fillStyle = '#062615';
       ctx.fillRect(0, 0, size, size);
 
-      // Saturated deep dark green ambient light pools (Subtle cyber luminescence)
+      // アンビエント発光（同一系統の濃い緑色の光の溜まり）
       const ambientGlows = [
-        { x: size * 0.20, y: size * 0.25, r: size * 0.45, c: 'rgba(13, 58, 37, 0.30)' },
-        { x: size * 0.80, y: size * 0.30, r: size * 0.50, c: 'rgba(16, 185, 129, 0.22)' },
-        { x: size * 0.30, y: size * 0.80, r: size * 0.45, c: 'rgba(8, 38, 25, 0.28)' },
-        { x: size * 0.75, y: size * 0.75, r: size * 0.40, c: 'rgba(63, 237, 151, 0.20)' },
-        { x: size * 0.50, y: size * 0.50, r: size * 0.45, c: 'rgba(16, 185, 129, 0.18)' },
+        { x: size * 0.20, y: size * 0.25, r: size * 0.45, c: 'rgba(10, 52, 28, 0.40)' },
+        { x: size * 0.80, y: size * 0.30, r: size * 0.50, c: 'rgba(14, 68, 36, 0.35)' },
+        { x: size * 0.30, y: size * 0.80, r: size * 0.45, c: 'rgba(8, 42, 22, 0.38)' },
+        { x: size * 0.75, y: size * 0.75, r: size * 0.40, c: 'rgba(12, 60, 32, 0.35)' },
+        { x: size * 0.50, y: size * 0.50, r: size * 0.45, c: 'rgba(14, 68, 36, 0.30)' },
       ];
       ambientGlows.forEach(g => {
         const rad = ctx.createRadialGradient(g.x, g.y, 0, g.x, g.y, g.r);
         rad.addColorStop(0, g.c);
-        rad.addColorStop(1, 'rgba(5, 24, 15, 0)');
+        rad.addColorStop(1, 'rgba(6, 38, 21, 0)');
         ctx.fillStyle = rad;
         ctx.fillRect(0, 0, size, size);
       });
 
-      const gridDivs = 32; // 32x32 grid units = 64px per unit
+      const gridDivs = 32;
       const step = size / gridDivs;
 
-      // Helper function for seamless wrap-around rectangular drawing
       function drawWrapRect(x, y, w, h, fillStyle, strokeStyle, lineWidth, shadowGlow) {
         for (let ox of [-size, 0, size]) {
           for (let oy of [-size, 0, size]) {
@@ -462,8 +463,8 @@
 
             ctx.save();
             if (shadowGlow) {
-              ctx.shadowColor = shadowGlow.color || '#0099ff';
-              ctx.shadowBlur = shadowGlow.blur || 4;
+              ctx.shadowColor = shadowGlow.color || '#0a4022';
+              ctx.shadowBlur = shadowGlow.blur || 3;
             }
             if (fillStyle) {
               ctx.fillStyle = fillStyle;
@@ -485,7 +486,7 @@
         return randSeed / 233280;
       }
 
-      // 2. Subtle Dark IC Micro-Modules / Tech Panels (Refined dark plates with subtle cyan borders)
+      // ICパネル（濃い緑色で統一）
       const panelConfigs = [
         { count: 30, minW: 2, maxW: 3, minH: 2, maxH: 4 },
         { count: 50, minW: 1, maxW: 2, minH: 1, maxH: 2 },
@@ -507,29 +508,25 @@
 
           const styleRoll = pseudoRand();
           if (styleRoll < 0.45) {
-            // Style 1: Deep translucent emerald plate with subtle green trace
             drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
-              'rgba(5, 24, 15, 0.22)',
-              'rgba(63, 237, 151, 0.40)', 1.0, { color: '#10b981', blur: 4 });
+              'rgba(8, 42, 22, 0.45)',
+              'rgba(21, 128, 61, 0.65)', 1.0, { color: '#15803d', blur: 3 });
           } else if (styleRoll < 0.75) {
-            // Style 2: Micro-grid IC chip with fine pins
             drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
-              'rgba(5, 24, 15, 0.28)', 'rgba(63, 237, 151, 0.55)', 1.2, { color: '#3eed97', blur: 5 });
+              'rgba(10, 52, 28, 0.55)', 'rgba(21, 128, 61, 0.85)', 1.2, { color: '#166534', blur: 4 });
             if (pw > step * 1.5 && ph > step * 1.5) {
               drawWrapRect(px + 6, py + 6, pw - 12, ph - 12,
-                'rgba(8, 38, 25, 0.18)', 'rgba(16, 185, 129, 0.35)', 0.8);
+                'rgba(6, 35, 18, 0.35)', 'rgba(22, 101, 52, 0.55)', 0.8);
             }
           } else {
-            // Style 3: Accent Cyber Node Box
             drawWrapRect(px + 2, py + 2, pw - 4, ph - 4,
-              'rgba(13, 58, 37, 0.20)', 'rgba(63, 237, 151, 0.70)', 1.4, { color: '#3eed97', blur: 6 });
+              'rgba(14, 68, 36, 0.40)', 'rgba(21, 128, 61, 0.95)', 1.4, { color: '#15803d', blur: 5 });
           }
         }
       });
 
-      // 3. Delicate Background Grid Lines (Subtle & Elegant, matching specified green palette)
-      // Minor fine grid lines
-      ctx.strokeStyle = 'rgba(63, 237, 151, 0.035)';
+      // 四角いワイヤーフレームグリッド（濃い緑一色）
+      ctx.strokeStyle = 'rgba(21, 128, 61, 0.16)';
       ctx.lineWidth = 0.8;
       for (let i = 0; i <= gridDivs; i++) {
         const p = i * step;
@@ -544,12 +541,11 @@
         ctx.stroke();
       }
 
-      // Major grid lines (Thin neon green accent with soft glow)
       ctx.save();
-      ctx.strokeStyle = 'rgba(63, 237, 151, 0.20)';
+      ctx.strokeStyle = 'rgba(21, 128, 61, 0.45)';
       ctx.lineWidth = 1.2;
-      ctx.shadowColor = '#10b981';
-      ctx.shadowBlur = 4;
+      ctx.shadowColor = '#15803d';
+      ctx.shadowBlur = 3;
       for (let i = 0; i <= gridDivs; i += 4) {
         const p = i * step;
         ctx.beginPath();
@@ -564,7 +560,7 @@
       }
       ctx.restore();
 
-      // 4. Intricate PCB Circuit Traces & Data Conduits (繊細な回路パターン)
+      // 直角トレース＆はんだ付け端子（濃い緑）
       ctx.save();
       for (let t = 0; t < 70; t++) {
         const gx = Math.floor(pseudoRand() * gridDivs);
@@ -575,10 +571,10 @@
         const dirY = pseudoRand() > 0.5 ? 1 : -1;
 
         const isGlowTrace = pseudoRand() > 0.45;
-        ctx.strokeStyle = isGlowTrace ? 'rgba(63, 237, 151, 0.75)' : 'rgba(16, 185, 129, 0.45)';
+        ctx.strokeStyle = isGlowTrace ? 'rgba(34, 197, 94, 0.65)' : 'rgba(21, 128, 61, 0.45)';
         ctx.lineWidth = isGlowTrace ? 1.5 : 1.0;
-        ctx.shadowColor = isGlowTrace ? '#3eed97' : '#10b981';
-        ctx.shadowBlur = isGlowTrace ? 6 : 3;
+        ctx.shadowColor = isGlowTrace ? '#166534' : '#14532d';
+        ctx.shadowBlur = isGlowTrace ? 4 : 2;
 
         for (let ox of [-size, 0, size]) {
           for (let oy of [-size, 0, size]) {
@@ -593,21 +589,19 @@
             ctx.lineTo(midX, endY);
             ctx.stroke();
 
-            // Terminal solder pad (White core + Green glowing aura)
-            ctx.fillStyle = '#ffffff';
+            // はんだ付け端子
+            ctx.fillStyle = '#f0fdf4';
             ctx.beginPath();
-            ctx.arc(midX, endY, 2.2, 0, Math.PI * 2);
+            ctx.arc(midX, endY, 2.0, 0, Math.PI * 2);
             ctx.fill();
 
-            // Solder pad ring
-            ctx.strokeStyle = 'rgba(63, 237, 151, 0.85)';
+            ctx.strokeStyle = 'rgba(21, 128, 61, 0.85)';
             ctx.lineWidth = 1.0;
             ctx.beginPath();
-            ctx.arc(midX, endY, 4.0, 0, Math.PI * 2);
+            ctx.arc(midX, endY, 3.8, 0, Math.PI * 2);
             ctx.stroke();
 
-            // Start node dot
-            ctx.fillStyle = 'rgba(63, 237, 151, 0.80)';
+            ctx.fillStyle = 'rgba(21, 128, 61, 0.80)';
             ctx.beginPath();
             ctx.arc(startX, startY, 1.8, 0, Math.PI * 2);
             ctx.fill();
@@ -616,8 +610,8 @@
       }
       ctx.restore();
 
-      // 5. Grid intersection node dots & Data junctions
-      ctx.fillStyle = 'rgba(167, 243, 208, 0.70)';
+      // 端子ノード
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.65)';
       for (let i = 0; i <= gridDivs; i += 2) {
         for (let j = 0; j <= gridDivs; j += 2) {
           if (pseudoRand() > 0.60) {
@@ -627,6 +621,29 @@
           }
         }
       }
+
+      // レーンガイド光軸
+      const lanes = [size * 0.20, size * 0.38, size * 0.50, size * 0.62, size * 0.80];
+      lanes.forEach((lx, idx) => {
+        const isCenter = idx === 2;
+        ctx.save();
+        ctx.strokeStyle = isCenter ? 'rgba(34, 197, 94, 0.70)' : 'rgba(21, 128, 61, 0.40)';
+        ctx.lineWidth = isCenter ? 2.5 : 1.2;
+        ctx.shadowColor = '#15803d';
+        ctx.shadowBlur = isCenter ? 8 : 4;
+        ctx.beginPath();
+        ctx.moveTo(lx, 0);
+        ctx.lineTo(lx, size);
+        ctx.stroke();
+
+        for (let py = 0; py < size; py += 128) {
+          ctx.fillStyle = isCenter ? '#ffffff' : '#22c55e';
+          ctx.beginPath();
+          ctx.arc(lx, py, isCenter ? 2.2 : 1.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+        ctx.restore();
+      });
 
       const texture = new THREE.CanvasTexture(canvas);
       texture.wrapS = THREE.RepeatWrapping;
@@ -639,44 +656,146 @@
 
     const cyberTexture = createCyberTexture();
 
-    // Floor and Ceiling Planes (Symmetrical perspective expanding from center horizon)
-    const planeGeo = new THREE.PlaneGeometry(8000, 8000);
+    // Floor Plane
+    const planeGeo = new THREE.PlaneGeometry(9000, 9000);
     const planeMat = new THREE.MeshBasicMaterial({
       map: cyberTexture,
       transparent: true,
       opacity: 0.95,
-      side: THREE.DoubleSide,
-      blending: THREE.NormalBlending,
-      color: 0xffffff,
-      depthWrite: true
+      side: THREE.DoubleSide
     });
-
-    // Floor plane (Bottom half)
     const floor = new THREE.Mesh(planeGeo, planeMat);
     floor.position.set(0, -95, -1100);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // Ceiling plane (Top half)
-    const ceiling = new THREE.Mesh(planeGeo, planeMat);
-    ceiling.position.set(0, 95, -1100);
-    ceiling.rotation.x = Math.PI / 2;
-    scene.add(ceiling);
+    // ─────────────────────────────────────────────
+    // 2. 左右外側ダート ＆ 白い立体レーンフェンス（動く脚アニメーション付き）
+    // ─────────────────────────────────────────────
+    function createBrownDirtTexture() {
+      const dSize = 1024;
+      const dCanvas = document.createElement('canvas');
+      dCanvas.width = dSize;
+      dCanvas.height = dSize;
+      const dCtx = dCanvas.getContext('2d');
 
-    // Atmospheric Dark Horizon Glow (Soft, deep green fade)
-    const horizonGlowGeo = new THREE.PlaneGeometry(10000, 24);
-    const horizonGlowMat = new THREE.MeshBasicMaterial({
-      color: 0x10b981,
-      transparent: true,
-      opacity: 0.35,
-      blending: THREE.AdditiveBlending,
+      const dGrad = dCtx.createLinearGradient(0, 0, dSize, 0);
+      dGrad.addColorStop(0.0, '#664522');
+      dGrad.addColorStop(0.3, '#7d5830');
+      dGrad.addColorStop(0.7, '#8a6237');
+      dGrad.addColorStop(1.0, '#664522');
+      dCtx.fillStyle = dGrad;
+      dCtx.fillRect(0, 0, dSize, dSize);
+
+      dCtx.fillStyle = 'rgba(38, 20, 8, 0.35)';
+      for (let i = 0; i < 700; i++) {
+        const rx = Math.random() * dSize;
+        const ry = Math.random() * dSize;
+        const r = Math.random() * 2.8 + 0.8;
+        dCtx.beginPath();
+        dCtx.arc(rx, ry, r, 0, Math.PI * 2);
+        dCtx.fill();
+      }
+
+      dCtx.fillStyle = 'rgba(168, 122, 75, 0.28)';
+      for (let i = 0; i < 400; i++) {
+        const rx = Math.random() * dSize;
+        const ry = Math.random() * dSize;
+        const r = Math.random() * 1.8 + 0.6;
+        dCtx.beginPath();
+        dCtx.arc(rx, ry, r, 0, Math.PI * 2);
+        dCtx.fill();
+      }
+
+      const dTex = new THREE.CanvasTexture(dCanvas);
+      dTex.wrapS = THREE.RepeatWrapping;
+      dTex.wrapT = THREE.RepeatWrapping;
+      dTex.repeat.set(4, 8);
+      return dTex;
+    }
+
+    const brownDirtTex = createBrownDirtTexture();
+    const cyberTrackGroup = new THREE.Group();
+    scene.add(cyberTrackGroup);
+
+    const trackHalfW = 460;
+    const dirtPlaneW = 4000;
+    const trackLength = 5000;
+
+    const dirtGeo = new THREE.PlaneGeometry(dirtPlaneW, trackLength);
+    const dirtMat = new THREE.MeshBasicMaterial({
+      map: brownDirtTex,
+      transparent: false,
       side: THREE.DoubleSide
     });
-    const horizonGlow = new THREE.Mesh(horizonGlowGeo, horizonGlowMat);
-    horizonGlow.position.set(0, 0, -1800);
-    scene.add(horizonGlow);
 
-    // Soft glowing particle sprite texture
+    // 左右ダート路面
+    const leftDirt = new THREE.Mesh(dirtGeo, dirtMat);
+    leftDirt.position.set(-trackHalfW - dirtPlaneW * 0.5, -94.3, -1000);
+    leftDirt.rotation.x = -Math.PI / 2;
+    cyberTrackGroup.add(leftDirt);
+
+    const rightDirt = new THREE.Mesh(dirtGeo, dirtMat);
+    rightDirt.position.set(trackHalfW + dirtPlaneW * 0.5, -94.3, -1000);
+    rightDirt.rotation.x = -Math.PI / 2;
+    cyberTrackGroup.add(rightDirt);
+
+    // 白い立体レーンパイプ
+    const railRadius = 3.4;
+    const railGeo = new THREE.CylinderGeometry(railRadius, railRadius, trackLength, 12);
+    const railMat = new THREE.MeshBasicMaterial({ color: 0xf0f4f8 });
+    const railY = -83.5;
+
+    const leftRail = new THREE.Mesh(railGeo, railMat);
+    leftRail.position.set(-trackHalfW, railY, -1000);
+    leftRail.rotation.x = Math.PI / 2;
+    cyberTrackGroup.add(leftRail);
+
+    const rightRail = new THREE.Mesh(railGeo, railMat);
+    rightRail.position.set(trackHalfW, railY, -1000);
+    rightRail.rotation.x = Math.PI / 2;
+    cyberTrackGroup.add(rightRail);
+
+    // 影ライン
+    const shadowLineGeo = new THREE.PlaneGeometry(18, trackLength);
+    const shadowMat = new THREE.MeshBasicMaterial({
+      color: 0x000000,
+      transparent: true,
+      opacity: 0.38,
+      side: THREE.DoubleSide
+    });
+    const leftShadow = new THREE.Mesh(shadowLineGeo, shadowMat);
+    leftShadow.position.set(-trackHalfW + 8, -94.0, -1000);
+    leftShadow.rotation.x = -Math.PI / 2;
+    cyberTrackGroup.add(leftShadow);
+
+    const rightShadow = new THREE.Mesh(shadowLineGeo, shadowMat);
+    rightShadow.position.set(trackHalfW + 8, -94.0, -1000);
+    rightShadow.rotation.x = -Math.PI / 2;
+    cyberTrackGroup.add(rightShadow);
+
+    // 支柱ポスト（脚）：高さを伸ばし、前進疾走ループアニメーションを実装
+    const postHeight = 13.5;
+    const postGeo = new THREE.CylinderGeometry(2.3, 2.3, postHeight, 8);
+    const postY = -89.2;
+    const railPosts = [];
+    const postSpacing = 130;
+
+    for (let pz = 300; pz >= -2300; pz -= postSpacing) {
+      const pL = new THREE.Mesh(postGeo, railMat);
+      pL.position.set(-trackHalfW, postY, pz);
+      cyberTrackGroup.add(pL);
+      railPosts.push(pL);
+
+      const pR = new THREE.Mesh(postGeo, railMat);
+      pR.position.set(trackHalfW, postY, pz);
+      cyberTrackGroup.add(pR);
+      railPosts.push(pR);
+    }
+
+    // ─────────────────────────────────────────────
+    // 3. サイバー微粒子（浮遊データダスト）
+    // ─────────────────────────────────────────────
     function createSparkleTexture() {
       const pSize = 64;
       const pCanvas = document.createElement('canvas');
@@ -696,8 +815,6 @@
     }
 
     const sparkleTexture = createSparkleTexture();
-
-    // Floating 3D Sparkle / Cyber Dust Particles (Gentle ambient data motes)
     const particleCount = 320;
     const particlesGeo = new THREE.BufferGeometry();
     const positions = new Float32Array(particleCount * 3);
@@ -705,10 +822,9 @@
     const speeds = new Float32Array(particleCount);
 
     for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 4000; // X
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 190; // Y: floating in the corridor
-      positions[i * 3 + 2] = -Math.random() * 2000 + 200; // Z
-
+      positions[i * 3]     = (Math.random() - 0.5) * 4000;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 190;
+      positions[i * 3 + 2] = -Math.random() * 2000 + 200;
       speeds[i] = 25 + Math.random() * 55;
 
       const pColor = new THREE.Color();
@@ -717,7 +833,7 @@
       } else {
         pColor.setRGB(0.95, 0.98, 1.0);
       }
-      colors[i * 3] = pColor.r;
+      colors[i * 3]     = pColor.r;
       colors[i * 3 + 1] = pColor.g;
       colors[i * 3 + 2] = pColor.b;
     }
@@ -735,27 +851,25 @@
       depthWrite: false,
       sizeAttenuation: true
     });
-
     const particles = new THREE.Points(particlesGeo, particlesMat);
     scene.add(particles);
 
-    // Responsive Desktop & Mobile Layout Handler
+    // ─────────────────────────────────────────────
+    // 4. レイアウト更新 ＆ アニメーションループ
+    // ─────────────────────────────────────────────
     function updateLayout() {
       const width = window.innerWidth;
       const height = window.innerHeight;
       const aspect = width / height;
 
-      // Desktop / Landscape: keep moderate FOV (46°) to prevent extreme side stretching
-      // Mobile / Portrait: 62° for good vertical depth
       if (aspect >= 1.0) {
         camera.fov = 46;
       } else {
-        camera.fov = 62;
+        camera.fov = 60;
       }
       camera.aspect = aspect;
       camera.updateProjectionMatrix();
 
-      // Adapt texture repeat across X based on aspect ratio so grid cells stay square and dense on wide desktop screens
       const baseRepeatY = 4;
       const repeatX = Math.max(4, Math.round(baseRepeatY * aspect));
       cyberTexture.repeat.set(repeatX, baseRepeatY);
@@ -765,31 +879,39 @@
       bloomPass.setSize(width, height);
     }
 
-    // Animation Loop
     const clock = new THREE.Clock();
-    const speed = 0.4;
+    const flightSpeed = 0.55;
 
     function animate() {
       const delta = Math.min(clock.getDelta(), 0.1);
       const elapsedTime = clock.getElapsedTime();
 
-      // Forward flight effect
-      cyberTexture.offset.y -= delta * speed * 0.045;
+      // 深緑PCB床面スクロール ＆ 薄茶ダート前進
+      cyberTexture.offset.y -= delta * flightSpeed * 0.10;
+      brownDirtTex.offset.y -= delta * flightSpeed * 0.10;
 
-      // Particle forward drift and recycling
+      // 白い柵の支柱（脚）を床面スクロールと完全同期して前進させ、疾走感を創出
+      const postSpeed = flightSpeed * 225;
+      for (let i = 0; i < railPosts.length; i++) {
+        railPosts[i].position.z += delta * postSpeed;
+        if (railPosts[i].position.z > 300) {
+          railPosts[i].position.z -= 2600;
+        }
+      }
+
+      // サイバー微粒子の循環
       const pPositions = particles.geometry.attributes.position.array;
       for (let i = 0; i < particleCount; i++) {
         pPositions[i * 3 + 2] += delta * speeds[i];
-
         if (pPositions[i * 3 + 2] > 300) {
           pPositions[i * 3 + 2] = -1900 - Math.random() * 200;
-          pPositions[i * 3] = (Math.random() - 0.5) * 4000;
+          pPositions[i * 3]     = (Math.random() - 0.5) * 4000;
           pPositions[i * 3 + 1] = (Math.random() - 0.5) * 190;
         }
       }
       particles.geometry.attributes.position.needsUpdate = true;
 
-      // Tilt responsiveness matching board tilt angle
+      // ボードチルト連動
       const tiltStr = getComputedStyle(document.body).getPropertyValue('--tilt-angle') || '10deg';
       const currentDeg = parseFloat(tiltStr) || 10;
       const targetRotX = THREE.MathUtils.degToRad(-currentDeg * 0.40);
@@ -798,6 +920,7 @@
       camera.rotation.x += (targetRotX - camera.rotation.x) * 0.08;
       camera.position.y += (targetPosY - camera.position.y) * 0.08;
       camera.position.x = Math.sin(elapsedTime * 0.3) * 1.5;
+      camera.position.z = 300;
 
       composer.render();
       requestAnimationFrame(animate);

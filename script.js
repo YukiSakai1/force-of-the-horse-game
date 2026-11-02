@@ -5056,6 +5056,9 @@
 
     function getSavedTheme() {
       try {
+        var urlParams = new URLSearchParams(window.location.search);
+        var urlTheme = urlParams.get('theme');
+        if (urlTheme && (urlTheme === 'cyber' || urlTheme === 'classic')) return urlTheme;
         var saved = localStorage.getItem(STORAGE_KEY);
         if (saved === 'cyber' || saved === 'classic') return saved;
       } catch (e) {}
@@ -5065,6 +5068,7 @@
     function applyTheme(theme, save) {
       var isCyber = (theme === 'cyber');
       document.body.classList.toggle('field-cyber', isCyber);
+      document.body.dataset.fieldTheme = theme;
       opts.forEach(function (opt) {
         opt.classList.toggle('active', opt.dataset.theme === theme);
       });

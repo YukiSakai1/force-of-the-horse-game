@@ -116,6 +116,13 @@
     background-attachment: fixed;
   }
 
+  /* Cyber mode: 奥の背景（空）を水色に設定 */
+  body[data-field-theme="classic"],
+  body:not(.field-cyber) {
+    background-color: #38bdf8;
+    background: linear-gradient(180deg, #38bdf8 0%, #60c5f5 45%, #a5e3fd 100%);
+  }
+
   body.space-bg #three-bg {
     opacity: 0;
   }
@@ -558,9 +565,10 @@
   }
 
   .theme-opt[data-theme="classic"].active {
-    background: linear-gradient(135deg, #4ade80, #10b981);
-    color: #042512;
-    box-shadow: 0 0 10px rgba(74, 222, 128, .6);
+    background: linear-gradient(135deg, #38bdf8, #15803d);
+    color: #03201e;
+    font-weight: 700;
+    box-shadow: 0 0 12px rgba(56, 189, 248, .65);
   }
 
   .mode-opt.active {
