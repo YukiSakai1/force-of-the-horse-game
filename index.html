@@ -1344,6 +1344,9 @@
                 if (isStarting) return;
                 isStarting = true;
                 saveBgmTime();
+                try {
+                    localStorage.setItem('foth_field_theme', 'cyber');
+                } catch (e) { }
                 const loader = document.getElementById('loadingScreen');
                 const loadingText = document.getElementById('loadingText');
                 if (message) loadingText.textContent = message;

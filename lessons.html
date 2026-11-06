@@ -211,7 +211,12 @@
       window.addEventListener('pagehide', saveBgmTime);
 
       document.querySelectorAll('a').forEach(function (link) {
-        link.addEventListener('click', saveBgmTime);
+        link.addEventListener('click', function () {
+          saveBgmTime();
+          try {
+            localStorage.setItem('foth_field_theme', 'cyber');
+          } catch (e) { }
+        });
       });
 
       updateUI();

@@ -118,7 +118,6 @@
 
   /* Cyber mode: 奥の背景（空）を水色に設定 */
   body[data-field-theme="classic"],
-  body[data-field-theme="default"],
   body:not(.field-cyber) {
     background-color: #38bdf8;
     background: linear-gradient(180deg, #38bdf8 0%, #60c5f5 45%, #a5e3fd 100%);
