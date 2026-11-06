@@ -138,6 +138,15 @@ button { font: inherit; }
   margin-top: 0;
   margin-bottom: 0;
 }
+.lesson-freeplay-section .lesson-section-heading {
+  padding-bottom: 12px;
+}
+.lesson-freeplay-section .lesson-section-heading p:last-child {
+  margin-top: 8px;
+  margin-bottom: 0;
+  font-size: 13px;
+  color: #b4c8d3;
+}
 .lesson-manual > span:not(.lesson-number) { display: grid; gap: 4px; min-width: 0; }
 .lesson-manual strong { font-size: 17px; color: var(--cyan); }
 .lesson-manual small { font-size: 11px; color: #b4c8d3; }
