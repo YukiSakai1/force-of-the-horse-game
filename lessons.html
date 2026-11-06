@@ -41,10 +41,7 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>
     </a>
     <h1>遊びかた</h1>
-    <button class="lesson-bgm-btn" id="lessonBgmBtn" type="button" aria-label="BGMのオン/オフ切り替え" title="BGMのオン/オフ切り替え">
-      <span class="lesson-bgm-icon">🎵</span>
-      <span class="lesson-bgm-text">BGM ON</span>
-    </button>
+    <button class="lesson-bgm-toggle" id="lessonBgmToggle" type="button" aria-label="BGM切り替え" title="BGMをOFFにする">🔊 BGM ON</button>
   </header>
   <main class="lesson-main">
     <section aria-labelledby="lesson-heading">
@@ -145,7 +142,7 @@
     (function () {
       'use strict';
       const bgm = document.getElementById('bgmAudio');
-      const btn = document.getElementById('lessonBgmBtn');
+      const btn = document.getElementById('lessonBgmToggle');
       const BGM_SRC = 'audio/Cyber_Gallop_Overdrive.mp3';
 
       function isBgmEnabled() {
@@ -180,12 +177,10 @@
       function updateUI() {
         const enabled = isBgmEnabled();
         if (btn) {
-          btn.classList.toggle('is-muted', !enabled);
-          const icon = btn.querySelector('.lesson-bgm-icon');
-          const text = btn.querySelector('.lesson-bgm-text');
-          if (icon) icon.textContent = enabled ? '🎵' : '🔇';
-          if (text) text.textContent = enabled ? 'BGM ON' : 'BGM OFF';
+          btn.textContent = enabled ? '🔊 BGM ON' : '🔇 BGM OFF';
+          btn.classList.toggle('is-off', !enabled);
           btn.title = enabled ? 'BGMをOFFにする' : 'BGMをONにする';
+          btn.setAttribute('aria-pressed', enabled ? 'true' : 'false');
         }
       }
 
