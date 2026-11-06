@@ -99,44 +99,8 @@ button { font: inherit; }
   stroke-linecap: round;
   stroke-linejoin: round;
 }
-.lesson-manual {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  min-height: 84px;
-  padding: 16px 20px 16px 106px;
-  margin-top: 36px;
-  margin-bottom: 28px;
-  border: 1px solid #3ee0ff77;
-  border-radius: 14px;
-  background: linear-gradient(110deg, #103348, #081a2de6);
-  box-shadow: inset 0 0 16px #3ee0ff0d;
-  text-decoration: none;
-  transition: border-color .18s, background .18s;
-}
-.lesson-manual .lesson-number {
-  position: absolute;
-  inset: -1px auto -1px -1px;
-  display: grid;
-  place-items: center;
-  width: 86px;
-  padding-right: 8px;
-  clip-path: polygon(0 0, 100% 0, 81% 100%, 0 100%);
-  background: linear-gradient(155deg, #124357, #092136);
-  color: var(--cyan);
-  font: 700 27px/1 'Orbitron', sans-serif;
-  letter-spacing: .02em;
-  text-shadow: 0 0 10px #3ee0ff66;
-}
 .lesson-freeplay-container {
   display: grid;
-}
-.lesson-freeplay-container .lesson-manual {
-  margin-top: 0;
-  margin-bottom: 0;
 }
 .lesson-freeplay-section .lesson-section-heading {
   padding-bottom: 12px;
@@ -146,16 +110,6 @@ button { font: inherit; }
   margin-bottom: 0;
   font-size: 13px;
   color: #b4c8d3;
-}
-.lesson-manual > span:not(.lesson-number) { display: grid; gap: 4px; min-width: 0; }
-.lesson-manual strong { font-size: 17px; color: var(--cyan); }
-.lesson-manual small { font-size: 11px; color: #b4c8d3; }
-.lesson-manual svg { flex: none; fill: none; stroke: var(--cyan); stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.lesson-manual-icon { width: 32px; height: 32px; }
-.lesson-manual-arrow { width: 22px; height: 22px; margin-left: auto; }
-.lesson-manual:hover { border-color: var(--cyan); background: linear-gradient(110deg, #174558, #0b2339); }
-.lesson-manual:hover .lesson-number {
-  background: linear-gradient(155deg, #18526d, #0d3049);
 }
 .lesson-brand { position: absolute; right: 24px; font: 700 15px 'Orbitron', sans-serif; letter-spacing: .15em; color: var(--cyan); text-shadow: 0 0 10px #3ee0ff55; }
 .lesson-main {
@@ -221,11 +175,6 @@ a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 5px; }
   .lesson-intro { padding-top: 28px; padding-bottom: 26px; }
   .lesson-card { min-height: 92px; padding: 16px 54px 16px 76px; }
   .lesson-number { width: 65px; font-size: 24px; }
-  .lesson-manual { min-height: 74px; padding: 14px 16px 14px 78px; }
-  .lesson-manual .lesson-number { width: 65px; padding-right: 6px; font-size: 21px; }
-  .lesson-manual-icon { width: 26px; height: 26px; }
-  .lesson-manual strong { font-size: 15px; }
-  .lesson-manual small { font-size: 10px; }
   .lesson-title { font-size: 15px; }
   .lesson-detail { font-size: 10px; }
   .lesson-status { right: 12px; padding: 3px 5px; font-size: 9px; }
