@@ -64,11 +64,12 @@
       try {
         var urlParams = new URLSearchParams(window.location.search);
         var urlTheme = urlParams.get('theme');
-        if (urlTheme === 'classic') {
+        var savedTheme = localStorage.getItem('foth_field_theme');
+        var theme = (urlTheme === 'classic' || urlTheme === 'cyber') ? urlTheme : (savedTheme || 'cyber');
+        if (theme === 'classic') {
           document.body.classList.remove('field-cyber');
         } else {
           document.body.classList.add('field-cyber');
-          localStorage.setItem('foth_field_theme', 'cyber');
         }
       } catch (e) { }
     })();
@@ -420,7 +421,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=106"></script>
+  <script src="script.js?v=107"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
