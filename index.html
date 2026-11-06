@@ -1291,7 +1291,8 @@
 
     <!-- Audio Player for Game BGM -->
     <audio id="bgmAudio" loop preload="auto">
-        <source src="Banners_in_the_Gale.mp3" type="audio/mpeg">
+        <source src="audio/Cyber_Gallop_Overdrive.mp3" type="audio/mpeg">
+        <source src="Cyber_Gallop_Overdrive.mp3" type="audio/mpeg">
     </audio>
 
     <script>
@@ -1300,11 +1301,17 @@
 
             // Audio setup
             const bgm = document.getElementById('bgmAudio');
+            const BGM_SRC = 'audio/Cyber_Gallop_Overdrive.mp3';
+
+            if (bgm) {
+                bgm.src = BGM_SRC;
+            }
 
             // 再生位置の保存と復元
             function saveBgmTime() {
                 try {
                     if (bgm && bgm.currentTime > 0) {
+                        sessionStorage.setItem('foth_bgm_time', String(bgm.currentTime));
                         sessionStorage.setItem('foth_bgm_time_original', String(bgm.currentTime));
                     }
                 } catch (e) { }
@@ -1312,7 +1319,7 @@
 
             function restoreBgmTime() {
                 try {
-                    const savedTime = sessionStorage.getItem('foth_bgm_time_original');
+                    const savedTime = sessionStorage.getItem('foth_bgm_time') || sessionStorage.getItem('foth_bgm_time_original');
                     if (savedTime && bgm) {
                         const t = parseFloat(savedTime);
                         if (isFinite(t) && t >= 0) {

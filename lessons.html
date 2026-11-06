@@ -33,7 +33,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&family=Oswald:wght@500;600&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="lessons.css?v=5">
+  <link rel="stylesheet" href="lessons.css?v=20261106_single">
 </head>
 <body>
   <header class="lesson-header">
@@ -41,6 +41,10 @@
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 6-6 6 6 6" /></svg>
     </a>
     <h1>遊びかた</h1>
+    <button class="lesson-bgm-btn" id="lessonBgmBtn" type="button" aria-label="BGMのオン/オフ切り替え" title="BGMのオン/オフ切り替え">
+      <span class="lesson-bgm-icon">🎵</span>
+      <span class="lesson-bgm-text">BGM ON</span>
+    </button>
   </header>
   <main class="lesson-main">
     <section aria-labelledby="lesson-heading">
@@ -116,22 +120,55 @@
         </li>
       </ol>
     </section>
+    <section class="lesson-advanced lesson-freeplay-section" aria-labelledby="lesson-freeplay-heading">
+      <div class="lesson-section-heading">
+        <p class="lesson-eyebrow">PRACTICE TRIAL · 1 ROUND</p>
+        <h2 id="lesson-freeplay-heading">実戦練習</h2>
+        <p>1〜7のルールをおぼえたら、今度はアシストなしで1往復（自分と相手のターン）プレイしてみよう！</p>
+      </div>
+      <div class="lesson-freeplay-container">
+        <a class="lesson-manual" href="tutorial.html?mode=manual" title="1〜7で学んだルールを1往復分、自分で操作して体験">
+          <svg class="lesson-manual-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polygon points="10 8 16 12 10 16 10 8" fill="currentColor"></polygon>
+          </svg>
+          <span>
+            <strong>学んだルールで1往復体験！（ナレーターなし）</strong>
+            <small>走破とガードの流れを1往復分、自分で操作して体験 ›</small>
+          </span>
+          <svg class="lesson-manual-arrow" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="m9 18 6-6-6-6"></path>
+          </svg>
+        </a>
+      </div>
+    </section>
     <footer class="lesson-footer"><span>FORCE OF THE HORSE</span><a href="index.html">タイトルへ戻る</a></footer>
   </main>
 
   <audio id="bgmAudio" loop preload="auto">
-    <source src="audio/Banners_in_the_Gale.mp3" type="audio/mpeg">
-    <source src="Banners_in_the_Gale.mp3" type="audio/mpeg">
+    <source src="audio/Cyber_Gallop_Overdrive.mp3" type="audio/mpeg">
+    <source src="Cyber_Gallop_Overdrive.mp3" type="audio/mpeg">
   </audio>
 
   <script>
     (function () {
       'use strict';
       const bgm = document.getElementById('bgmAudio');
+      const btn = document.getElementById('lessonBgmBtn');
+      const BGM_SRC = 'audio/Cyber_Gallop_Overdrive.mp3';
+
+      function isBgmEnabled() {
+        try {
+          return localStorage.getItem('foth_bgm_enabled') !== 'false';
+        } catch (e) {
+          return true;
+        }
+      }
 
       function saveBgmTime() {
         try {
           if (bgm && bgm.currentTime > 0) {
+            sessionStorage.setItem('foth_bgm_time', String(bgm.currentTime));
             sessionStorage.setItem('foth_bgm_time_original', String(bgm.currentTime));
           }
         } catch (e) {}
@@ -139,34 +176,25 @@
 
       function restoreBgmTime() {
         try {
-          const savedTime = sessionStorage.getItem('foth_bgm_time_original');
+          const savedTime = sessionStorage.getItem('foth_bgm_time') || sessionStorage.getItem('foth_bgm_time_original');
           if (savedTime && bgm) {
             const t = parseFloat(savedTime);
-            if (isFinite(t) && t >= 0) {
+            if (isFinite(t) && t >= 0 && Math.abs(bgm.currentTime - t) > 1) {
               bgm.currentTime = t;
             }
           }
         } catch (e) {}
       }
 
-      restoreBgmTime();
-      if (bgm) {
-        bgm.volume = 0.45;
-        bgm.addEventListener('loadedmetadata', restoreBgmTime);
-        bgm.addEventListener('timeupdate', saveBgmTime);
-      }
-      window.addEventListener('beforeunload', saveBgmTime);
-      window.addEventListener('pagehide', saveBgmTime);
-
-      document.querySelectorAll('a').forEach(function (link) {
-        link.addEventListener('click', saveBgmTime);
-      });
-
-      function isBgmEnabled() {
-        try {
-          return localStorage.getItem('foth_bgm_enabled') !== 'false';
-        } catch (e) {
-          return true;
+      function updateUI() {
+        const enabled = isBgmEnabled();
+        if (btn) {
+          btn.classList.toggle('is-muted', !enabled);
+          const icon = btn.querySelector('.lesson-bgm-icon');
+          const text = btn.querySelector('.lesson-bgm-text');
+          if (icon) icon.textContent = enabled ? '🎵' : '🔇';
+          if (text) text.textContent = enabled ? 'BGM ON' : 'BGM OFF';
+          btn.title = enabled ? 'BGMをOFFにする' : 'BGMをONにする';
         }
       }
 
@@ -178,17 +206,47 @@
         }
         if (bgm.paused) {
           restoreBgmTime();
+          bgm.volume = 0.45;
           bgm.play().catch(function () {});
         }
       }
 
+      if (bgm) {
+        bgm.src = BGM_SRC;
+        bgm.volume = 0.45;
+        bgm.addEventListener('loadedmetadata', restoreBgmTime);
+        bgm.addEventListener('timeupdate', saveBgmTime);
+      }
+      window.addEventListener('beforeunload', saveBgmTime);
+      window.addEventListener('pagehide', saveBgmTime);
+
+      document.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', saveBgmTime);
+      });
+
+      updateUI();
       startBGM();
+
       document.addEventListener('click', function init() {
         if (isBgmEnabled()) {
           startBGM();
         }
         document.removeEventListener('click', init);
       }, { once: true });
+
+      if (btn) {
+        btn.addEventListener('click', function () {
+          const next = !isBgmEnabled();
+          try { localStorage.setItem('foth_bgm_enabled', next ? 'true' : 'false'); } catch (e) {}
+          updateUI();
+          if (next) {
+            startBGM();
+          } else if (bgm) {
+            saveBgmTime();
+            bgm.pause();
+          }
+        });
+      }
     })();
   </script>
 </body>

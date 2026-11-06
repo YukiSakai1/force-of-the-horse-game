@@ -6,13 +6,14 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-0Z00J732MD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag() { dataLayer.push(arguments); }
     gtag('js', new Date());
 
     gtag('config', 'G-0Z00J732MD');
   </script>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -23,12 +24,13 @@
   <meta name="Baiduspider" content="noindex, nofollow">
   <meta name="Slurp" content="noindex, nofollow">
   <meta name="DuckDuckBot" content="noindex, nofollow">
-    <title>FORCE OF THE HORSE — CARD & STRATEGY SIMULATION</title>
+  <title>FORCE OF THE HORSE — CARD & STRATEGY SIMULATION</title>
   <meta name="description" content="実名馬レースバトルカードゲーム「FORCE OF THE HORSE」をシュミレーターで体験しよう。">
 
   <!-- Favicon -->
   <link rel="icon" href="https://force-of-the-horse.com/wp-content/themes/foth/favicon.ico">
-  <link rel="shortcut icon" href="https://force-of-the-horse.com/wp-content/themes/foth/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="https://force-of-the-horse.com/wp-content/themes/foth/favicon.ico"
+    type="image/x-icon">
 
   <!-- OGP / Social Meta -->
   <meta property="og:type" content="website">
@@ -45,7 +47,7 @@
   <link
     href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&family=Orbitron:wght@500;700;800&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=147">
+  <link rel="stylesheet" href="style.css?v=152">
   <script type="importmap">
 {
     "imports": {
@@ -56,17 +58,17 @@
 </script>
 </head>
 
-<body class="field-3d field-cyber" data-tilt="0">
+<body class="field-3d" data-tilt="0">
   <script>
     (function () {
       try {
         var t = localStorage.getItem('foth_field_theme');
-        if (t === 'classic') {
-          document.body.classList.remove('field-cyber');
-        } else if (t === 'cyber') {
+        if (t === 'cyber') {
           document.body.classList.add('field-cyber');
+        } else {
+          document.body.classList.remove('field-cyber');
         }
-      } catch (e) {}
+      } catch (e) { }
     })();
   </script>
   <canvas id="three-bg"></canvas>
@@ -104,10 +106,14 @@
       </div>
       <div class="race-info" id="race-info" aria-label="レース情報"></div>
       <div class="topbar-menu" id="topbar-menu">
-        <button class="bgm-toggle" id="bgm-toggle" type="button" aria-pressed="true" title="BGMをOFFにする">🔊 BGM ON</button>
-        <button class="settings-gear" id="settings-gear" type="button" title="設定を開く" aria-label="設定を開く" aria-expanded="false">
+        <button class="bgm-toggle" id="bgm-toggle" type="button" aria-pressed="true" title="BGMをOFFにする">🔊 BGM
+          ON</button>
+        <button class="settings-gear" id="settings-gear" type="button" title="設定を開く" aria-label="設定を開く"
+          aria-expanded="false">
           <svg class="settings-gear-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.74v.5a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z"></path>
+            <path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.09a2 2 0 0 1 1 1.74v.5a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2Z">
+            </path>
             <circle cx="12" cy="12" r="3"></circle>
           </svg>
         </button>
@@ -118,7 +124,8 @@
       <section class="opponent-strip" id="zone-opponent">
         <div class="opponent-avatar" aria-label="相手アバター">
           <svg class="opponent-avatar-icon" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            <path
+              d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
           </svg>
         </div>
         <div class="opponent-meta">
@@ -185,8 +192,7 @@
                   <span class="btn-label">状況</span>
                 </div>
               </button>
-              <button class="cmd-menu-btn" data-cmd="item" type="button"
-                aria-label="走破前にアイテムを使う"
+              <button class="cmd-menu-btn" data-cmd="item" type="button" aria-label="走破前にアイテムを使う"
                 title="アイテム（タイプ：エリア）を、ターン開始後・走破前に使います">
                 <div class="btn-text-wrap">
                   <span class="btn-sub">走破前</span>
@@ -207,14 +213,14 @@
                 <svg class="cmd-fab-arrow" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <!-- Dark shadow outline -->
                   <path d="M 22 8 C 29.73 8 36 14.27 36 22 C 36 29.73 29.73 36 22 36 C 15.6 36 10.23 31.7 8.5 25.8"
-                        stroke="#000000" stroke-width="6" stroke-linecap="round"/>
-                  <path d="M 4.2 27.5 L 9.8 20.2 L 15.8 28.5 Z"
-                        fill="#000000" stroke="#000000" stroke-width="2.6" stroke-linejoin="round"/>
+                    stroke="#000000" stroke-width="6" stroke-linecap="round" />
+                  <path d="M 4.2 27.5 L 9.8 20.2 L 15.8 28.5 Z" fill="#000000" stroke="#000000" stroke-width="2.6"
+                    stroke-linejoin="round" />
                   <!-- White crisp arrow body -->
                   <path d="M 22 8 C 29.73 8 36 14.27 36 22 C 36 29.73 29.73 36 22 36 C 15.6 36 10.23 31.7 8.5 25.8"
-                        stroke="#ffffff" stroke-width="3.6" stroke-linecap="round"/>
-                  <path d="M 4.8 27.2 L 9.8 20.8 L 15.2 28 Z"
-                        fill="#ffffff" stroke="#ffffff" stroke-width="0.8" stroke-linejoin="round"/>
+                    stroke="#ffffff" stroke-width="3.6" stroke-linecap="round" />
+                  <path d="M 4.8 27.2 L 9.8 20.8 L 15.2 28 Z" fill="#ffffff" stroke="#ffffff" stroke-width="0.8"
+                    stroke-linejoin="round" />
                 </svg>
               </span>
             </button>
@@ -322,7 +328,8 @@
     <div id="situation-hint-popup">
       <div class="popup-box">
         <div class="popup-title">☀️ 状況カード</div>
-        <div class="popup-desc" id="situation-hint-desc">状況カードを引きました。レース全体に影響するカードです。今使いますか？<br>使わずに手札へ残し、走破前に操作メニューの「状況」から使うこともできます。</div>
+        <div class="popup-desc" id="situation-hint-desc">
+          状況カードを引きました。レース全体に影響するカードです。今使いますか？<br>使わずに手札へ残し、走破前に操作メニューの「状況」から使うこともできます。</div>
         <div class="popup-btns">
           <button class="btn-guard" id="situation-hint-yes">はい</button>
           <button class="btn-skip" id="situation-hint-no">いいえ</button>
@@ -353,11 +360,13 @@
       </div>
       <div class="settings-body">
         <div class="settings-nav-group">
-          <button class="settings-nav-btn" id="btn-nav-lessons" type="button" data-dest="lessons.html" aria-label="遊びかたの一覧へ">
+          <button class="settings-nav-btn" id="btn-nav-lessons" type="button" data-dest="lessons.html"
+            aria-label="遊びかたの一覧へ">
             <span class="nav-btn-text">遊びかたの一覧へ</span>
             <span class="nav-btn-arrow">›</span>
           </button>
-          <button class="settings-nav-btn" id="btn-nav-home" type="button" data-dest="index.html" aria-label="チュートリアルを終了してトップへ戻る">
+          <button class="settings-nav-btn" id="btn-nav-home" type="button" data-dest="index.html"
+            aria-label="チュートリアルを終了してトップへ戻る">
             <span class="nav-btn-text">チュートリアルを終了してトップへ</span>
             <span class="nav-btn-arrow">›</span>
           </button>
@@ -369,8 +378,8 @@
         <div class="settings-group">
           <div class="settings-label">画面デザイン</div>
           <div class="theme-switch" id="theme-switch" role="group" aria-label="画面デザイン切り替え">
-            <button class="theme-opt active" data-theme="cyber" type="button">Default</button>
-            <button class="theme-opt" data-theme="classic" type="button">Cyber</button>
+            <button class="theme-opt active" data-theme="default" type="button">Default</button>
+            <button class="theme-opt" data-theme="cyber" type="button">Cyber</button>
           </div>
         </div>
         <div class="settings-group">
@@ -396,7 +405,8 @@
   </div>
 
   <!-- 汎用切り替え・離脱確認ダイアログ (body直下・z-index: 20000 でデッキ配布や設定よりも最前面) -->
-  <div class="confirm-modal-overlay" id="manual-confirm-popup" role="dialog" aria-modal="true" aria-labelledby="manual-confirm-title" hidden>
+  <div class="confirm-modal-overlay" id="manual-confirm-popup" role="dialog" aria-modal="true"
+    aria-labelledby="manual-confirm-title" hidden>
     <div class="confirm-modal-box">
       <div class="confirm-modal-icon" id="manual-confirm-icon">⚔️</div>
       <div class="confirm-modal-title" id="manual-confirm-title">対戦モードへの切り替え</div>
@@ -409,7 +419,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=96"></script>
+  <script src="script.js?v=104"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
@@ -847,7 +857,7 @@
     const speeds = new Float32Array(particleCount);
 
     for (let i = 0; i < particleCount; i++) {
-      positions[i * 3]     = (Math.random() - 0.5) * 4000;
+      positions[i * 3] = (Math.random() - 0.5) * 4000;
       positions[i * 3 + 1] = (Math.random() - 0.5) * 190;
       positions[i * 3 + 2] = -Math.random() * 2000 + 200;
       speeds[i] = 25 + Math.random() * 55;
@@ -858,7 +868,7 @@
       } else {
         pColor.setRGB(0.95, 0.98, 1.0);
       }
-      colors[i * 3]     = pColor.r;
+      colors[i * 3] = pColor.r;
       colors[i * 3 + 1] = pColor.g;
       colors[i * 3 + 2] = pColor.b;
     }
@@ -930,7 +940,7 @@
         pPositions[i * 3 + 2] += delta * speeds[i];
         if (pPositions[i * 3 + 2] > 300) {
           pPositions[i * 3 + 2] = -1900 - Math.random() * 200;
-          pPositions[i * 3]     = (Math.random() - 0.5) * 4000;
+          pPositions[i * 3] = (Math.random() - 0.5) * 4000;
           pPositions[i * 3 + 1] = (Math.random() - 0.5) * 190;
         }
       }

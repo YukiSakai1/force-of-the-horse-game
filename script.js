@@ -161,6 +161,7 @@
     var lane = currentLane();
     if (!lane) return null;
     lane.count--;
+    updateManualTrack();
     return lane;
   }
   // 相手（CPU）自身の山札（自分の山札とは別に、4つの距離エリアを持つ）
@@ -396,7 +397,7 @@
     var angleStep = layoutCount > 1 ? maxSpread / (layoutCount - 1) : 0;
     // モバイルはオーバーラップを減らして各カードが見やすくなるよう調整
     var idealGapRatio = isMobile ? 0.38 : 0.62;
-    var minGapRatio   = isMobile ? 0.20 : 0.20;
+    var minGapRatio = isMobile ? 0.20 : 0.20;
     var idealGap = cardW * idealGapRatio;
     var totalWidthIdeal = idealGap * (layoutCount - 1) + cardW;
     var gap = idealGap;
@@ -697,6 +698,7 @@
         '</div>'
       );
     }).join('');
+    updateManualTrack();
   }
 
   function deckSourceRect() {
@@ -1015,9 +1017,18 @@
   var lessonRunHorseId = null;
   var lessonReservedHorseId = null;
   var STEP_TOTAL = isResponseLesson ? 12 : (isSituationLesson ? 8 : (isIntroLesson ? 11 : (isRunLesson ? 7 : (isGuardLesson ? 8 : (isItemLesson ? 10 : (isStyleLesson ? 15 : (isAbilityLesson ? 9 : 19)))))));
+  function updateManualTrack() {
+    if (!document.body.classList.contains('manual-mode')) return;
+    var pct = playerHasTakenTurn ? 50 : 0;
+    var fillEl = $('track-fill');
+    var horseEl = $('track-horse');
+    if (fillEl) fillEl.style.width = pct + '%';
+    if (horseEl) horseEl.style.left = pct + '%';
+  }
+
   function setProgress(step) {
     if (isRunLesson && step >= 8) step -= 7;
-    if (isGuardLesson && step >= 15) step = ({15: 1, 16: 2, 17: 7, 18: 8})[step] || 8;
+    if (isGuardLesson && step >= 15) step = ({ 15: 1, 16: 2, 17: 7, 18: 8 })[step] || 8;
     var pct = Math.min(100, (step / STEP_TOTAL) * 100);
     var cur = Math.min(step, STEP_TOTAL);
     var fillEl = $('track-fill');
@@ -1308,23 +1319,23 @@
     var mask = document.createElement('div');
     mask.className = 'tutorial-spotlight-mask';
     function updateSpotlightPosition() {
-    var rect = targetEl.getBoundingClientRect();
-    mask.style.left = Math.max(0, rect.left - pad) + 'px';
-    mask.style.top = Math.max(0, rect.top - pad) + 'px';
-    mask.style.width = Math.min(window.innerWidth, rect.width + pad * 2) + 'px';
-    mask.style.height = Math.min(window.innerHeight, rect.height + pad * 2) + 'px';
-    if (targetEl.classList.contains('card') && targetEl.closest('.hand-row')) {
-      // 扇状の手札は回転しているため、外接する四角形ではなくカードに合わせて窓を回転させる。
-      var matrix = new DOMMatrixReadOnly(getComputedStyle(targetEl).transform);
-      var cardWidth = targetEl.offsetWidth * Math.hypot(matrix.m11, matrix.m12);
-      var cardHeight = targetEl.offsetHeight * Math.hypot(matrix.m21, matrix.m22);
-      var angle = Math.atan2(matrix.m12, matrix.m11) * 180 / Math.PI;
-      mask.style.width = (cardWidth + pad * 2) + 'px';
-      mask.style.height = (cardHeight + pad * 2) + 'px';
-      mask.style.left = (rect.left + rect.width / 2 - cardWidth / 2 - pad) + 'px';
-      mask.style.top = (rect.top + rect.height / 2 - cardHeight / 2 - pad) + 'px';
-      mask.style.transform = 'rotate(' + angle + 'deg)';
-    }
+      var rect = targetEl.getBoundingClientRect();
+      mask.style.left = Math.max(0, rect.left - pad) + 'px';
+      mask.style.top = Math.max(0, rect.top - pad) + 'px';
+      mask.style.width = Math.min(window.innerWidth, rect.width + pad * 2) + 'px';
+      mask.style.height = Math.min(window.innerHeight, rect.height + pad * 2) + 'px';
+      if (targetEl.classList.contains('card') && targetEl.closest('.hand-row')) {
+        // 扇状の手札は回転しているため、外接する四角形ではなくカードに合わせて窓を回転させる。
+        var matrix = new DOMMatrixReadOnly(getComputedStyle(targetEl).transform);
+        var cardWidth = targetEl.offsetWidth * Math.hypot(matrix.m11, matrix.m12);
+        var cardHeight = targetEl.offsetHeight * Math.hypot(matrix.m21, matrix.m22);
+        var angle = Math.atan2(matrix.m12, matrix.m11) * 180 / Math.PI;
+        mask.style.width = (cardWidth + pad * 2) + 'px';
+        mask.style.height = (cardHeight + pad * 2) + 'px';
+        mask.style.left = (rect.left + rect.width / 2 - cardWidth / 2 - pad) + 'px';
+        mask.style.top = (rect.top + rect.height / 2 - cardHeight / 2 - pad) + 'px';
+        mask.style.transform = 'rotate(' + angle + 'deg)';
+      }
     }
     updateSpotlightPosition();
     // 盤面や手札のスクロールは子要素で発生するため、キャプチャ段階で検知する。
@@ -1773,6 +1784,39 @@
   }
 
   /* ===================== ターン終了 / CPUターン ===================== */
+  var playerHasTakenTurn = false;
+
+  function showTrialCompleteModal() {
+    var dialog = $('lesson-complete');
+    if (!dialog) return;
+    dialog.querySelector('.lesson-complete-kicker').textContent = '1往復体験 · COMPLETE';
+    dialog.querySelector('#lesson-complete-title').textContent = 'バトルの流れを体験できたね！';
+    dialog.querySelector('p:not(.lesson-complete-kicker)').innerHTML =
+      '自分のターンで馬を出して走破し、相手のターンでガードする、<br>バトルの基本サイクルを自分の手で体験できました！';
+    var nextBtn = $('lesson-complete-next');
+    nextBtn.href = 'lessons.html';
+    nextBtn.textContent = '遊びかたの一覧へ ›';
+    var backBtn = dialog.querySelector('.lesson-complete-back');
+    backBtn.hidden = false;
+    backBtn.textContent = 'もう一度1往復体験する';
+    backBtn.href = '#';
+    backBtn.onclick = function (e) {
+      e.preventDefault();
+      dialog.close();
+      startManualMode();
+    };
+    SoundFX.fanfare();
+    var flagEl = $('track-flag');
+    if (flagEl) flagEl.classList.add('goal-reached');
+    var fillEl = $('track-fill');
+    var horseEl = $('track-horse');
+    if (fillEl) fillEl.style.width = '100%';
+    if (horseEl) horseEl.style.left = '100%';
+    var stepLabel = $('step-label');
+    if (stepLabel) stepLabel.innerHTML = '<span class="step-mode-label">体験完了！</span>';
+    dialog.showModal();
+  }
+
   function endTurn() {
     if (phase !== 'idle' || pendingFinishRun) return;
     phase = 'idle';
@@ -1782,6 +1826,15 @@
     canDraw = true;
     isCpuTurn = true;
     showCommandBar(false);
+    if (interactionMode === 'freeplay') {
+      playerHasTakenTurn = true;
+      var fillEl = $('track-fill');
+      var horseEl = $('track-horse');
+      if (fillEl) fillEl.style.width = '50%';
+      if (horseEl) horseEl.style.left = '50%';
+      var stepLabel = $('step-label');
+      if (stepLabel) stepLabel.innerHTML = '<span class="step-mode-label">相手のターン</span>';
+    }
     setNarrator('🧠 <b>CPUのターンです。</b>');
     renderAll();
     showBanner('CPUのターンです', 1200).then(function () {
@@ -1795,6 +1848,11 @@
 
   function beginPlayerTurn(message) {
     if (message) setNarrator(message);
+    if (interactionMode === 'freeplay' && playerHasTakenTurn) {
+      return sleep(600).then(function () {
+        showTrialCompleteModal();
+      });
+    }
     isCpuTurn = false;
     canDraw = true;
     phase = 'idle';
@@ -2054,106 +2112,106 @@
     var horse = cpuHorseCard || goldShip();
     showBanner('走破成功！ ' + maxDraw + '枚ドロー', 3000, horse,
       '相手：走破 ' + cpuRunValue + ' − ガード ' + guardValue + ' ＝ ' + maxDraw + '枚').then(function () {
-      var chain = Promise.resolve();
-      var opponentRect = $('zone-opponent').getBoundingClientRect();
-      for (var i = 0; i < maxDraw; i++) {
-        (function () {
-          chain = chain.then(function () {
-            var deckRect = cpuDeckSourceRect();
-            var dummy = makeSmallCardDummy(deckRect);
-            return flyGhost(dummy, opponentRect, 0.6).then(function () {
-            dummy.remove();
-            var rewardMaker;
-            var rewardRoll = Math.random();
-            if (rewardRoll < 0.45) rewardMaker = forceCard;
-            else if (rewardRoll < 0.85) rewardMaker = CPU_HORSE_DRAW_POOL[Math.floor(Math.random() * CPU_HORSE_DRAW_POOL.length)];
-            else rewardMaker = FREEPLAY_POOL[Math.floor(Math.random() * FREEPLAY_POOL.length)];
-            var card = rewardMaker();
-            cpuHand.push(card);
-            opponentHandCount = cpuHand.length;
-            cpuDrawOneFromDeck();
-            lastDrawer = 'cpu';
-            renderAll();
-            return sleep(120);
+        var chain = Promise.resolve();
+        var opponentRect = $('zone-opponent').getBoundingClientRect();
+        for (var i = 0; i < maxDraw; i++) {
+          (function () {
+            chain = chain.then(function () {
+              var deckRect = cpuDeckSourceRect();
+              var dummy = makeSmallCardDummy(deckRect);
+              return flyGhost(dummy, opponentRect, 0.6).then(function () {
+                dummy.remove();
+                var rewardMaker;
+                var rewardRoll = Math.random();
+                if (rewardRoll < 0.45) rewardMaker = forceCard;
+                else if (rewardRoll < 0.85) rewardMaker = CPU_HORSE_DRAW_POOL[Math.floor(Math.random() * CPU_HORSE_DRAW_POOL.length)];
+                else rewardMaker = FREEPLAY_POOL[Math.floor(Math.random() * FREEPLAY_POOL.length)];
+                var card = rewardMaker();
+                cpuHand.push(card);
+                opponentHandCount = cpuHand.length;
+                cpuDrawOneFromDeck();
+                lastDrawer = 'cpu';
+                renderAll();
+                return sleep(120);
+              });
+            });
+          })();
+        }
+        chain.then(function () {
+          // 走破成功時：走破数 - 1 枚を手札から捨てる（プレイヤーと同ルール）
+          var discardCount = Math.max(0, maxDraw - 1);
+          var needDiscard = Math.min(discardCount, cpuHand.length);
+
+          function cpuPickCardToDiscard() {
+            if (!cpuHand.length) return null;
+            // 1. アイテムカード（既に使わなかったもの）
+            var itemIdx = cpuHand.findIndex(function (c) { return c.type === 'item'; });
+            if (itemIdx >= 0) return cpuHand.splice(itemIdx, 1)[0];
+
+            // 2. 馬カードが複数あれば、走破値の低い馬を捨てる
+            var horses = cpuHand.filter(function (c) { return c.type === 'horse'; });
+            if (horses.length > 1) {
+              horses.sort(function (a, b) { return (a.run || 0) - (b.run || 0); });
+              var worstHorse = horses[0];
+              var hIdx = cpuHand.findIndex(function (c) { return c.id === worstHorse.id; });
+              if (hIdx >= 0) return cpuHand.splice(hIdx, 1)[0];
+            }
+
+            // 3. フォースカードが4枚以上あればフォースを捨てる
+            var forces = cpuHand.filter(function (c) { return c.type === 'force'; });
+            if (forces.length >= 4) {
+              var fIdx = cpuHand.findIndex(function (c) { return c.type === 'force'; });
+              if (fIdx >= 0) return cpuHand.splice(fIdx, 1)[0];
+            }
+
+            // 4. その他は末尾のカードを捨てる
+            return cpuHand.pop();
+          }
+
+          var discardChain = Promise.resolve();
+          if (needDiscard > 0) {
+            setNarrator('相手（CPU）は走破ルールに従い、手札から <b>' + needDiscard + '枚</b> をファームに送ります…');
+            var oppZone = $('zone-opponent');
+            var oppRect = oppZone ? oppZone.getBoundingClientRect() : { left: 100, top: 50, width: 60, height: 40 };
+            var farmZone = $('zone-farm');
+            var farmRect = farmZone ? farmZone.getBoundingClientRect() : { left: 50, top: 400, width: 80, height: 110 };
+
+            for (var d = 0; d < needDiscard; d++) {
+              (function (idx) {
+                discardChain = discardChain.then(function () {
+                  var discarded = cpuPickCardToDiscard();
+                  if (discarded) {
+                    farm.push(discarded);
+                    opponentHandCount = cpuHand.length;
+                    renderAll();
+                  }
+                  var dummy = makeOpponentDiscardDummy(oppRect);
+                  return flyGhost(dummy, farmRect, 0.5).then(function () {
+                    dummy.remove();
+                    if (window.SoundFX && typeof SoundFX.cardSlide === 'function') SoundFX.cardSlide();
+                    return sleep(160);
+                  });
+                });
+              })(d);
+            }
+          }
+
+          return discardChain.then(function () {
+            if (cpuHorseCard) {
+              farm.push(cpuHorseCard);
+              cpuHorseCard = null;
+            }
+            var endMsg = needDiscard > 0
+              ? ('🧠 相手のターン終了！ 手札を ' + needDiscard + '枚 捨てました（相手の残り手札: ' + cpuHand.length + '枚）。あなたの番です。')
+              : '🧠 相手のターン終了！ あなたの番です。';
+            setNarrator(endMsg);
+            if (needDiscard > 0) {
+              showToast('相手が手札を' + needDiscard + '枚捨てました', 'info', 2200);
+            }
+            beginPlayerTurn(endMsg);
           });
         });
-      })();
-    }
-      chain.then(function () {
-        // 走破成功時：走破数 - 1 枚を手札から捨てる（プレイヤーと同ルール）
-        var discardCount = Math.max(0, maxDraw - 1);
-        var needDiscard = Math.min(discardCount, cpuHand.length);
-
-        function cpuPickCardToDiscard() {
-          if (!cpuHand.length) return null;
-          // 1. アイテムカード（既に使わなかったもの）
-          var itemIdx = cpuHand.findIndex(function (c) { return c.type === 'item'; });
-          if (itemIdx >= 0) return cpuHand.splice(itemIdx, 1)[0];
-
-          // 2. 馬カードが複数あれば、走破値の低い馬を捨てる
-          var horses = cpuHand.filter(function (c) { return c.type === 'horse'; });
-          if (horses.length > 1) {
-            horses.sort(function (a, b) { return (a.run || 0) - (b.run || 0); });
-            var worstHorse = horses[0];
-            var hIdx = cpuHand.findIndex(function (c) { return c.id === worstHorse.id; });
-            if (hIdx >= 0) return cpuHand.splice(hIdx, 1)[0];
-          }
-
-          // 3. フォースカードが4枚以上あればフォースを捨てる
-          var forces = cpuHand.filter(function (c) { return c.type === 'force'; });
-          if (forces.length >= 4) {
-            var fIdx = cpuHand.findIndex(function (c) { return c.type === 'force'; });
-            if (fIdx >= 0) return cpuHand.splice(fIdx, 1)[0];
-          }
-
-          // 4. その他は末尾のカードを捨てる
-          return cpuHand.pop();
-        }
-
-        var discardChain = Promise.resolve();
-        if (needDiscard > 0) {
-          setNarrator('相手（CPU）は走破ルールに従い、手札から <b>' + needDiscard + '枚</b> をファームに送ります…');
-          var oppZone = $('zone-opponent');
-          var oppRect = oppZone ? oppZone.getBoundingClientRect() : { left: 100, top: 50, width: 60, height: 40 };
-          var farmZone = $('zone-farm');
-          var farmRect = farmZone ? farmZone.getBoundingClientRect() : { left: 50, top: 400, width: 80, height: 110 };
-
-          for (var d = 0; d < needDiscard; d++) {
-            (function (idx) {
-              discardChain = discardChain.then(function () {
-                var discarded = cpuPickCardToDiscard();
-                if (discarded) {
-                  farm.push(discarded);
-                  opponentHandCount = cpuHand.length;
-                  renderAll();
-                }
-                var dummy = makeOpponentDiscardDummy(oppRect);
-                return flyGhost(dummy, farmRect, 0.5).then(function () {
-                  dummy.remove();
-                  if (window.SoundFX && typeof SoundFX.cardSlide === 'function') SoundFX.cardSlide();
-                  return sleep(160);
-                });
-              });
-            })(d);
-          }
-        }
-
-        return discardChain.then(function () {
-          if (cpuHorseCard) {
-            farm.push(cpuHorseCard);
-            cpuHorseCard = null;
-          }
-          var endMsg = needDiscard > 0
-            ? ('🧠 相手のターン終了！ 手札を ' + needDiscard + '枚 捨てました（相手の残り手札: ' + cpuHand.length + '枚）。あなたの番です。')
-            : '🧠 相手のターン終了！ あなたの番です。';
-          setNarrator(endMsg);
-          if (needDiscard > 0) {
-            showToast('相手が手札を' + needDiscard + '枚捨てました', 'info', 2200);
-          }
-          beginPlayerTurn(endMsg);
-        });
       });
-    });
   }
 
   /* ===================== 走破実行（相手ガード付き） ===================== */
@@ -2201,12 +2259,42 @@
           field = horseInPlay;
           fieldGuard = null;
           renderAll();
-          if (styleMatchesCurrentArea(horseInPlay, playerLane)) {
-            setNarrator('<b>脚質一致！</b> ' + playerLane.label + 'エリアと馬の脚質が一致したため、走破値が<b>+1</b>されます。');
-            return showBanner('脚質一致！ 走破＋1', 1800, horseInPlay, playerLane.label + 'エリアと脚質が一致');
+
+          // フォース能力（ローシャムパーク：得意競馬場で走破に出したとき、ファームのフォースカードを手札に戻す）
+          var abilityPromise = Promise.resolve();
+          if (horseInPlay.name === 'ローシャムパーク' && (race.racecourse === '中山' || race.racecourse === '函館')) {
+            var farmForce = farm.find(function (c) { return c.type === 'force'; });
+            if (farmForce) {
+              abilityPromise = showBanner('フォース能力 発動！', 2200, horseInPlay, 'ファームのノーマルフォース1枚を手札に戻す').then(function () {
+                var farmZone = $('zone-farm');
+                var handZone = $('hand-row');
+                var farmRect = farmZone ? farmZone.getBoundingClientRect() : { left: 50, top: 400, width: 80, height: 110 };
+                var handRect = handZone ? handZone.getBoundingClientRect() : { left: 100, top: 600, width: 300, height: 120 };
+                var dummy = makeSmallCardDummy(farmRect);
+                if (farmForce.img) dummy.style.backgroundImage = 'url(' + farmForce.img + ')';
+                return flyGhost(dummy, handRect, 0.6).then(function () {
+                  dummy.remove();
+                  farm = farm.filter(function (c) { return c.id !== farmForce.id; });
+                  hand.push(farmForce);
+                  renderFarm();
+                  renderHand();
+                  SoundFX.deal();
+                  setNarrator('<b>フォース能力 発動！</b> ローシャムパークの能力で、ファームのノーマルフォース1枚を手札に戻した！');
+                  showToast('フォース能力発動：ノーマルフォースを手札に戻しました！', 'gold', 2500);
+                  return sleep(400);
+                });
+              });
+            }
           }
-          CardCloseup.show(horseInPlay, { label: '走破！', autoHideMs: 1800 });
-          return sleep(500);
+
+          return abilityPromise.then(function () {
+            if (styleMatchesCurrentArea(horseInPlay, playerLane)) {
+              setNarrator('<b>脚質一致！</b> ' + playerLane.label + 'エリアと馬の脚質が一致したため、走破値が<b>+1</b>されます。');
+              return showBanner('脚質一致！ 走破＋1', 1800, horseInPlay, playerLane.label + 'エリアと脚質が一致');
+            }
+            CardCloseup.show(horseInPlay, { label: '走破！', autoHideMs: 1800 });
+            return sleep(500);
+          });
         });
       });
     }
@@ -3049,6 +3137,15 @@
     return [forceCard(), forceCard(), forceCard(), goldShip(), rousham(), whip(), goggles()];
   }
 
+  function makeManualHand() {
+    return [
+      forceCard(), forceCard(),
+      goldShip(), rousham(),
+      whip(), goggles(),
+      situationCard('かんかん照り', '馬場状態を一段階良くする', KANKAN_IMG)
+    ];
+  }
+
   async function dealInitialCards(isManual, runId) {
     // 画面中央に練習用デッキスタックを生成
     var centerEl = document.createElement('div');
@@ -3124,7 +3221,7 @@
     // 先に最終表示位置を確定させてから配札アニメーションを始める。
     // さらに各カードの直前に位置を取り直し、1枚目の追加によるレイアウト変化にも追従する。
     if (handArea) handArea.classList.add('has-cards');
-    var starterHand = makeStarterHand();
+    var starterHand = isManual ? makeManualHand() : makeStarterHand();
 
     for (var hi = 0; hi < starterHand.length; hi++) {
       if (runId && runId !== tutorialRunId) { centerEl.remove(); return; }
@@ -3374,9 +3471,10 @@
     $('lesson-complete').querySelector('.lesson-complete-kicker').textContent = 'LESSON 07 · COMPLETE';
     $('lesson-complete-title').textContent = 'アイテムの追加使用を覚えたね！';
     $('lesson-complete').querySelector('p:not(.lesson-complete-kicker)').textContent = 'ガード後にもアイテムを追加でき、相手の追加を見てさらに使うこともできるね。お互いに追加を見送ってから、最終的な走破数とガード値を比べよう！';
-    $('lesson-complete-next').href = 'lessons.html';
-    $('lesson-complete-next').textContent = '遊びかたの一覧へ';
-    $('lesson-complete').querySelector('.lesson-complete-back').hidden = true;
+    $('lesson-complete-next').href = 'tutorial.html?mode=manual';
+    $('lesson-complete-next').textContent = '次へ：実戦練習をしてみよう！ ›';
+    $('lesson-complete').querySelector('.lesson-complete-back').hidden = false;
+    $('lesson-complete').querySelector('.lesson-complete-back').textContent = '遊びかたの一覧へ';
     $('lesson-complete').showModal();
   }
 
@@ -3864,12 +3962,12 @@
       ? 'ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ このレッスンでは、<b>各エリアの役割・レース条件・勝利条件</b>を覚えよう。'
       : (isResponseLesson ? 'このレッスンでは<b>ガード後のアイテム追加</b>を練習するよ。相手の追加使用を見て、さらにアイテムを使ってみよう！'
         : isSituationLesson ? 'このレッスンでは<b>状況カード</b>を使って、レースの馬場状態を変えてみよう！'
-        : isAbilityLesson ? 'このレッスンでは<b>フォース能力</b>を体験するよ。ローシャムパークを得意競馬場で出して、ファームのフォースを手札に戻してみよう！'
-        : isStyleLesson ? 'このレッスンでは<b>脚質一致と適性による走破数の変化</b>を、2ターンで体験するよ。カードに書かれた走破数と、実際に引ける枚数を比べてみよう！'
-        : isItemLesson ? 'このレッスンでは<b>アイテム</b>を使ってみよう。「獣医師」で手札を助けて、「鞭」で馬の走破を強くするよ！'
-        : isGuardLesson ? 'このレッスンでは<b>ガード</b>を練習するよ。相手が走破を宣言した後、手札の馬で相手が引くカードを減らす流れを覚えよう！'
-        : isRunLesson ? 'このレッスンでは<b>走破</b>を練習するよ。馬を出すところから、カードを引いてファームへ送るところまでやってみよう！'
-        : 'ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ まずは対戦の準備をしよう。'));
+          : isAbilityLesson ? 'このレッスンでは<b>フォース能力</b>を体験するよ。ローシャムパークを得意競馬場で出して、ファームのフォースを手札に戻してみよう！'
+            : isStyleLesson ? 'このレッスンでは<b>脚質一致と適性による走破数の変化</b>を、2ターンで体験するよ。カードに書かれた走破数と、実際に引ける枚数を比べてみよう！'
+              : isItemLesson ? 'このレッスンでは<b>アイテム</b>を使ってみよう。「獣医師」で手札を助けて、「鞭」で馬の走破を強くするよ！'
+                : isGuardLesson ? 'このレッスンでは<b>ガード</b>を練習するよ。相手が走破を宣言した後、手札の馬で相手が引くカードを減らす流れを覚えよう！'
+                  : isRunLesson ? 'このレッスンでは<b>走破</b>を練習するよ。馬を出すところから、カードを引いてファームへ送るところまでやってみよう！'
+                    : 'ようこそ、<b>フォース オブ ザ ホース</b>の世界へ！ まずは対戦の準備をしよう。'));
     setProgress(0);
     await waitNext();
     if (myRunId !== tutorialRunId) return;
@@ -3919,15 +4017,15 @@
 
     // 走破の練習は配札済みで開始し、準備の説明・演出を繰り返さない。
     if (!isRunLesson) {
-    // STEP 0: 練習用カードの初期配布
-    setProgress(1);
-    showNextButton(false);
-    await dealInitialCards(false, myRunId);
-    if (myRunId !== tutorialRunId) return;
-    setNarrator('今回は<b>60枚のカード</b>を使うよ。手札7枚・山札は各10枚・残りはファーム。まず盤面を確認しよう。');
-    showNextButton(true);
-    await waitNext();
-    if (myRunId !== tutorialRunId) return;
+      // STEP 0: 練習用カードの初期配布
+      setProgress(1);
+      showNextButton(false);
+      await dealInitialCards(false, myRunId);
+      if (myRunId !== tutorialRunId) return;
+      setNarrator('今回は<b>60枚のカード</b>を使うよ。手札7枚・山札は各10枚・残りはファーム。まず盤面を確認しよう。');
+      showNextButton(true);
+      await waitNext();
+      if (myRunId !== tutorialRunId) return;
     }
 
     if (isIntroLesson) {
@@ -3936,54 +4034,54 @@
     }
 
     if (!isRunLesson) {
-    // STEP 1: 配布直後にファームを説明し、登場から説明までの間を空けない
-    setProgress(2);
-    await explainStep($('zone-farm'), 'zone-farm', 'ここが<b>ファーム</b>。最初に置かれた残りのカード（13枚）と、使い終わったカードを置く場所だよ。');
-    if (myRunId !== tutorialRunId) return;
+      // STEP 1: 配布直後にファームを説明し、登場から説明までの間を空けない
+      setProgress(2);
+      await explainStep($('zone-farm'), 'zone-farm', 'ここが<b>ファーム</b>。最初に置かれた残りのカード（13枚）と、使い終わったカードを置く場所だよ。');
+      if (myRunId !== tutorialRunId) return;
 
-    // STEP 2: 状況カード置き場
-    setProgress(3);
-    await explainStep($('zone-situation'), 'zone-situation', 'ここは<b>状況カードの置き場所</b>。状況カードには、天候などレース全体に影響する<b>特殊効果</b>があるよ。<br>今回は詳しい効果の説明を省略するけれど、カードを引いたときに使うか選べることを覚えておこう。');
-    if (myRunId !== tutorialRunId) return;
+      // STEP 2: 状況カード置き場
+      setProgress(3);
+      await explainStep($('zone-situation'), 'zone-situation', 'ここは<b>状況カードの置き場所</b>。状況カードには、天候などレース全体に影響する<b>特殊効果</b>があるよ。<br>今回は詳しい効果の説明を省略するけれど、カードを引いたときに使うか選べることを覚えておこう。');
+      if (myRunId !== tutorialRunId) return;
 
-    // STEP 3: フォースカード（中央に近いカードを紹介して見やすくする）
-    setProgress(4);
-    var targetForce = findHandCardClosestToCenter('force');
-    var forceEl = targetForce ? cardElById(targetForce.id) : null;
-    await explainStep(forceEl, null, 'これが<b>フォースカード</b>。馬カードを場に出すために必要なカードだよ。');
-    if (myRunId !== tutorialRunId) return;
+      // STEP 3: フォースカード（中央に近いカードを紹介して見やすくする）
+      setProgress(4);
+      var targetForce = findHandCardClosestToCenter('force');
+      var forceEl = targetForce ? cardElById(targetForce.id) : null;
+      await explainStep(forceEl, null, 'これが<b>フォースカード</b>。馬カードを場に出すために必要なカードだよ。');
+      if (myRunId !== tutorialRunId) return;
 
-    // STEP 4: 馬カード（中央に近いカードを紹介）
-    setProgress(5);
-    var targetHorse = findHandCardClosestToCenter('horse');
-    var horseEl = targetHorse ? cardElById(targetHorse.id) : null;
-    await explainStep(horseEl, null, 'このカードが<b>馬カード</b>だ！ このカードを使って相手と勝負するよ。');
-    if (myRunId !== tutorialRunId) return;
+      // STEP 4: 馬カード（中央に近いカードを紹介）
+      setProgress(5);
+      var targetHorse = findHandCardClosestToCenter('horse');
+      var horseEl = targetHorse ? cardElById(targetHorse.id) : null;
+      await explainStep(horseEl, null, 'このカードが<b>馬カード</b>だ！ このカードを使って相手と勝負するよ。');
+      if (myRunId !== tutorialRunId) return;
 
-    // STEP 5: アイテムカード（中央に近いカードを紹介）
-    setProgress(6);
-    var targetItem = findHandCardClosestToCenter(function (c) { return c.type === 'item' || c.type === 'jockey'; });
-    var itemEl = targetItem ? cardElById(targetItem.id) : null;
-    await explainStep(itemEl, null, '<b>アイテムカードには2種類</b>あり、使えるタイミングが違うよ。まず、このカードのような「<b>タイプ：馬</b>」は、走破する馬カードと一緒に使うカードだよ。');
-    if (myRunId !== tutorialRunId) return;
-    setNarrator('もう1つの「<b>タイプ：エリア</b>」は、<b>自分のターン開始後から走破する前まで</b>に使えるよ。自由操作では、右側の操作メニューにある「<b>アイテム</b>」から選ぼう。');
-    showNextButton(true);
-    await waitNext();
-    if (myRunId !== tutorialRunId) return;
+      // STEP 5: アイテムカード（中央に近いカードを紹介）
+      setProgress(6);
+      var targetItem = findHandCardClosestToCenter(function (c) { return c.type === 'item' || c.type === 'jockey'; });
+      var itemEl = targetItem ? cardElById(targetItem.id) : null;
+      await explainStep(itemEl, null, '<b>アイテムカードには2種類</b>あり、使えるタイミングが違うよ。まず、このカードのような「<b>タイプ：馬</b>」は、走破する馬カードと一緒に使うカードだよ。');
+      if (myRunId !== tutorialRunId) return;
+      setNarrator('もう1つの「<b>タイプ：エリア</b>」は、<b>自分のターン開始後から走破する前まで</b>に使えるよ。自由操作では、右側の操作メニューにある「<b>アイテム</b>」から選ぼう。');
+      showNextButton(true);
+      await waitNext();
+      if (myRunId !== tutorialRunId) return;
 
-    // STEP 6: 距離エリア(山札) / 勝利条件（メッセージを2つに分割）
-    setProgress(7);
-    setNarrator('ここが<b>距離エリア（山札）</b>だ。山札は「逃げ」「先行」「差し」「追込」の4つのエリアにそれぞれ10枚ずつ配られているよ。');
-    await waitNext();
-    if (myRunId !== tutorialRunId) return;
-    await flashTutorialTarget($('zone-deck'), 'zone-active');
-    if (myRunId !== tutorialRunId) return;
+      // STEP 6: 距離エリア(山札) / 勝利条件（メッセージを2つに分割）
+      setProgress(7);
+      setNarrator('ここが<b>距離エリア（山札）</b>だ。山札は「逃げ」「先行」「差し」「追込」の4つのエリアにそれぞれ10枚ずつ配られているよ。');
+      await waitNext();
+      if (myRunId !== tutorialRunId) return;
+      await flashTutorialTarget($('zone-deck'), 'zone-active');
+      if (myRunId !== tutorialRunId) return;
 
-    setNarrator('<b>逃げから順番に</b>引いていき、先行、差し、追込と4つの山札を<b>先にすべて引ききったプレイヤーの勝ち</b>だよ！');
-    showNextButton(true);
-    await waitNext();
-    hideArrow();
-    if (myRunId !== tutorialRunId) return;
+      setNarrator('<b>逃げから順番に</b>引いていき、先行、差し、追込と4つの山札を<b>先にすべて引ききったプレイヤーの勝ち</b>だよ！');
+      showNextButton(true);
+      await waitNext();
+      hideArrow();
+      if (myRunId !== tutorialRunId) return;
 
     }
 
@@ -4091,109 +4189,109 @@
 
     // 通しチュートリアルと単独のガード編で、同じ操作・結果処理を使う。
     async function practiceGuard() {
-    // STEP 15: 相手が馬カードを出して走破を宣言
-    setProgress(15);
-    cpuHorseCard = seiunSky();
-    // チュートリアルではこの後のガード説明もカード記載の走破値を使う。
-    // 表示用の値も同時に設定し、カード上が「走破 0」になるのを防ぐ。
-    cpuRunValue = cpuHorseCard.run || 0;
-    opponentHandCount = Math.max(0, opponentHandCount - ((cpuHorseCard.cost || 2) + 1));
-    renderAll();
-    focusTutorialTarget($('field-body-opp'));
-    setNarrator('相手が<b>' + cpuHorseCard.name + '</b>を出して「走破」を宣言した！ 相手も馬の走破値ぶん、山札からカードを引こうとしているよ。');
-    showNextButton(false);
-    await showBanner('相手が走破！', 3000, cpuHorseCard, '相手ターン');
-    await sleep(100);
-    showNextButton(true);
-    await waitNext();
-    if (myRunId !== tutorialRunId) return;
-
-    // STEP 16: 相手の走破を見てから、初めてガードを説明する
-    setProgress(16);
-    var tutorialGuardCard = hand.filter(function (c) { return c.type === 'horse'; })[0];
-    if (!tutorialGuardCard) {
-      tutorialGuardCard = rousham();
-      hand.push(tutorialGuardCard);
-      renderHand();
-      setNarrator('相手の走破に備えて、練習用の馬カードを手札に用意したよ。');
+      // STEP 15: 相手が馬カードを出して走破を宣言
+      setProgress(15);
+      cpuHorseCard = seiunSky();
+      // チュートリアルではこの後のガード説明もカード記載の走破値を使う。
+      // 表示用の値も同時に設定し、カード上が「走破 0」になるのを防ぐ。
+      cpuRunValue = cpuHorseCard.run || 0;
+      opponentHandCount = Math.max(0, opponentHandCount - ((cpuHorseCard.cost || 2) + 1));
+      renderAll();
+      focusTutorialTarget($('field-body-opp'));
+      setNarrator('相手が<b>' + cpuHorseCard.name + '</b>を出して「走破」を宣言した！ 相手も馬の走破値ぶん、山札からカードを引こうとしているよ。');
+      showNextButton(false);
+      await showBanner('相手が走破！', 3000, cpuHorseCard, '相手ターン');
+      await sleep(100);
       showNextButton(true);
       await waitNext();
       if (myRunId !== tutorialRunId) return;
-    }
-    setNarrator('手札の馬カードで<b>ガード</b>すると、相手が走破で引く枚数を<b>ガード値ぶん減らせる</b>よ。<b>ガードにフォースは不要</b>。本番では見送ることもできるけれど、今回はガードしてみよう。');
-    showNextButton(true);
-    await waitNext();
-    if (myRunId !== tutorialRunId) return;
-    if (isGuardLesson) {
-      setProgress(3);
-      await explainStep($('race-info'), 'race-info', 'ガードに使えるのは、<b>レースの距離とコース（芝・ダート）の両方に適性がある馬</b>だよ。今回の条件は<b>' + race.surface + '・' + race.distance + '</b>。距離だけ、コースだけ合っていてもガードできないんだ。');
-      if (myRunId !== tutorialRunId) return;
-      setProgress(4);
-      await explainStep(cardElById(tutorialGuardCard.id), null, 'たとえば<b>' + tutorialGuardCard.name + '</b>は、適性コースが<b>' + (tutorialGuardCard.surface || []).join('・') + '</b>、適性距離が<b>' + tutorialGuardCard.dist + '</b>なので、今回のガードに使えるよ。<b>脚質は、今いるエリアと一致していなくてもガードできる</b>よ。');
-      if (myRunId !== tutorialRunId) return;
-      setProgress(5);
-    }
-    setNarrator('<b>ガードに使う馬カードを1枚</b>タップして、カードの詳細とガード値を確認してから決めよう。');
-    setZoneActive('field-body', true);
-    showNextButton(false);
-    guardSelectionConfirmedId = null;
-    guardItemSelectionConfirmedId = null;
-    runHorseSelectionConfirmedId = null;
-    discardSelectionConfirmedId = null;
-    discardSelectionsInFlight = 0;
-    pendingFinishRun = null;
-    await waitSelect('select-guard', 1);
-    setZoneActive('field-body', false);
-    if (myRunId !== tutorialRunId) return;
 
-    if (isGuardLesson) setProgress(6);
-    var tutorialCpuRun = cpuHorseCard ? (cpuHorseCard.run || 3) : 3;
-    var tutorialGuardValue = playerGuardCard ? (playerGuardCard.guard || 0) : 0;
-    var tutorialCpuDraw = Math.max(0, tutorialCpuRun - tutorialGuardValue);
-    setNarrator('<b>ガード成功！</b> 相手の走破 ' + tutorialCpuRun + ' − ガード ' + tutorialGuardValue + ' ＝ 相手が引くカードは <b>' + tutorialCpuDraw + '枚</b>になるよ。');
-    showNextButton(false);
-    await showBanner('ガード！', 2800, playerGuardCard);
-    await sleep(100);
-    showNextButton(true);
-    await waitNext();
-    if (myRunId !== tutorialRunId) return;
-
-    // STEP 17: ガード後の相手の走破結果まで見せる
-    setProgress(17);
-    var tutorialCpuReward = Math.min(tutorialCpuDraw, cpuTotalDeck());
-    if (tutorialCpuReward > 0) {
-      setNarrator('ガード後の値に従って、相手は山札から<b>' + tutorialCpuReward + '枚</b>引くよ。');
-      showNextButton(false);
-      await showBanner('相手の走破成功！', 3000, cpuHorseCard, 'ガード後の走破結果');
-      var tutorialOpponentRect = $('zone-opponent').getBoundingClientRect();
-      for (var tutorialDrawIndex = 0; tutorialDrawIndex < tutorialCpuReward; tutorialDrawIndex++) {
-        var tutorialDeckRect = cpuDeckSourceRect();
-        var tutorialDummy = makeSmallCardDummy(tutorialDeckRect);
-        await flyGhost(tutorialDummy, tutorialOpponentRect, 0.6);
-        tutorialDummy.remove();
-        cpuDrawOneFromDeck();
-        opponentHandCount++;
-        renderAll();
-        await sleep(120);
+      // STEP 16: 相手の走破を見てから、初めてガードを説明する
+      setProgress(16);
+      var tutorialGuardCard = hand.filter(function (c) { return c.type === 'horse'; })[0];
+      if (!tutorialGuardCard) {
+        tutorialGuardCard = rousham();
+        hand.push(tutorialGuardCard);
+        renderHand();
+        setNarrator('相手の走破に備えて、練習用の馬カードを手札に用意したよ。');
+        showNextButton(true);
+        await waitNext();
+        if (myRunId !== tutorialRunId) return;
       }
-    } else {
-      setNarrator('ガードで相手の走破を完全に防いだので、相手はカードを引けなかったよ。');
+      setNarrator('手札の馬カードで<b>ガード</b>すると、相手が走破で引く枚数を<b>ガード値ぶん減らせる</b>よ。<b>ガードにフォースは不要</b>。本番では見送ることもできるけれど、今回はガードしてみよう。');
+      showNextButton(true);
+      await waitNext();
+      if (myRunId !== tutorialRunId) return;
+      if (isGuardLesson) {
+        setProgress(3);
+        await explainStep($('race-info'), 'race-info', 'ガードに使えるのは、<b>レースの距離とコース（芝・ダート）の両方に適性がある馬</b>だよ。今回の条件は<b>' + race.surface + '・' + race.distance + '</b>。距離だけ、コースだけ合っていてもガードできないんだ。');
+        if (myRunId !== tutorialRunId) return;
+        setProgress(4);
+        await explainStep(cardElById(tutorialGuardCard.id), null, 'たとえば<b>' + tutorialGuardCard.name + '</b>は、適性コースが<b>' + (tutorialGuardCard.surface || []).join('・') + '</b>、適性距離が<b>' + tutorialGuardCard.dist + '</b>なので、今回のガードに使えるよ。<b>脚質は、今いるエリアと一致していなくてもガードできる</b>よ。');
+        if (myRunId !== tutorialRunId) return;
+        setProgress(5);
+      }
+      setNarrator('<b>ガードに使う馬カードを1枚</b>タップして、カードの詳細とガード値を確認してから決めよう。');
+      setZoneActive('field-body', true);
       showNextButton(false);
-      await showBanner('走破を防いだ！', 2800, playerGuardCard);
-    }
-    if (myRunId !== tutorialRunId) return;
+      guardSelectionConfirmedId = null;
+      guardItemSelectionConfirmedId = null;
+      runHorseSelectionConfirmedId = null;
+      discardSelectionConfirmedId = null;
+      discardSelectionsInFlight = 0;
+      pendingFinishRun = null;
+      await waitSelect('select-guard', 1);
+      setZoneActive('field-body', false);
+      if (myRunId !== tutorialRunId) return;
 
-    var tutorialCpuDiscard = Math.max(0, tutorialCpuReward - 1);
-    opponentHandCount = Math.max(0, opponentHandCount - tutorialCpuDiscard);
-    if (playerGuardCard) farm.push(playerGuardCard);
-    if (cpuHorseCard) farm.push(cpuHorseCard);
-    playerGuardCard = null;
-    cpuHorseCard = null;
-    renderAll();
-    setNarrator('相手も、引いた枚数より1枚少ない<b>' + tutorialCpuDiscard + '枚</b>を捨て、使った馬をファームへ送るよ。これで相手の走破まで完了！');
-    showNextButton(true);
-    await waitNext();
-    if (myRunId !== tutorialRunId) return;
+      if (isGuardLesson) setProgress(6);
+      var tutorialCpuRun = cpuHorseCard ? (cpuHorseCard.run || 3) : 3;
+      var tutorialGuardValue = playerGuardCard ? (playerGuardCard.guard || 0) : 0;
+      var tutorialCpuDraw = Math.max(0, tutorialCpuRun - tutorialGuardValue);
+      setNarrator('<b>ガード成功！</b> 相手の走破 ' + tutorialCpuRun + ' − ガード ' + tutorialGuardValue + ' ＝ 相手が引くカードは <b>' + tutorialCpuDraw + '枚</b>になるよ。');
+      showNextButton(false);
+      await showBanner('ガード！', 2800, playerGuardCard);
+      await sleep(100);
+      showNextButton(true);
+      await waitNext();
+      if (myRunId !== tutorialRunId) return;
+
+      // STEP 17: ガード後の相手の走破結果まで見せる
+      setProgress(17);
+      var tutorialCpuReward = Math.min(tutorialCpuDraw, cpuTotalDeck());
+      if (tutorialCpuReward > 0) {
+        setNarrator('ガード後の値に従って、相手は山札から<b>' + tutorialCpuReward + '枚</b>引くよ。');
+        showNextButton(false);
+        await showBanner('相手の走破成功！', 3000, cpuHorseCard, 'ガード後の走破結果');
+        var tutorialOpponentRect = $('zone-opponent').getBoundingClientRect();
+        for (var tutorialDrawIndex = 0; tutorialDrawIndex < tutorialCpuReward; tutorialDrawIndex++) {
+          var tutorialDeckRect = cpuDeckSourceRect();
+          var tutorialDummy = makeSmallCardDummy(tutorialDeckRect);
+          await flyGhost(tutorialDummy, tutorialOpponentRect, 0.6);
+          tutorialDummy.remove();
+          cpuDrawOneFromDeck();
+          opponentHandCount++;
+          renderAll();
+          await sleep(120);
+        }
+      } else {
+        setNarrator('ガードで相手の走破を完全に防いだので、相手はカードを引けなかったよ。');
+        showNextButton(false);
+        await showBanner('走破を防いだ！', 2800, playerGuardCard);
+      }
+      if (myRunId !== tutorialRunId) return;
+
+      var tutorialCpuDiscard = Math.max(0, tutorialCpuReward - 1);
+      opponentHandCount = Math.max(0, opponentHandCount - tutorialCpuDiscard);
+      if (playerGuardCard) farm.push(playerGuardCard);
+      if (cpuHorseCard) farm.push(cpuHorseCard);
+      playerGuardCard = null;
+      cpuHorseCard = null;
+      renderAll();
+      setNarrator('相手も、引いた枚数より1枚少ない<b>' + tutorialCpuDiscard + '枚</b>を捨て、使った馬をファームへ送るよ。これで相手の走破まで完了！');
+      showNextButton(true);
+      await waitNext();
+      if (myRunId !== tutorialRunId) return;
 
     }
 
@@ -4273,6 +4371,12 @@
     });
     showCommandBar(false); // 配布中はコマンドバーを一旦隠す
 
+    // レース条件を設定（1〜7で学んだ状況カード・フォース能力・脚質一致が活きる中山・芝・中距離・稍重）
+    race.racecourse = '中山';
+    race.surface = '芝';
+    race.distance = '中距離';
+    race.trackCondition = '稍重';
+
     // 盤面を一旦初期化（カードを空にしてから配り始める）
     LANES.forEach(function (l) { l.count = 0; });
     CPU_LANES.forEach(function (l) { l.count = 10; });
@@ -4305,8 +4409,17 @@
     isCpuTurn = false;
     hasRunThisTurn = false;
 
-    setProgress(19);
-    $('step-label').textContent = '自分で操作';
+    playerHasTakenTurn = false;
+    var trackBadge = document.querySelector('.track-badge');
+    if (trackBadge) trackBadge.innerHTML = '<span class="badge-dot"></span>1往復体験';
+    var stepLabel = $('step-label');
+    if (stepLabel) stepLabel.innerHTML = '<span class="step-mode-label">自分のターン</span>';
+    var fillEl = $('track-fill');
+    var horseEl = $('track-horse');
+    if (fillEl) fillEl.style.width = '0%';
+    if (horseEl) horseEl.style.left = '0%';
+    var flagEl = $('track-flag');
+    if (flagEl) flagEl.classList.remove('goal-reached');
     renderRaceInfo();
     renderAll();
 
@@ -4325,6 +4438,8 @@
   function startTutorialMode() {
     tutorialRunId++;
     document.body.classList.remove('manual-mode');
+    var trackBadge = document.querySelector('.track-badge');
+    if (trackBadge) trackBadge.innerHTML = '<span class="badge-dot"></span>TUTORIAL';
     var modeOpts = document.querySelectorAll('#mode-switch .mode-opt');
     modeOpts.forEach(function (opt) {
       opt.classList.toggle('active', opt.dataset.mode === 'tutorial');
@@ -4336,23 +4451,26 @@
 
   /* ===================== BGM（音源ファイル再生・再生位置引き継ぎ対応） ===================== */
   var BGM = (function () {
-    var SRC = 'audio/Banners_in_the_Gale.mp3';
+    var BGM_SRC = 'audio/Cyber_Gallop_Overdrive.mp3';
     var TARGET_VOLUME = 0.45;
-    var FADE_IN_MS = 1200;
-    var FADE_OUT_MS = 600;
+    var FADE_IN_MS = 1000;
+    var FADE_OUT_MS = 400;
 
     var audio = null, fadeTimer = null;
 
     function saveCurrentTime() {
       if (audio && audio.currentTime > 0) {
-        try { sessionStorage.setItem('foth_bgm_time_original', String(audio.currentTime)); } catch (e) { }
+        try {
+          sessionStorage.setItem('foth_bgm_time', String(audio.currentTime));
+          sessionStorage.setItem('foth_bgm_time_original', String(audio.currentTime));
+        } catch (e) { }
       }
     }
 
     function restoreCurrentTime() {
       if (!audio) return;
       try {
-        var savedTime = sessionStorage.getItem('foth_bgm_time_original');
+        var savedTime = sessionStorage.getItem('foth_bgm_time') || sessionStorage.getItem('foth_bgm_time_original');
         if (savedTime) {
           var t = parseFloat(savedTime);
           if (isFinite(t) && t >= 0) {
@@ -4364,7 +4482,7 @@
 
     function ensureAudio() {
       if (!audio) {
-        audio = new Audio(SRC);
+        audio = new Audio(BGM_SRC);
         audio.loop = true;
         audio.preload = 'auto';
         audio.volume = 0;
@@ -4383,11 +4501,12 @@
       if (fadeTimer) { clearInterval(fadeTimer); fadeTimer = null; }
     }
 
-    function fadeTo(target, duration) {
+    function fadeTo(target, duration, onComplete) {
       clearFade();
-      var startVol = audio.volume;
+      var startVol = audio ? audio.volume : 0;
       var startTime = (window.performance && performance.now) ? performance.now() : Date.now();
       fadeTimer = setInterval(function () {
+        if (!audio) { clearFade(); return; }
         var now = (window.performance && performance.now) ? performance.now() : Date.now();
         var t = Math.min(1, (now - startTime) / duration);
         audio.volume = startVol + (target - startVol) * t;
@@ -4397,6 +4516,7 @@
             saveCurrentTime();
             audio.pause();
           }
+          if (onComplete) onComplete();
         }
       }, 30);
     }
@@ -4424,7 +4544,11 @@
       fadeTo(0, FADE_OUT_MS);
     }
 
-    return { start: start, stop: stop, isBgmEnabled: isBgmEnabled };
+    return {
+      start: start,
+      stop: stop,
+      isBgmEnabled: isBgmEnabled
+    };
   })();
 
   var bgmEnabled = BGM.isBgmEnabled();
@@ -4986,6 +5110,7 @@
 
     gear.addEventListener('click', function () {
       Haptics.tap();
+      if (typeof updateBgmTrackButtons === 'function') updateBgmTrackButtons();
       overlay.classList.add('show');
       gear.setAttribute('aria-expanded', 'true');
     });
@@ -5047,7 +5172,7 @@
 
   })();
 
-  /* ===================== field theme switch (スライドスイッチ: サイバー / クラシック) ===================== */
+  /* ===================== field theme switch (スライドスイッチ: Default / Cyber) ===================== */
   (function setupThemeSwitch() {
     var switchWrap = $('theme-switch');
     if (!switchWrap) return;
@@ -5058,24 +5183,30 @@
       try {
         var urlParams = new URLSearchParams(window.location.search);
         var urlTheme = urlParams.get('theme');
-        if (urlTheme && (urlTheme === 'cyber' || urlTheme === 'classic')) return urlTheme;
+        if (urlTheme && (urlTheme === 'cyber' || urlTheme === 'default' || urlTheme === 'classic')) {
+          return (urlTheme === 'cyber') ? 'cyber' : 'default';
+        }
         var saved = localStorage.getItem(STORAGE_KEY);
-        if (saved === 'cyber' || saved === 'classic') return saved;
-      } catch (e) {}
-      return 'cyber'; // 未設定時の初期値
+        if (saved && (saved === 'cyber' || saved === 'default' || saved === 'classic')) {
+          return (saved === 'cyber') ? 'cyber' : 'default';
+        }
+      } catch (e) { }
+      return 'default'; // 未設定時の初期値（Default）
     }
 
     function applyTheme(theme, save) {
       var isCyber = (theme === 'cyber');
       document.body.classList.toggle('field-cyber', isCyber);
-      document.body.dataset.fieldTheme = theme;
+      document.body.dataset.fieldTheme = isCyber ? 'cyber' : 'default';
       opts.forEach(function (opt) {
-        opt.classList.toggle('active', opt.dataset.theme === theme);
+        var optTheme = opt.dataset.theme;
+        var isActive = isCyber ? (optTheme === 'cyber') : (optTheme === 'default' || optTheme === 'classic');
+        opt.classList.toggle('active', isActive);
       });
       if (save !== false) {
         try {
-          localStorage.setItem(STORAGE_KEY, theme);
-        } catch (e) {}
+          localStorage.setItem(STORAGE_KEY, isCyber ? 'cyber' : 'default');
+        } catch (e) { }
       }
     }
 
@@ -5426,7 +5557,7 @@
           opts.onAction();
         });
         layer.appendChild(confirmBtn);
-      // 手札の状況カードで詳細表示中なら、ここから直接発動できるボタンを表示
+        // 手札の状況カードで詳細表示中なら、ここから直接発動できるボタンを表示
       } else if (card.type === 'situation' && !opts.autoHideMs && !isCpuTurn && hand.some(function (c) { return c.id === card.id; })) {
         var actBtn = document.createElement('button');
         actBtn.className = 'closeup-action-btn btn-guard';
@@ -5683,13 +5814,13 @@
   window._doDeuce = doDeuce;
   window._silkMobius = silkMobius;
   window._seiunSky = seiunSky;
-  window._getHand = function() { return hand; };
-  window._setHand = function(h) { hand = h; };
+  window._getHand = function () { return hand; };
+  window._setHand = function (h) { hand = h; };
   window._situationCard = situationCard;
   window._activateSituationCard = activateSituationCard;
-  window._getSituation = function() { return situation; };
-  window._getPhase = function() { return phase; };
-  window._getInteractionMode = function() { return interactionMode; };
+  window._getSituation = function () { return situation; };
+  window._getPhase = function () { return phase; };
+  window._getInteractionMode = function () { return interactionMode; };
   window._renderAll = renderAll;
   window._FieldCamera = FieldCamera;
 

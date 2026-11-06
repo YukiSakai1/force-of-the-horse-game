@@ -118,6 +118,7 @@
 
   /* Cyber mode: 奥の背景（空）を水色に設定 */
   body[data-field-theme="classic"],
+  body[data-field-theme="default"],
   body:not(.field-cyber) {
     background-color: #38bdf8;
     background: linear-gradient(180deg, #38bdf8 0%, #60c5f5 45%, #a5e3fd 100%);
@@ -3290,9 +3291,9 @@
     top: auto;
     left: auto;
     transform: scale(0.9);
-    width: min(82vw, 300px);
-    max-width: none;
-    padding: 13px 14px;
+    width: min(90vw, 360px);
+    max-width: 94vw;
+    padding: 12px 18px;
     background: linear-gradient(180deg, #181d24 0%, #0d1217 100%);
     border: 2px solid #e5c07b;
     border-radius: 6px;
@@ -3340,24 +3341,27 @@
     width: 100%;
     min-width: 0;
     white-space: normal;
-    overflow-wrap: anywhere;
+    word-break: keep-all;
+    overflow-wrap: break-word;
     line-height: 1.45;
   }
 
   .banner-stage.has-card:not(.is-guard) .banner-box .banner-box-text {
     font-family: 'Hiragino Sans', 'Noto Sans JP', sans-serif;
-    font-size: clamp(21px, 5.2vw, 26px);
+    font-size: clamp(17px, 4.4vw, 23px);
     font-weight: 900;
     color: #fff6db;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.05em;
     text-shadow:
       0 0 14px rgba(255, 235, 160, 0.9),
       0 2px 6px rgba(0, 0, 0, 0.95);
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     min-width: 0;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    line-height: 1.3;
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow-wrap: normal;
+    line-height: 1.35;
     position: relative;
     z-index: 2;
   }
@@ -3472,7 +3476,8 @@
     width: 100% !important;
     min-width: 0 !important;
     white-space: normal !important;
-    overflow-wrap: anywhere !important;
+    word-break: keep-all !important;
+    overflow-wrap: break-word !important;
     line-height: 1.45 !important;
     position: relative !important;
     z-index: 2 !important;
@@ -7247,3 +7252,90 @@
       gap: 10px;
     }
   }
+
+/* ===================== BGM 楽曲選択 UI ===================== */
+.bgm-track-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  margin-top: 6px;
+}
+
+.bgm-track-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: rgba(10, 26, 46, 0.7);
+  border: 1px solid rgba(62, 224, 255, 0.25);
+  border-radius: 8px;
+  color: var(--rail);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  position: relative;
+  font-family: inherit;
+}
+
+.bgm-track-btn:hover {
+  background: rgba(18, 48, 80, 0.85);
+  border-color: rgba(62, 224, 255, 0.6);
+  transform: translateX(2px);
+}
+
+.bgm-track-btn.active {
+  background: linear-gradient(135deg, rgba(14, 52, 84, 0.95), rgba(8, 30, 52, 0.95));
+  border-color: #3ee0ff;
+  box-shadow: 0 0 12px rgba(62, 224, 255, 0.35), inset 0 0 10px rgba(62, 224, 255, 0.15);
+}
+
+.bgm-track-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.bgm-track-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-grow: 1;
+  min-width: 0;
+}
+
+.bgm-track-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: 0.02em;
+}
+
+.bgm-track-btn.active .bgm-track-title {
+  color: #3ee0ff;
+  text-shadow: 0 0 8px rgba(62, 224, 255, 0.5);
+}
+
+.bgm-track-desc {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bgm-track-check {
+  font-size: 13px;
+  color: #3ee0ff;
+  opacity: 0;
+  font-weight: bold;
+  transition: opacity 0.2s;
+  flex-shrink: 0;
+}
+
+.bgm-track-btn.active .bgm-track-check {
+  opacity: 1;
+}
