@@ -4834,10 +4834,10 @@
   }
 
   .theme-opt[data-theme="classic"].active {
-    background: var(--gold);
-    color: var(--ink);
+    background: linear-gradient(135deg, #38bdf8, #15803d);
+    color: #03201e;
     font-weight: 700;
-    box-shadow: 0 0 10px rgba(227, 178, 60, .65);
+    box-shadow: 0 0 12px rgba(56, 189, 248, .65);
   }
 
   /* ===================== 設定パネル ナビゲーションCTAボタン ===================== */

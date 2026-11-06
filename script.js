@@ -5183,29 +5183,28 @@
       try {
         var urlParams = new URLSearchParams(window.location.search);
         var urlTheme = urlParams.get('theme');
-        if (urlTheme && (urlTheme === 'cyber' || urlTheme === 'default' || urlTheme === 'classic')) {
-          return (urlTheme === 'cyber') ? 'cyber' : 'default';
-        }
+        if (urlTheme && (urlTheme === 'cyber' || urlTheme === 'classic')) return urlTheme;
+        if (urlTheme === 'default') return 'cyber';
         var saved = localStorage.getItem(STORAGE_KEY);
-        if (saved && (saved === 'cyber' || saved === 'default' || saved === 'classic')) {
-          return (saved === 'cyber') ? 'cyber' : 'default';
-        }
+        if (saved === 'classic') return 'classic';
+        if (saved === 'cyber') return 'cyber';
+        if (saved === 'default') return 'cyber';
       } catch (e) { }
-      return 'default'; // 未設定時の初期値（Default）
+      return 'cyber'; // 未設定時の初期値（Default: 2Dフィールド）
     }
 
     function applyTheme(theme, save) {
+      // theme: 'cyber' => Default（field-cyber付与、2Dフィールド）
+      // theme: 'classic' => Cyber（field-cyber解除、3D電脳空間フィールド）
       var isCyber = (theme === 'cyber');
       document.body.classList.toggle('field-cyber', isCyber);
-      document.body.dataset.fieldTheme = isCyber ? 'cyber' : 'default';
+      document.body.dataset.fieldTheme = theme;
       opts.forEach(function (opt) {
-        var optTheme = opt.dataset.theme;
-        var isActive = isCyber ? (optTheme === 'cyber') : (optTheme === 'default' || optTheme === 'classic');
-        opt.classList.toggle('active', isActive);
+        opt.classList.toggle('active', opt.dataset.theme === theme);
       });
       if (save !== false) {
         try {
-          localStorage.setItem(STORAGE_KEY, isCyber ? 'cyber' : 'default');
+          localStorage.setItem(STORAGE_KEY, theme);
         } catch (e) { }
       }
     }

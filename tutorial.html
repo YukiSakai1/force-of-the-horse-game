@@ -58,15 +58,15 @@
 </script>
 </head>
 
-<body class="field-3d" data-tilt="0">
+<body class="field-3d field-cyber" data-tilt="0">
   <script>
     (function () {
       try {
         var t = localStorage.getItem('foth_field_theme');
-        if (t === 'cyber') {
-          document.body.classList.add('field-cyber');
-        } else {
+        if (t === 'classic') {
           document.body.classList.remove('field-cyber');
+        } else {
+          document.body.classList.add('field-cyber');
         }
       } catch (e) { }
     })();
@@ -377,8 +377,8 @@
         <div class="settings-group">
           <div class="settings-label">画面デザイン</div>
           <div class="theme-switch" id="theme-switch" role="group" aria-label="画面デザイン切り替え">
-            <button class="theme-opt active" data-theme="default" type="button">Default</button>
-            <button class="theme-opt" data-theme="cyber" type="button">Cyber</button>
+            <button class="theme-opt active" data-theme="cyber" type="button">Default</button>
+            <button class="theme-opt" data-theme="classic" type="button">Cyber</button>
           </div>
         </div>
         <div class="settings-group">
@@ -418,7 +418,7 @@
     </div>
   </div>
 
-  <script src="script.js?v=104"></script>
+  <script src="script.js?v=105"></script>
   <script type="module">
     import * as THREE from 'three';
     import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
