@@ -2496,6 +2496,14 @@
     setNarrator(msg);
   }
 
+  var lastTouchTimestamp = 0;
+  function isTouchInteraction() {
+    return (Date.now() - lastTouchTimestamp < 650);
+  }
+  document.addEventListener('touchstart', function () {
+    lastTouchTimestamp = Date.now();
+  }, { passive: true, capture: true });
+
   function onHandCardClick(id) {
     var card = hand.filter(function (c) { return c.id === id; })[0];
     if (!card) return;
@@ -2567,6 +2575,10 @@
     // CPUターン中は通常の自由操作分岐を通らないため、ここで先に止めて
     // アイテムなどが汎用の「ファームへ送る」処理へ落ちるのを防ぐ。
     if (phase === 'guard_select' && card.type !== 'horse') {
+      if (!isTouchInteraction()) {
+        CardCloseup.show(card, { label: '手札カード詳細' });
+        return;
+      }
       shakeCard(id);
       showToast('ガードには馬カードを選んでください');
       return;
@@ -2683,7 +2695,14 @@
       }
 
       if (phase === 'select_horse') {
-        if (card.type !== 'horse') { shakeCard(id); return; }
+        if (card.type !== 'horse') {
+          if (!isTouchInteraction()) {
+            CardCloseup.show(card, { label: '手札カード詳細' });
+            return;
+          }
+          shakeCard(id);
+          return;
+        }
         selectedHorse = card;
         var cost = card.cost || 2;
         var forces = hand.filter(function (c) { return c.type === 'force'; });
@@ -2709,7 +2728,14 @@
           beginForceSelection();
           return;
         }
-        if (card.type !== 'force') { shakeCard(id); return; }
+        if (card.type !== 'force') {
+          if (!isTouchInteraction()) {
+            CardCloseup.show(card, { label: '手札カード詳細' });
+            return;
+          }
+          shakeCard(id);
+          return;
+        }
         var selectedForceIndex = selectedForces.findIndex(function (c) { return c.id === card.id; });
         if (selectedForceIndex >= 0) {
           selectedForces.splice(selectedForceIndex, 1);
@@ -2750,9 +2776,21 @@
       }
 
       if (phase === 'select_item') {
-        if (card.type !== 'item' && card.type !== 'jockey') { shakeCard(id); return; }
+        if (card.type !== 'item' && card.type !== 'jockey') {
+          if (!isTouchInteraction()) {
+            CardCloseup.show(card, { label: '手札カード詳細' });
+            return;
+          }
+          shakeCard(id);
+          return;
+        }
         if (card.effectType !== 'run_bonus' && card.effectType !== 'run_penalty' && card.effectType !== 'elite_jockey') {
-          shakeCard(id); return;
+          if (!isTouchInteraction()) {
+            CardCloseup.show(card, { label: '手札カード詳細' });
+            return;
+          }
+          shakeCard(id);
+          return;
         }
         var selectedIndex = selectedRunItems.findIndex(function (c) { return c.id === card.id; });
         if (selectedIndex >= 0) {
@@ -2771,7 +2809,14 @@
       }
 
       if (phase === 'select_guard_item') {
-        if (!isGuardSupportCard(card)) { shakeCard(id); return; }
+        if (!isGuardSupportCard(card)) {
+          if (!isTouchInteraction()) {
+            CardCloseup.show(card, { label: '手札カード詳細' });
+            return;
+          }
+          shakeCard(id);
+          return;
+        }
         var guardItemIndex = selectedGuardItems.findIndex(function (item) { return item.id === card.id; });
         if (guardItemIndex >= 0) {
           selectedGuardItems.splice(guardItemIndex, 1);
@@ -4647,8 +4692,10 @@
   var opponentFieldCardEl = $('field-body-opp');
   if (opponentFieldCardEl) {
     opponentFieldCardEl.addEventListener('click', function () {
-      if (!cpuHorseCard) return;
-      CardCloseup.show(cpuHorseCard, { label: '相手の馬カード詳細' });
+      if (isTouchInteraction()) return; // スマホではタップでなく長押しで拡大
+      var currentCpuCard = fieldGuard || cpuHorseCard;
+      if (!currentCpuCard) return;
+      CardCloseup.show(currentCpuCard, { label: fieldGuard ? '相手のガード馬詳細' : '相手の馬カード詳細' });
     });
   }
 
@@ -4732,48 +4779,80 @@
     });
   }
 
-  // カード詳細拡大表示（スマホ長押し＆PC右クリック）
+  // カード詳細拡大表示（パソコン左クリック＆スマホ長押し）
   (function setupCardInspection() {
     var pressTimer = null;
     var pressedTarget = null;
     var touchStartX = 0, touchStartY = 0;
-    var LONG_PRESS_MS = 480;
+    var LONG_PRESS_MS = 420;
+    var suppressNextGlobalClick = false;
 
     function getCardFromEvent(target) {
       if (!target || !target.closest) return null;
+      if (target.closest('#closeup-layer, button, a, input, select')) return null;
+
       // 1. 手札カード
       var handCardEl = target.closest('#hand-row .card');
       if (handCardEl) {
-        // 走破（馬・フォース選択時）や手札選択中は、長押し詳細よりも1タップでのカード選択操作を最優先する
-        if (phase === 'select_horse' || phase === 'select_force' || phase === 'select_item' || phase === 'select_guard_item' ||
-          phase === 'select_item_idle' || phase === 'select_situation' || phase === 'discard_select' ||
-          phase === 'guard_select') {
-          return null;
-        }
         var hCard = hand.find(function (c) { return c.id === handCardEl.dataset.id; });
-        return hCard ? { card: hCard, label: '手札カード詳細' } : null;
+        return hCard ? { card: hCard, label: '手札カード詳細', el: handCardEl, type: 'hand' } : null;
       }
-      // 2. 対戦フィールドの馬カード
-      var fieldEl = target.closest('#zone-field');
-      if (fieldEl && field) {
-        return { card: field, label: '対戦フィールド' };
+      // 2. 相手フィールドの馬カード
+      var oppFieldEl = target.closest('#field-body-opp');
+      var currentCpuCard = fieldGuard || cpuHorseCard;
+      if (oppFieldEl && currentCpuCard) {
+        return { card: currentCpuCard, label: fieldGuard ? '相手のガード馬詳細' : '相手の馬カード詳細', el: oppFieldEl, type: 'oppField' };
       }
-      // 3. ファームのカード
+      // 3. 自分フィールドの馬カード
+      var myFieldEl = target.closest('#field-body, #zone-field');
+      var currentMyCard = field || playerGuardCard;
+      if (myFieldEl && currentMyCard) {
+        return { card: currentMyCard, label: playerGuardCard ? 'ガード馬詳細' : '対戦フィールド', el: myFieldEl, type: 'myField' };
+      }
+      // 4. ファームのカード
       var farmEl = target.closest('#zone-farm');
       if (farmEl && farm.length > 0) {
-        return { card: farm[farm.length - 1], label: 'ファーム（最新カード）' };
+        return { card: farm[farm.length - 1], label: 'ファーム（最新カード）', el: farmEl, type: 'farm' };
       }
-      // 4. 状況カード
+      // 5. 状況カード
       var sitEl = target.closest('#zone-situation');
       if (sitEl && situation) {
-        return { card: situation, label: '状況カード' };
+        return { card: situation, label: '状況カード', el: sitEl, type: 'situation' };
       }
       return null;
     }
 
-    // --- PC用：右クリック（contextmenu）による即時拡大プレビュー ---
+    // --- パソコン用：左クリックによる即時拡大プレビュー ---
+    document.addEventListener('click', function (e) {
+      var layer = $('closeup-layer');
+      if (layer && layer.classList.contains('show')) return;
+
+      // スマホ長押し直後の合成クリックを抑止
+      if (suppressNextGlobalClick) {
+        suppressNextGlobalClick = false;
+        e.preventDefault();
+        e.stopPropagation();
+        return;
+      }
+
+      // タッチ操作（スマホ）由来のクリックは除外（スマホは長押しで拡大）
+      if (isTouchInteraction()) return;
+      if (e.button !== 0) return;
+
+      var info = getCardFromEvent(e.target);
+      if (!info || !info.card) return;
+
+      // 盤面カード（フィールド、相手の馬、ファーム、状況カード）は即座に拡大
+      if (info.type !== 'hand') {
+        e.preventDefault();
+        e.stopPropagation();
+        Haptics.tap();
+        CardCloseup.show(info.card, { label: info.label });
+      }
+    }, true);
+
+    // --- パソコン用：右クリック（contextmenu）でも拡大プレビュー可能 ---
     document.addEventListener('contextmenu', function (e) {
-      // closeup-layerが開いている時は右クリックでも閉じる
       var layer = $('closeup-layer');
       if (layer && layer.classList.contains('show')) {
         e.preventDefault();
@@ -4790,6 +4869,11 @@
 
     // --- スマホ用：長押し（touchstart / touchend / touchmove） ---
     function onTouchStart(e) {
+      if (e.touches && e.touches.length > 1) {
+        if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+        pressedTarget = null;
+        return;
+      }
       var touch = e.touches ? e.touches[0] : null;
       if (!touch) return;
       var info = getCardFromEvent(e.target);
@@ -4805,6 +4889,7 @@
           Haptics.tap();
           CardCloseup.show(pressedTarget.card, { label: pressedTarget.label });
           suppressNextHandClick = true;
+          suppressNextGlobalClick = true;
         }
         pressTimer = null;
       }, LONG_PRESS_MS);
@@ -4831,7 +4916,7 @@
       pressedTarget = null;
     }
 
-    document.addEventListener('touchstart', onTouchStart, { passive: true });
+    document.addEventListener('touchstart', onTouchStart, { passive: true, capture: true });
     document.addEventListener('touchmove', onTouchMove, { passive: true });
     document.addEventListener('touchend', onTouchEnd, { passive: true });
     document.addEventListener('touchcancel', onTouchEnd, { passive: true });

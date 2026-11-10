@@ -4778,6 +4778,27 @@
     user-select: none;
   }
 
+  /* パソコン（マウス操作時）：拡大可能なカード要素のホバーカーソルと視覚フィードバック */
+  @media (hover: hover) and (pointer: fine) {
+    .card,
+    .farm-mini,
+    .field-mini,
+    .mini-card,
+    #zone-farm,
+    #zone-situation,
+    #field-body,
+    #field-body-opp {
+      cursor: pointer;
+    }
+    .field-mini:hover,
+    .farm-mini:hover,
+    .mini-card:hover {
+      filter: brightness(1.12);
+      box-shadow: 0 4px 12px rgba(227, 178, 60, .5);
+      transition: filter .12s ease, box-shadow .15s ease;
+    }
+  }
+
   /* ==================== CYBER FIELD SKIN (枠: サイバー) ==================== */
   :root {
     --cyber-cyan: #3ee0ff;
