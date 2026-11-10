@@ -1161,6 +1161,37 @@
     return document.querySelector('.card[data-id="' + id + '"]');
   }
 
+  // 山札から1枚の薄いカードが手札へシュッと引かれるドローアニメーション
+  function animateCardDraw(srcRect, destRect, scaleEnd) {
+    return new Promise(function (resolve) {
+      if (!srcRect || !destRect) { resolve(); return; }
+      var card = document.createElement('div');
+      card.className = 'flying-draw-card';
+      card.style.left = srcRect.left + 'px';
+      card.style.top = srcRect.top + 'px';
+      card.style.width = srcRect.width + 'px';
+      card.style.height = srcRect.height + 'px';
+      document.body.appendChild(card);
+
+      if (window.SoundFX && typeof SoundFX.cardSlide === 'function') {
+        SoundFX.cardSlide();
+      }
+
+      requestAnimationFrame(function () {
+        var dx = (destRect.left + destRect.width / 2) - (srcRect.left + srcRect.width / 2);
+        var dy = (destRect.top + destRect.height / 2) - (srcRect.top + srcRect.height / 2);
+        var scale = (typeof scaleEnd === 'number') ? scaleEnd : Math.max(0.4, Math.min(destRect.width / srcRect.width, 1));
+        card.style.transform = 'translate(' + dx + 'px, ' + dy + 'px) scale(' + scale + ')';
+        card.style.opacity = '0.55';
+      });
+
+      setTimeout(function () {
+        card.remove();
+        resolve();
+      }, 430);
+    });
+  }
+
   function makeDeckDummy(deckRect) {
     var dummy = document.createElement('div');
     dummy.className = 'deck-card';
@@ -2135,14 +2166,13 @@
     showBanner('走破成功！ ' + maxDraw + '枚ドロー', 3000, horse,
       '相手：走破 ' + cpuRunValue + ' − ガード ' + guardValue + ' ＝ ' + maxDraw + '枚').then(function () {
         var chain = Promise.resolve();
-        var opponentRect = $('zone-opponent').getBoundingClientRect();
+        var targetEl = $('opponent-hand-display') || $('zone-opponent');
         for (var i = 0; i < maxDraw; i++) {
-          (function () {
+          (function (idx) {
             chain = chain.then(function () {
               var deckRect = cpuDeckSourceRect();
-              var dummy = makeSmallCardDummy(deckRect);
-              return flyGhost(dummy, opponentRect, 0.6).then(function () {
-                dummy.remove();
+              var opponentRect = targetEl.getBoundingClientRect();
+              return animateCardDraw(deckRect, opponentRect, 0.45).then(function () {
                 var rewardMaker;
                 var rewardRoll = Math.random();
                 if (rewardRoll < 0.45) rewardMaker = forceCard;
@@ -2154,10 +2184,10 @@
                 cpuDrawOneFromDeck();
                 lastDrawer = 'cpu';
                 renderAll();
-                return sleep(120);
+                return sleep(160);
               });
             });
-          })();
+          })(i);
         }
         chain.then(function () {
           // 走破成功時：走破数 - 1 枚を手札から捨てる（プレイヤーと同ルール）
@@ -2372,15 +2402,13 @@
           chain = chain.then(function () {
             var deckRect = deckSourceRect();
             var handRect = $('hand-row').getBoundingClientRect();
-            var dummy = makeDeckDummy(deckRect);
-            return flyGhost(dummy, handRect).then(function () {
-              dummy.remove();
+            return animateCardDraw(deckRect, handRect, 0.85).then(function () {
               var maker = FREEPLAY_POOL[Math.floor(Math.random() * FREEPLAY_POOL.length)];
               hand.push(maker());
               drawOneFromDeck();
               lastDrawer = 'player';
               renderAll();
-              return sleep(120);
+              return sleep(140);
             });
           });
         })();
@@ -2970,9 +2998,7 @@
     var drawnLaneKey = currentLane().key;
     var deckRect = deckSourceRect();
     var handRect = $('hand-row').getBoundingClientRect();
-    var dummy = makeDeckDummy(deckRect);
-    flyGhost(dummy, handRect).then(function () {
-      dummy.remove();
+    animateCardDraw(deckRect, handRect, 0.85).then(function () {
       var maker;
       if (nextDrawOverride) {
         maker = nextDrawOverride;
@@ -4330,16 +4356,15 @@
         setNarrator('ガード後の値に従って、相手は山札から<b>' + tutorialCpuReward + '枚</b>引くよ。');
         showNextButton(false);
         await showBanner('相手の走破成功！', 3000, cpuHorseCard, 'ガード後の走破結果');
-        var tutorialOpponentRect = $('zone-opponent').getBoundingClientRect();
+        var tutorialOpponentEl = $('opponent-hand-display') || $('zone-opponent');
+        var tutorialOpponentRect = tutorialOpponentEl.getBoundingClientRect();
         for (var tutorialDrawIndex = 0; tutorialDrawIndex < tutorialCpuReward; tutorialDrawIndex++) {
           var tutorialDeckRect = cpuDeckSourceRect();
-          var tutorialDummy = makeSmallCardDummy(tutorialDeckRect);
-          await flyGhost(tutorialDummy, tutorialOpponentRect, 0.6);
-          tutorialDummy.remove();
+          await animateCardDraw(tutorialDeckRect, tutorialOpponentRect, 0.45);
           cpuDrawOneFromDeck();
           opponentHandCount++;
           renderAll();
-          await sleep(120);
+          await sleep(160);
         }
       } else {
         setNarrator('ガードで相手の走破を完全に防いだので、相手はカードを引けなかったよ。');

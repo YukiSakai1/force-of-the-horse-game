@@ -1616,6 +1616,28 @@
     justify-content: center;
   }
 
+  /* 山札から1枚ずつ引かれる単一カード演出用（山札の厚みシャドウを持たない薄い1枚） */
+  .flying-draw-card {
+    position: fixed;
+    border-radius: 6px;
+    background-image: var(--card-back-image);
+    background-size: cover;
+    background-position: center;
+    border: 1.5px solid #d7b25a;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .6);
+    pointer-events: none;
+    z-index: 1200;
+    box-sizing: border-box;
+    margin: 0;
+    transform-origin: center center;
+    transition: transform .42s cubic-bezier(.25, .8, .25, 1), opacity .42s ease-in;
+  }
+
+  body.field-cyber .flying-draw-card {
+    border-color: rgba(62, 224, 255, .75);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .65), 0 0 10px rgba(62, 224, 255, .35);
+  }
+
   .mini-wrap {
     width: 100%;
     height: 100%;
