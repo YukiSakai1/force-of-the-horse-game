@@ -270,6 +270,7 @@
   var cpuRunValue = 0;
   var cpuHorseCard = null; // CPU側が今の走破で使用している馬カード（自分の手札から選ばれる）
   var cpuHand = []; // CPU側の実際の手札（表には出さないが、走破できるかの判定に使う）
+  var cpuTurnCount = 0; // CPUの経過ターン数（序盤と中盤以降の立ち回り判定に使用）
   var guardValue = 0;
   var itemGuardBonus = 0; // guard_bonus アイテムの効果を一時的に積んでおく変数
   var guardSelectionConfirmedId = null; // 能力確認後にガード決定された馬カード
@@ -1896,18 +1897,39 @@
   }
 
   // CPU の手札の中から、コスト分のフォースカードも揃っている馬カードを選ぶ（無ければ null）
+  // 初手はコスト2の標準馬を優先し、コスト3の大型馬（ドウデュース等）は中盤以降の切り札として繰り出す
   function cpuPickRunnableHorse() {
     var horses = cpuHand.filter(function (c) { return c.type === 'horse'; });
     if (!horses.length) return null;
-    horses.sort(function (a, b) { return (b.run || 0) - (a.run || 0); }); // 走破値が高い馬を優先
-    for (var i = 0; i < horses.length; i++) {
-      var h = horses[i];
-      if (cpuHandCountOfType('force') >= (h.cost || 2)) return h;
+    var forceCount = cpuHandCountOfType('force');
+
+    // コストが支払える出走可能馬を抽出
+    var runnable = horses.filter(function (h) {
+      return forceCount >= (h.cost || 2);
+    });
+    if (!runnable.length) return null;
+
+    // 初手（1ターン目）はフォースを全消費する大型切り札（コスト3）を温存し、
+    // まずはコスト2の馬で走破する。中盤以降やコスト2の馬がいない場合は切り札も解禁
+    var eligible = runnable;
+    if (cpuTurnCount <= 1) {
+      var standardHorses = runnable.filter(function (h) { return (h.cost || 2) <= 2; });
+      if (standardHorses.length > 0) {
+        eligible = standardHorses;
+      }
     }
-    return null;
+
+    // 走破値が高い馬を優先（同走破値の場合はランダムに選んで対戦ごとの展開を多彩にする）
+    eligible.sort(function (a, b) {
+      var diff = (b.run || 0) - (a.run || 0);
+      if (diff !== 0) return diff;
+      return Math.random() - 0.5;
+    });
+    return eligible[0];
   }
 
   function cpuTurn() {
+    cpuTurnCount++;
     itemGuardBonus = 0;
     cpuDrawOneCard();
     renderAll();
@@ -4385,10 +4407,11 @@
     isCpuTurn = false;
     hasRunThisTurn = false;
     opponentHandCount = 0;
-    // 相手（CPU）にも自分と同じく初期手札7枚を配る（フォース・馬をバランスよく持たせ、序盤から走破できるようにする）
-    cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
+    // 相手（CPU）にも自分と同じく初期手札7枚を配る（初手はコスト2の馬、ドウデュースは中盤以降の切り札として保持）
+    cpuHand = [forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip(), rousham()];
     opponentHandCount = cpuHand.length;
     cpuHorseCard = null;
+    cpuTurnCount = 0;
     if (cpuTotalDeck() <= 0) CPU_LANES.forEach(function (l) { l.count = 10; });
     renderRaceInfo();
     showNextButton(false);
@@ -4427,12 +4450,13 @@
     CPU_LANES.forEach(function (l) { l.count = 10; });
     farm = [];
     hand = [];
-    cpuHand = [forceCard(), forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip()];
+    cpuHand = [forceCard(), forceCard(), silkMobius(), seiunSky(), doDeuce(), goldShip(), rousham()];
     opponentHandCount = cpuHand.length;
     field = null;
     fieldGuard = null;
     playerGuardCard = null;
     cpuHorseCard = null;
+    cpuTurnCount = 0;
     situation = null;
 
     phase = 'idle';
