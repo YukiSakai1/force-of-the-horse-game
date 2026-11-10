@@ -2037,7 +2037,7 @@
         '相手の実効走破値: <b>' + runValue + '</b>';
       btnsEl.innerHTML =
         '<button class="btn-guard" id="guard-yes">ガードする</button>' +
-        '<button class="btn-skip" id="guard-no">⏭ ガードしない</button>';
+        '<button class="btn-skip" id="guard-no">ガードしない</button>';
 
       $('guard-yes').addEventListener('click', function () {
         popup.style.display = 'none';
